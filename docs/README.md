@@ -1,8 +1,7 @@
-# AdvanceEngine — Documentación definitiva
+# AdvanceEngine — Documentación
 
-Documentación completa del editor y motor de **AdvanceEngine** (juegos para Game Boy Advance). Está escrita desde cero, con capturas recortadas de cada sección y la explicación de **cada opción, cada botón y cada inspector**.
+Documentación de la versión 1.0.0 de Advance Engine, el mejor motor para desarrollar juegos para GBA de la forma más simple posible y con resultados muy buenos. Sigue en progreso de mejora y puedes ver el proyecto aquí: [itch.io](https://gerardolcdf.itch.io/advanceengine).
 
-> **Estado:** versión alfa 0.74. Las capturas están en `assets/capturas/`.
 
 ---
 

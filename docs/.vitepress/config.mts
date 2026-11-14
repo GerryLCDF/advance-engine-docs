@@ -5,7 +5,7 @@ export default defineConfig({
   description: 'Documentación de AdvanceEngine',
   base: '/advance-engine-docs/',
   lang: 'es-ES',
-  head: [['link', { rel: 'icon', href: '/logo.svg' }]],
+  head: [['link', { rel: 'icon', href: '/favicon.ico' }], ['style', {}, '.VPNav .logo, .VPNav .logo img { height: 48px; width: auto; }']],
   themeConfig: {
     logo: '/logo.svg',
     nav: [
