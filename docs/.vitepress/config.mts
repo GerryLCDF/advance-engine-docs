@@ -53,7 +53,7 @@ export default defineConfig({
   description: 'Documentación de AdvanceEngine',
   base: '/advance-engine-docs/',
   lang: 'es-ES',
-  head: [['link', { rel: 'icon', href: '/favicon.ico' }], ['style', {}, '.VPNav .logo, .VPNav .logo img { height: 48px; width: auto; }']],
+  head: [['link', { rel: 'icon', href: '/favicon.ico' }], ['style', {}, '.VPNav .logo, .VPNav .logo img { height: 48px; width: auto; } :root:not(.dark) .VPNav .logo img { filter: invert(1); }']],
   locales: {
     root: {
       label: 'Español',
