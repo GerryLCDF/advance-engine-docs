@@ -5,10 +5,12 @@ export default defineConfig({
   description: 'Documentación de AdvanceEngine',
   base: '/advance-engine-docs/',
   lang: 'es-ES',
+  head: [['link', { rel: 'icon', href: '/logo.svg' }]],
   themeConfig: {
+    logo: '/logo.svg',
     nav: [
       { text: 'Inicio', link: '/' },
-      { text: 'Repositorio', link: 'https://github.com/GerryLCDF/Advance-Engine' }
+      { text: 'itch.io', link: 'https://gerardolcdf.itch.io/advanceengine' }
     ],
     sidebar: [
       { text: 'README', link: '/' },

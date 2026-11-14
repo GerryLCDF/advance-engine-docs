@@ -24,25 +24,3 @@ Documentación completa del editor y motor de **AdvanceEngine** (juegos para Gam
 | [11 — Manual completo](11-manual-completo.md) | Referencia completa y manual extendido. |
 
 ---
-
-## Capturas
-
-Todas las imágenes viven en `assets/capturas/`. Las que llevan recorte de sección:
-
-| Archivo | Muestra |
-| :--- | :--- |
-| `launcher-recientes.png` | Launcher con los proyectos recientes. |
-| `launcher-crear.png` | Pestaña «Crear» (nuevo proyecto). |
-| `launcher-importar.png` | Pestaña «Importar». |
-| `editor-barra.png` | Barra superior del editor recortada. |
-| `mundo-sidebar.png` | Jerarquía (escenas, CAM, actores). |
-| `mundo-canvas.png` | Lienzo del editor. |
-| `mundo-inspector-actor.png` | Inspector del actor (NPC). |
-| `tab-sprite.png` · `sprite-inspector.png` | Módulo Sprite. |
-| `tab-imagen.png` | Módulo Imagen. |
-| `tab-music.png` | Módulo Music. |
-| `tab-sound.png` | Módulo Sound. |
-| `tab-dialogo.png` | Módulo Diálogo. |
-| `tab-scripting.png` · `scripting-tab.png` | Módulo Scripting. |
-
----
