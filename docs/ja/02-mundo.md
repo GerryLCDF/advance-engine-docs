@@ -1,183 +1,177 @@
-# 02 — Módulo Mundo (editor de escenas)
+#02 — ワールドモジュール (シーンエディター)
 
-El módulo **Mundo** es el corazón del editor: aquí se colocan las escenas, los actores, las colisiones y las conexiones. Todo lo que el jugador ve y toca se construye desde esta pestaña.
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+**World** モジュールはエディターの中心であり、シーン、アクターされ、接続がここに構成されます。プレイヤーが見たり感動したりするものはすべてこのタブから構築されます。
 
 ![Editor — Mundo](assets/capturas/editor-mundo.png)
 
 ---
 
-## 1. Barra superior
+## 1. トップバー
 
 ![Barra superior](assets/capturas/editor-barra.png)
 
-### 1.1. Menú de módulos (izquierda)
+＃＃＃１．１． モジュールメニュー（左）
 
-Las pestañas para cambiar entre módulos: **Mundo, Scripting, Sprite, Imagen, Music, Sound, Dialogo**. Cada una abre su propio editor.
+モジュール間を待つためのタブ: **、ダイアログ**。それぞれが独自のエディターを開きます。
 
-### 1.2. Acciones (derecha)
+＃＃＃１．２．アクション（右）
 
-| Botón | Acción |
+|ボタン |アクション |
 | :--- | :--- |
-| **IMPORTAR** | Carga assets al proyecto (sprites, fondos, sonidos, canciones, scripts…). |
-| **EXPORT** | Guarda el proyecto, exporta la ROM GBA, la web o la app de escritorio. |
-| **PLAY** | Compila y ejecuta el juego en el emulador integrado. |
-| **STOP** | Detiene el emulador. |
-| **SPLASHSCREEN** | Abre la configuración de la pantalla de arranque (imagen, duración, música). |
+| **インポート** |アセットをプロジェクトにロードします(スプライト、背景、サウンド、曲、スクリプトなど)。
+| **エクスポート** |プロジェクトを保存し、GBA ROM、Web、またはデスクトップアプリをエクスポートします。
+| **実行中** |内蔵パイルして実行します。
+| **停止** | 登山をやめます。
+| **スプラッシュスクリーン** | ホーム画面の設定 (画像、再生時間、音楽) を開きます。
 
 ---
 
-## 2. Jerarquía (panel izquierdo)
+## 2. 暴力 (左パネル)
 
 ![Jerarquía](assets/capturas/mundo-sidebar.png)
 
-El árbol muestra la estructura del proyecto:
+ツリーはプロジェクトの構造を示します。
 
-- **SPLASHSCREEN** — la escena de arranque (siempre la primera).
-- **ESCENAS** — cada escena, con su tamaño en píxeles (`228x195`).
-  - **CAM** — la cámara de la escena (solo en escenas más grandes que la pantalla). Muestra `x,y`.
-  - **Actores** — cada actor de la escena (Player, NPC…).
-- **CONEXIONES** — las transiciones entre escenas, con su nombre.
+- **スプラッシュ スクリーン** — 開始シーン (常に最初のシーン)。
+- **SCENES** — 各シーンのピクセル単位のサイズ (`228x195`)。
+  - **CAM** — シーンカメラ (画面より大きいシーンのみ)。 `x,y`を表示します。
+  - **アクター** — シーン内の各アクター (プレイヤー、NPC...)。
+- **接続** — シーン中のトランジションとその名前。
 
-### Acciones de la jerarquía
-
-- **Clic** en un nodo → lo selecciona y muestra su inspector.
-- **✕** en un nodo → lo elimina (con confirmación).
-- **Lápiz** → renombra en línea.
-- **⋮** → menú contextual (renombrar, eliminar, duplicar).
-- **+** → crea una escena nueva.
+- ノードを **クリック** → ノードを選択し、そのインスペクタを表示します。
+- ノード上の **✕** → ノードを削除します (確認付き)。
+- **鉛筆** → オンラインで名前を変更します。
+- **⋮** → コンテキストメニュー (名前変更、削除、コピー)。
+- ***** → 新しいシーンを作成します。
 
 ---
 
-## 3. Lienzo
+## 3.キャンバス
 
 ![Lienzo](assets/capturas/mundo-canvas.png)
 
-El lienzo muestra la escena activa. Herramientas:
+キャンバスにはアクティブなシーンが表示されます。ツール:
 
-| Herramienta | Descripción |
+|ツール |説明 |
 | :--- | :--- |
-| **Seleccionar/Mover** | Selecciona y arrastra actores por el lienzo. |
-| **Agregar escena (+)** | Crea una escena nueva en el centro de la vista. |
-| **Agregar actor** | Crea un actor en el centro de la escena. |
-| **Vincular (link)** | Traza conexiones entre escenas. |
-| **Colisiones** | Abre la paleta de pintura de colisiones. |
-| **Cuadrícula** | Muestra/oculta la rejilla. |
-| **Tamaño de celda (⋮)** | 1, 2, 4, 8, 16, 32 o 64 px. |
+| **選択/移動** |
+| **シーンを追加 (+)** |ビューの中央に新しいシーンを作成します。 ** 俳優を追加** |シーンの中心に俳優を作成します。
+| **リンク (リンク)** |シーン間のつながりを描きます。
+| **衝突** |衝突パレットを開きます。
+| ** グリッド ** | グリッドの表示/非表示を切り替えます。| **セルサイズ (⋮)** | 1、2、4、8、16、32、または 64 ピクセル。
 
-### Movimiento por el lienzo
+### キャンバス上の移動
 
-- **Arrastrar** un actor → lo mueve.
-- **Rueda del ratón** → zoom del lienzo.
-- **Ctrl + rueda** → zoom fino.
-- **Barra espaciadora + arrastrar** → desplaza la vista (pan).
-- **Flechas del teclado** → mueven el actor seleccionado 1 px (con Mayús, 8 px).
+- 俳優を **犯人** →移動します。
+- **マウスホイール** → キャンバスズーム。
+- **Ctrl +ホイール** → 詳細ズーム。
+- **スペースバー + サリン** → ビューをパンします。
+- **キーボードの矢印** →選択したアクターを1ピクセル(Shiftキーを使うと8ピクセル)移動します。
 
 ---
 
-## 4. Menú radial
+## 4. ラジアルメニュー
 
-En la esquina inferior izquierda, el menú radial da acceso rápido a las acciones de inserción: **Escena, Actor, Vincular, Colisiones**.
+アクション(**シーン、アクター、リンク、衝突**)を挿入すると簡単にアクセスできます。
 
 ---
 
-## 5. Colisiones
+## 5.衝突
 
-Al activar la herramienta de colisiones se abre una barra con dos bloques.
+衝突ツールをアクティブにすると、2つのブロックを含むバーが開きます。
 
-### 5.1. Herramientas de trazado
+＃＃＃５．１．プロットツール
 
-| Herramienta | Uso |
-| :--- | :--- |
-| **Bote** | Rellena áreas contiguas. |
-| **Varita** | Selecciona por contorno. |
-| **Lápiz** | Pinta celda a celda. |
-| **Rectángulo** | Dibuja un rectángulo de colisión. |
-| **Goma** | Borra colisión celda a celda. |
+|ツール |使い方 |
+| :--- | :--- || ** ボート ** |隣接する領域を塗りつぶします。
+| **杖** | 任意で選択します。
+| **鉛筆** |セルごとにペイントします。
+| **決定** |衝突する四角形を描きます。
+| **ゴム** |セル間の衝突を解消します。
 
-### 5.2. Tipos de superficie
+＃＃＃５．２． 表面の種類
 
-| Tipo | Color | Comportamiento |
+|タイプ |色 |行動 |
 | :--- | :--- | :--- |
-| **Sólida** | Rojo | Bloqueo total en los 4 ejes. |
-| **Semisólida** | Naranja | Bloquea en un sentido, se atraviesa en el opuesto (plataformas). |
-| **Escalera** | Verde | Permite subir/bajar (plataformas). |
-| **Rampa** | Amarillo | Pendiente en las 4 direcciones. |
+| **固体** |赤 | 4軸全てをトータルロック。
+| **半固体** |
+| **階段** |緑 | （プラットフォーム）の上昇が可能です。
+| **ランプ** |黄色 | 4方向にすべてを考慮します。
 
 ---
 
-## 6. Inspector
+## 6.検査官
 
-El inspector (panel derecho) muestra las propiedades del nodo seleccionado.
+インスペクター (右パネル) には、選択したノードのプロパティが表示されます。
 
-### 6.1. Inspector de actor
+＃＃＃６．１． 俳優の検査官
 
 ![Inspector del actor](assets/capturas/mundo-inspector-actor.png)
 
-| Bloque | Opciones | Descripción |
+|ブロック |オプション |説明 |
 | :--- | :--- | :--- |
-| **Actor** | Nombre | El identificador del actor. |
-| | Comportamiento | Estático, Interactuable, Objeto o Texto. Define cómo reacciona al tocarlo. |
-| | Posición X / Y | Coordenadas en píxeles dentro de la escena. |
-| | Capa Z | Orden de dibujo (0 = detrás, valores mayores = delante). |
-| | Ancho / Alto | Tamaño del sprite en píxeles. |
-| **Sprite** | Spritesheet | La hoja de sprites asignada. |
-| | Animación | La animación inicial. |
-| **Colisión** | Collider | Activa la caja de impacto. |
-| | Ancho / Alto collider | Tamaño de la caja (independiente del sprite). |
-| | Offset X / Y | Desplazamiento de la caja respecto al sprite. |
-| **Área** | Área | Activa una zona de detección que sigue al actor. |
-| | Ancho / Alto área | Tamaño de la zona. |
-| | Offset X / Y | Desplazamiento de la zona. |
-| **Audio** | Sonido | SFX asignado (al chocar, al interactuar…). |
-| | Música | Canción asignada al actor. |
-| **Script / Diálogo** | Script | El script C / AdvanceCode asignado. |
-| | Diálogo | El diálogo asignado (para NPCs). |
-| | Caja de texto | El sprite de caja de diálogo (CAJATEXTO). |
-| | Tamaño de caja | Ancho / Alto de la caja. |
-| | Posición de caja | Offset X / Y de la caja en pantalla. |
+| **俳優** |名前 |俳優の識別子。
+| |行動|静的な、対話型、オブジェクトまたはテキスト。タッチされたときにどのように反応するかを定義します。
+| | X/Y 位置 |
+| | Z レイヤー |描画順序 (0 = 後ろ、値が大きい = 前)。
+| |幅 / 高さ |スプライトのピクセル単位のサイズ。
+| **スプライト** |スプライトシート | 与えられたスプライトシート。 | アニメーション |初期アニメーション。
+| **衝突** |コライダー |ヒットボックスが有効になります。
+| |コライダーの幅 / 高さ |ボックスのサイズ (スプライトとは独立)。
+| |オフセット**** |
+| |幅/高さエリア |ゾーンのサイズ。
+| | X/Y オフセット |領域の移動。
+| **オーディオ** | サウンド | 割り当てられた SFX (衝突時、相互作用時など)。
+| |音楽 |俳優に与えられた曲。
+| ** スクリプト / ダイアログ ** | スクリプト | 割り当てられた C/AdvanceCode スクリプト。
+| | ダイアログ | 喋られたダイアログ(NPC用)。
+| | テキストボックス |
+| |箱のサイズ |ボックスの幅/高さ。
+| |キャッシュポジション |画面上のボックスの X/Y オフセット。
 
-### 6.2. Inspector de escena
+＃＃＃６．２．現場検査官
 
-| Bloque | Opciones | Descripción |
-| :--- | :--- | :--- |
-| **Nombre** | — | El nombre de la escena. |
-| **Mover al player** | Interruptor | Si el actor 0 no tiene script, el motor lo mueve con el D-pad. |
-| **Dimensiones** | Ancho × Alto | El tamaño del lienzo en píxeles. |
-| **Camara** | Camara X / Y | La posición de la cámara (escenas grandes). |
-| **Imagen de fondo** | — | El fondo de la escena. |
-| **Canción de fondo** | — | La música que suena en la escena. |
+|ブロック |オプション |説明 || :--- | :--- | :--- |
+| **名前** | — |シーンの名前。
+| | **プレイヤーに移動** | スイッチ |アクター 0 0 を移動します。
+| **寸法** |幅×高さ |キャンバスのサイズ (ピクセル単位)。
+| **カメラ** | X/Yカメラ |
+| **背景画像** | — |シーンの背景。
+| **バックグラウンドソング** | — |その場面で流れる音楽。
 
 ---
 
-## 7. Transiciones entre escenas
+## 7. シーン間のトランジション
 
-Al **vincular** dos escenas se crea una conexión. Cada conexión tiene:
+**2つのシーンをリンク**すると、つながりが生まれます。それぞれの接続には次のものがあります。
 
-- **Transición de entrada**: lo que se ve al entrar a la escena de destino.
-- **Transición de salida**: lo que se ve al salir.
-- **Tipo**: instantánea, fundido (fade) o tileset personalizado.
-- **Velocidad**: la duración de la transición.
-- **Nombre**: para elegirla desde `switchScene(n, "nombre")` en el script.
+- **エントリトランジション**: 目的のシーンに入っても表示されるもの。
+- **終了トランジション**: 終了時に表示されるもの。
+- **タイプ**: スナップショット、フェード、またはカスタム タイルセット。
+- **速度**: トランジションの継続時間。
+- **名前**: スクリプト内の `switchScene(n, "name")` から選択します。### 移行タイプ
 
-### Tipos de transición
-
-| Tipo | Descripción |
+|タイプ |説明 |
 | :--- | :--- |
-| **Instantánea** | Cambio de pantalla sin animación. |
-| **Fundido** | Fundido a negro / desde negro. |
-| **Tileset** | Cada bloque 8×8 reproduce un tileset como máscara píxel a píxel (blanco revela, negro oculta). |
+| **スナップショット** | アニメーションなしで画面が切り替わります。
+| **フェード** |黒へのフェード/黒からのフェード。
+| **タイルセット** | 各 8x8 ブロックは、ピクセルごとにマスクとしてタイルセットを再現します(白は表示、黒は非表示になります)。
 
 ---
 
-## 8. Rendimiento (presupuesto GBA)
+## 8. パフォーマンス (GBA 予算)
 
-El dibujo ocurre dentro del VBLANK (~83.800 ciclos/frame). El límite son los **píxeles de sprite visibles en cámara**, no el número de actores:
+描画は VBLANK 内で行われます (~83,800 サイクル/フレーム)。 制限は、アクターの数ではなく、**カメラに表示されるスプライトピクセル**です。
 
-- Presupuesto: **~5.600 px de sprite por frame**.
-- 5-6 actores de 21×31 px, o 1 de 64×64 + 2 pequeños.
-- Los actores fuera de cámara apenas gastan.
-- Un actor parcialmente fuera solo paga la parte visible.
+- 予算: **~5,600 ピクセル/フレームのスプライト**。
+- 21×31 ピクセルのアクター 5 ～ 6 人、または 64×64 ピクセルのアクター 1 つ + 小さいアクター 2 つ。
+- オフカメラの俳優はほとんどお金を使いません。
+- 部分的にアウトの俳優は、目に見える部分のみを支払います。
 
----
-
-**Anterior:** [01 — Interfaz](01-interfaz.md) · **Siguiente:** [03 — Sprite](03-sprite.md)
+**前:** [01 — インターフェイス](01-interfaz.md) · **次:** [03 — ライトスプ](03-sprite.md)

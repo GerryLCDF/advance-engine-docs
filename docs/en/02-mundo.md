@@ -1,183 +1,175 @@
-# 02 — Módulo Mundo (editor de escenas)
+#02 — World Module (scene editor)
 
-El módulo **Mundo** es el corazón del editor: aquí se colocan las escenas, los actores, las colisiones y las conexiones. Todo lo que el jugador ve y toca se construye desde esta pestaña.
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+The **World** module is the heart of the editor: scenes, actors, collisions and connections are placed here. Everything the player sees and touches is built from this tab.
 
 ![Editor — Mundo](assets/capturas/editor-mundo.png)
 
 ---
 
-## 1. Barra superior
+## 1. Top bar
 
 ![Barra superior](assets/capturas/editor-barra.png)
 
-### 1.1. Menú de módulos (izquierda)
+### 1.1. Modules menu (left)
 
-Las pestañas para cambiar entre módulos: **Mundo, Scripting, Sprite, Imagen, Music, Sound, Dialogo**. Cada una abre su propio editor.
+The tabs to switch between modules: **World, Scripting, Sprite, Image, Music, Sound, Dialogue**. Each one opens its own editor.
 
-### 1.2. Acciones (derecha)
+### 1.2. Actions (right)
 
-| Botón | Acción |
+| Button | Action |
 | :--- | :--- |
-| **IMPORTAR** | Carga assets al proyecto (sprites, fondos, sonidos, canciones, scripts…). |
-| **EXPORT** | Guarda el proyecto, exporta la ROM GBA, la web o la app de escritorio. |
-| **PLAY** | Compila y ejecuta el juego en el emulador integrado. |
-| **STOP** | Detiene el emulador. |
-| **SPLASHSCREEN** | Abre la configuración de la pantalla de arranque (imagen, duración, música). |
+| **IMPORT** | Load assets to the project (sprites, backgrounds, sounds, songs, scripts...). |
+| **EXPORT** | Save the project, export the GBA ROM, the web or the desktop app. |
+| **PLAY** | Compile and run the game in the built-in emulator. |
+| **STOP** | Stop the emulator. |
+| **SPLASHSCREEN** | Open your home screen settings (picture, duration, music). |
 
 ---
 
-## 2. Jerarquía (panel izquierdo)
+## 2. Hierarchy (left panel)
 
 ![Jerarquía](assets/capturas/mundo-sidebar.png)
 
-El árbol muestra la estructura del proyecto:
+The tree shows the structure of the project:
 
-- **SPLASHSCREEN** — la escena de arranque (siempre la primera).
-- **ESCENAS** — cada escena, con su tamaño en píxeles (`228x195`).
-  - **CAM** — la cámara de la escena (solo en escenas más grandes que la pantalla). Muestra `x,y`.
-  - **Actores** — cada actor de la escena (Player, NPC…).
-- **CONEXIONES** — las transiciones entre escenas, con su nombre.
+- **SPLASHSCREEN** — the starting scene (always the first one).
+- **SCENES** — each scene, with its size in pixels (`228x195`).
+  - **CAM** — the scene camera (only in scenes larger than the screen). Displays `x,y`.- **Actors** — each actor in the scene (Player, NPC...).- **CONNECTIONS** — the transitions between scenes, with their name.### Hierarchy Actions
 
-### Acciones de la jerarquía
-
-- **Clic** en un nodo → lo selecciona y muestra su inspector.
-- **✕** en un nodo → lo elimina (con confirmación).
-- **Lápiz** → renombra en línea.
-- **⋮** → menú contextual (renombrar, eliminar, duplicar).
-- **+** → crea una escena nueva.
+- **Click** on a node → selects it and shows its inspector.
+- **✕** on a node → deletes it (with confirmation).
+- **Pencil** → rename online.
+- **⋮** → context menu (rename, delete, duplicate).
+- ***** → create a new scene.
 
 ---
 
-## 3. Lienzo
+## 3.Canvas
 
 ![Lienzo](assets/capturas/mundo-canvas.png)
 
-El lienzo muestra la escena activa. Herramientas:
+The canvas displays the active scene. Tools:
 
-| Herramienta | Descripción |
+| Tools | Description |
 | :--- | :--- |
-| **Seleccionar/Mover** | Selecciona y arrastra actores por el lienzo. |
-| **Agregar escena (+)** | Crea una escena nueva en el centro de la vista. |
-| **Agregar actor** | Crea un actor en el centro de la escena. |
-| **Vincular (link)** | Traza conexiones entre escenas. |
-| **Colisiones** | Abre la paleta de pintura de colisiones. |
-| **Cuadrícula** | Muestra/oculta la rejilla. |
-| **Tamaño de celda (⋮)** | 1, 2, 4, 8, 16, 32 o 64 px. |
+| **Select/Move** | Select and drag actors around the canvas. |
+| **Add scene (+)** | Create a new scene in the center of the view. |
+| **Add actor** | Create an actor in the center of the scene. |
+| **Link (link)** | Draw connections between scenes. |
+| **Collisions** | Open the collision paint palette. |
+| **Grid** | Show/hide the grid. |
+| **Cell size (⋮)** | 1, 2, 4, 8, 16, 32 or 64 px. |
 
-### Movimiento por el lienzo
+### Movement across the canvas
 
-- **Arrastrar** un actor → lo mueve.
-- **Rueda del ratón** → zoom del lienzo.
-- **Ctrl + rueda** → zoom fino.
-- **Barra espaciadora + arrastrar** → desplaza la vista (pan).
-- **Flechas del teclado** → mueven el actor seleccionado 1 px (con Mayús, 8 px).
+- **Drag** an actor → moves it.
+- **Mouse wheel** → canvas zoom.
+- **Ctrl + wheel** → fine zoom.
+- **Space bar + drag** → pan the view.
+- **Arrows on the keyboard** → move the selected actor 1 px (with Shift, 8 px).
 
 ---
 
-## 4. Menú radial
+## 4. Radial menu
 
-En la esquina inferior izquierda, el menú radial da acceso rápido a las acciones de inserción: **Escena, Actor, Vincular, Colisiones**.
+In the lower left corner, the radial menu gives quick access to the insert actions: **Scene, Actor, Link, Collisions**.
 
 ---
 
-## 5. Colisiones
+## 5. Collisions
 
-Al activar la herramienta de colisiones se abre una barra con dos bloques.
+Activating the collision tool opens a bar with two blocks.
 
-### 5.1. Herramientas de trazado
+### 5.1. Plotting tools
 
-| Herramienta | Uso |
-| :--- | :--- |
-| **Bote** | Rellena áreas contiguas. |
-| **Varita** | Selecciona por contorno. |
-| **Lápiz** | Pinta celda a celda. |
-| **Rectángulo** | Dibuja un rectángulo de colisión. |
-| **Goma** | Borra colisión celda a celda. |
+| Tools | Usage |
+| :--- | :--- || **Boat** | Fill in adjoining areas. || **Wand** | Select by outline. || **Pencil** | Paint cell by cell. |
+| **Rectangle** | Draw a collision rectangle. |
+| **Rubber** | Clears cell-to-cell collision. |
 
-### 5.2. Tipos de superficie
+### 5.2. Surface types
 
-| Tipo | Color | Comportamiento |
+| Type | Color | Behavior |
 | :--- | :--- | :--- |
-| **Sólida** | Rojo | Bloqueo total en los 4 ejes. |
-| **Semisólida** | Naranja | Bloquea en un sentido, se atraviesa en el opuesto (plataformas). |
-| **Escalera** | Verde | Permite subir/bajar (plataformas). |
-| **Rampa** | Amarillo | Pendiente en las 4 direcciones. |
+| **Solid** | Network | Total locking on all 4 axes. |
+| **Semi-solid** | Orange | It blocks in one direction, it crosses in the opposite direction (platforms). |
+| **Staircase** | Green | Allows raising/lowering (platforms). |
+| **Ramp** | Yellow | Slope in all 4 directions. |
 
 ---
 
 ## 6. Inspector
 
-El inspector (panel derecho) muestra las propiedades del nodo seleccionado.
+The inspector (right panel) displays the properties of the selected node.
 
-### 6.1. Inspector de actor
+### 6.1. actor inspector
 
 ![Inspector del actor](assets/capturas/mundo-inspector-actor.png)
 
-| Bloque | Opciones | Descripción |
+| Block | Options | Description |
 | :--- | :--- | :--- |
-| **Actor** | Nombre | El identificador del actor. |
-| | Comportamiento | Estático, Interactuable, Objeto o Texto. Define cómo reacciona al tocarlo. |
-| | Posición X / Y | Coordenadas en píxeles dentro de la escena. |
-| | Capa Z | Orden de dibujo (0 = detrás, valores mayores = delante). |
-| | Ancho / Alto | Tamaño del sprite en píxeles. |
-| **Sprite** | Spritesheet | La hoja de sprites asignada. |
-| | Animación | La animación inicial. |
-| **Colisión** | Collider | Activa la caja de impacto. |
-| | Ancho / Alto collider | Tamaño de la caja (independiente del sprite). |
-| | Offset X / Y | Desplazamiento de la caja respecto al sprite. |
-| **Área** | Área | Activa una zona de detección que sigue al actor. |
-| | Ancho / Alto área | Tamaño de la zona. |
-| | Offset X / Y | Desplazamiento de la zona. |
-| **Audio** | Sonido | SFX asignado (al chocar, al interactuar…). |
-| | Música | Canción asignada al actor. |
-| **Script / Diálogo** | Script | El script C / AdvanceCode asignado. |
-| | Diálogo | El diálogo asignado (para NPCs). |
-| | Caja de texto | El sprite de caja de diálogo (CAJATEXTO). |
-| | Tamaño de caja | Ancho / Alto de la caja. |
-| | Posición de caja | Offset X / Y de la caja en pantalla. |
+| **Actor** | Name | The actor's identifier. |
+| | Behavior | Static, Interactable, Object or Text. You define how it reacts when touched. |
+| | X/Y position | Coordinates in pixels within the scene. |
+| | Z Layer | Drawing order (0 = behind, larger values ​​= in front). |
+| | Width/Height | Sprite size in pixels. |
+| **Sprite** | Spritesheet | The assigned sprite sheet. |
+| | Animation | The initial animation. |
+| **Collision** | Collider | Activate the hitbox. |
+| | Collider Width/Height | Box size (independent of sprite). |
+| | X/Y Offset | Displacement of the box with respect to the sprite. || **Area** | Area | Activates a detection zone that follows the actor. |
+| | Width/Height area | Zone size. || | X/Y Offset | Displacement of the area. || **Audio** | Sound | Assigned SFX (when colliding, when interacting...). |
+| | Music | Song assigned to the actor. |
+| **Script / Dialog** | Script | The assigned C/AdvanceCode script. |
+| | Dialogue | The assigned dialogue (for NPCs). |
+| | Textbox | The dialog box sprite (TEXTBOX). |
+| | Box size | Width/Height of the box. |
+| | Cash position | X/Y offset of the box on screen. |
 
-### 6.2. Inspector de escena
+### 6.2. scene inspector
 
-| Bloque | Opciones | Descripción |
+| Block | Options | Description |
 | :--- | :--- | :--- |
-| **Nombre** | — | El nombre de la escena. |
-| **Mover al player** | Interruptor | Si el actor 0 no tiene script, el motor lo mueve con el D-pad. |
-| **Dimensiones** | Ancho × Alto | El tamaño del lienzo en píxeles. |
-| **Camara** | Camara X / Y | La posición de la cámara (escenas grandes). |
-| **Imagen de fondo** | — | El fondo de la escena. |
-| **Canción de fondo** | — | La música que suena en la escena. |
+| **Name** | — | The name of the scene. |
+| **Move to player** | Switch | If actor 0 does not have a script, the motor moves it with the D-pad. |
+| **Dimensions** | Width × Height | The size of the canvas in pixels. |
+| **Camera** | X/Y Camera | The position of the camera (large scenes). |
+| **Background image** | — | The background of the scene. |
+| **Background song** | — | The music that plays in the scene. |
 
 ---
 
-## 7. Transiciones entre escenas
+## 7. Transitions between scenes
 
-Al **vincular** dos escenas se crea una conexión. Cada conexión tiene:
+**Linking** two scenes creates a connection. Each connection has:
 
-- **Transición de entrada**: lo que se ve al entrar a la escena de destino.
-- **Transición de salida**: lo que se ve al salir.
-- **Tipo**: instantánea, fundido (fade) o tileset personalizado.
-- **Velocidad**: la duración de la transición.
-- **Nombre**: para elegirla desde `switchScene(n, "nombre")` en el script.
+- **Entry Transition**: what you see when entering the destination scene.
+- **Exit transition**: what you see when you exit.
+- **Type**: snapshot, fade or custom tileset.
+- **Speed**: the duration of the transition.
+- **Name**: to choose it from `switchScene(n, "name")` in the script.### Transition types
 
-### Tipos de transición
-
-| Tipo | Descripción |
+| Type | Description |
 | :--- | :--- |
-| **Instantánea** | Cambio de pantalla sin animación. |
-| **Fundido** | Fundido a negro / desde negro. |
-| **Tileset** | Cada bloque 8×8 reproduce un tileset como máscara píxel a píxel (blanco revela, negro oculta). |
+| **Snapshot** | Screen change without animation. || **Fade** | Fade to black / from black. || **Tileset** | Each 8x8 block reproduces a tileset as a mask pixel by pixel (white reveals, black hides). |
 
 ---
 
-## 8. Rendimiento (presupuesto GBA)
+## 8. Performance (GBA budget)
 
-El dibujo ocurre dentro del VBLANK (~83.800 ciclos/frame). El límite son los **píxeles de sprite visibles en cámara**, no el número de actores:
+Drawing occurs within the VBLANK (~83,800 cycles/frame). The limit is the **sprite pixels visible in camera**, not the number of actors:
 
-- Presupuesto: **~5.600 px de sprite por frame**.
-- 5-6 actores de 21×31 px, o 1 de 64×64 + 2 pequeños.
-- Los actores fuera de cámara apenas gastan.
-- Un actor parcialmente fuera solo paga la parte visible.
+- Budget: **~5,600 px of sprite per frame**.
+- 5-6 actors of 21×31 px, or 1 of 64×64 + 2 small ones.
+- Off-camera actors hardly spend any money.
+- An actor who is partially out only pays the visible part.
 
 ---
 
-**Anterior:** [01 — Interfaz](01-interfaz.md) · **Siguiente:** [03 — Sprite](03-sprite.md)
+**Previous:** [01 — Interface](01-interfaz.md) · **Next:** [03 — Sprite](03-sprite.md)

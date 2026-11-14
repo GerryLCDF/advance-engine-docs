@@ -1,253 +1,246 @@
-# Manual completo de AdvanceEngine
+# AdvanceEngine Complete Manual
 
-> **AdvanceEngine** es un IDE visual para hacer juegos de Game Boy Advance: dibujas escenas, animas sprites, compones música, escribes diálogos y programas la lógica en C. Luego exporta una ROM `.gba` que funciona en emuladores y en flashcarts.
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **AdvanceEngine** is a visual IDE for making Game Boy Advance games: you draw scenes, animate sprites, compose music, write dialogue and program logic in C. Then export a `.gba` ROM that works on emulators and flashcarts.
 >
-> Este manual explica **cada pestaña, cada panel, cada opción y cada función de la API de C**, con capturas de la aplicación real.
+> This manual explains **every tab, every panel, every option and every function of the C API**, with screenshots of the actual application.
 
 ---
 
-## Índice
+## Index
 
-1. [Introducción y arranque](#1-introducción-y-arranque)
-2. [El Launcher (pantalla principal)](#2-el-launcher-pantalla-principal)
-3. [El Editor (estructura general)](#3-el-editor-estructura-general)
-4. [Pestaña Mundo](#4-pestaña-mundo)
-5. [Pestaña Scripting (C)](#5-pestaña-scripting-c)
-6. [Pestaña Sprite](#6-pestaña-sprite)
-7. [Pestaña Imagen](#7-pestaña-imagen)
-8. [Pestaña Music](#8-pestaña-music)
-9. [Pestaña Sound](#9-pestaña-sound)
-10. [Pestaña Dialogo](#10-pestaña-dialogo)
-11. [Ajustes](#11-ajustes)
-12. [Exportación a GBA](#12-exportación-a-gba)
-13. [Referencia de la API C del motor](#13-referencia-de-la-api-c-del-motor)
-14. [Guía: hacer un juego de 0 a fin](#14-guía-hacer-un-juego-de-0-a-fin)
-15. [Solución de problemas](#15-solución-de-problemas)
-
----
-
-## 1. Introducción y arranque
-
-### Qué se puede hacer
-- Juegos 2D completos: **plataformas, top-down/RPG, puzzles, visual novels**, etc.
-- Escenas con imagen de fondo, colisión por tiles, actores con sprites y animaciones.
-- Multi-escena con transiciones (fundido, instante o tileset personalizado).
-- Música (4 canales PSG + PCM) y efectos de sonido.
-- Diálogos con fuentes (tilesets), caja 9-slice, varios idiomas y paginación.
-- Lógica en **C** con primitivas de movimiento y guardado en SRAM.
-
-### Requisitos
-- Windows 10/11 (x64) o Linux (x64/arm64).
-- **devkitARM** para exportar la ROM. La app lo instala sola desde **Opciones → General → Instalar devkitPro**.
-- Un editor de imágenes externo (Aseprite, GIMP, Photoshop) para sprites y fondos.
-
-### Arranque rápido
-1. Abre la app. Aparece el **Launcher** (pestañas Reciente / Crear / Importar).
-2. Crea un proyecto nuevo o abre uno existente.
-3. En el **Editor**, trabaja en las pestañas: Mundo, Scripting, Sprite, Imagen, Music, Sound, Dialogo.
-4. Pulsa **Juego → Exportar GBA** (o el botón PLAY) para generar la ROM.
-5. Pruébala en el emulador integrado.
+1. [Intro and start](#1-intro-and-start)
+2. [The Launcher (main screen)](#2-the-launcher-main-screen)
+3. [The Editor (general structure)](#3-the-editor-general-structure)
+4. [World Tab](#4-world-tab)
+5. [Scripting Tab (C)](#5-scripting-tab-c)
+6. [Sprite Tab](#6-sprite-tab)
+7. [Image Tab](#7-image-tab)
+8. [Music Tab](#8-music-tab)
+9. [Sound tab](#9-sound-tab)
+10. [Dialog Tab](#10-dialog-tab)
+11. [Settings](#11-settings)
+12. [Export to GBA](#12-export-to-gba)
+13. [Engine C API Reference](#13-engine-c-api-reference)
+14. [Guide: make a game from 0 to end](#14-guide-make-a-game-from-0-to-end)
+15. [Troubleshooting](#15-troubleshooting)
 
 ---
 
-## 2. El Launcher (pantalla principal)
+## 1. Introduction and start
+
+### What can be done
+- Complete 2D games: **platforms, top-down/RPG, puzzles, visual novels**, etc.
+- Scenes with background image, collision by tiles, actors with sprites and animations.
+- Multi-scene with transitions (fade, instant or custom tileset).- Music (4 channels PSG + PCM) and sound effects.
+- Dialogs with fonts (tilesets), 9-slice box, multiple languages ​​and pagination.
+- Logic in **C** with movement primitives and saved in SRAM.
+
+### Requirements
+- Windows 10/11 (x64) or Linux (x64/arm64).
+- **devkitARM** to export the ROM. The app installs it by itself from **Options → General → Install devkitPro**.
+- An external image editor (Aseprite, GIMP, Photoshop) for sprites and backgrounds.
+
+### Fast boot
+1. Open the app. The **Launcher** appears (Recent / Create / Import tabs).
+2. Create a new project or open an existing one.
+3. In the **Editor**, work on the tabs: World, Scripting, Sprite, Image, Music, Sound, Dialog.
+4. Press **Game → Export GBA** (or the PLAY button) to generate the ROM.
+5. Try it in the built-in emulator.
+
+---
+
+## 2. The Launcher (main screen)
 
 ![Launcher](assets/capturas/00-launcher.png)
 
-Es la pantalla al abrir la app. Arriba está el **AppHeader** y abajo las pestañas.
+It is the screen when you open the app. Above is the **AppHeader** and below are the tabs.
 
 ### AppHeader
-- **Logo y versión** (`AdvanceEngine`, `V alfa 0.70.0`).
-- **Documentacion**: abre el manual (este archivo y el resto de la documentación).
-- **Creditos**: pantalla de créditos con fondo de nubes animado.
-- **Opciones**: abre el modal de Ajustes (ver sección 11).
+- **Logo and version** (`AdvanceEngine`, `V alpha 0.70.0`).
+- **Documentation**: open the manual (this file and the rest of the documentation).
+- **Credits**: credits screen with animated cloud background.
+- **Options**: open the Settings modal (see section 11).
 
-### Pestañas del Launcher
+### Launcher Tabs
 
-#### Reciente
-Muestra los **3 últimos proyectos** abiertos como cartuchos (con portada si tiene). Al hacer clic en un cartucho se abre el proyecto. Debajo está el botón **Todos los proyectos**.
+#### Recent
+Shows the **last 3 projects** opened as cartridges (with cover if available). Clicking a cartridge opens the project. Below is the **All Projects** button.#### Create
+Form to create a new project:
+- **Name** of the project.
+- **Author**.
+- **Template** (cartridge color): `transparent:white`, `flat:yellow`, etc.
+- **Path** where it is saved (`AdvanceEngineProjects` folder by default).
+- **Cover** (PNG 480×270 recommended).
 
-#### Crear
-Formulario para crear un proyecto nuevo:
-- **Nombre** del proyecto.
-- **Autor**.
-- **Plantilla** (color del cartucho): `transparente:blanco`, `plano:amarillo`, etc.
-- **Ruta** donde se guarda (carpeta `AdvanceEngineProjects` por defecto).
-- **Portada** (PNG 480×270 recomendado).
+When creating, the editor opens with a default scene.
 
-Al crear, se abre el editor con una escena por defecto.
+#### Import
+Allows you to import a project from a folder (for example, a downloaded or copied one).
 
-#### Importar
-Permite importar un proyecto desde una carpeta (por ejemplo, uno descargado o copiado).
+#### All projects
+Complete list of projects with:
+- Name, author, date.
+- Context menu (right click): **Open**, **Modify cover**, **Delete**.
+- Search.
 
-#### Todos los proyectos
-Lista completa de proyectos con:
-- Nombre, autor, fecha.
-- Menú contextual (clic derecho): **Abrir**, **Modificar portada**, **Eliminar**.
-- Búsqueda.
-
-### Cartucho
-El cartucho es la representación visual del proyecto:
-- **Portada** (imagen 480×270).
-- **Color** (según la plantilla).
-- **Calcomanía** (recorte/plantilla decorativa).
-- Menú contextual: renombrar, modificar portada, eliminar.
+### Cartridge
+The cartridge is the visual representation of the project:
+- **Cover** (image 480×270).
+- **Color** (depending on the template).
+- **Decal** (decorative cutout/stencil).
+- Context menu: rename, modify cover, delete.
 
 ---
 
-## 3. El Editor (estructura general)
+## 3. The Editor (general structure)
 
 ![Editor](assets/capturas/01-editor-mundo.png)
 
-Al abrir un proyecto se entra al **Editor**, que es la pantalla principal. Se organiza en:
+When you open a project you enter the **Editor**, which is the main screen. It is organized in:
 
-### Barra superior (EditorTopBar)
-- **Menús**: Archivo, Edición, Juego, Plugin, Ayuda.
-  - **Archivo**: guardar, exportar GBA, exportar assets, cerrar proyecto.
-  - **Edición**: deshacer/rehacer, copiar/pegar.
-  - **Juego**: PLAY/STOP del emulador integrado.
-  - **Plugin**: gestión de plugins (futuro).
-  - **Ayuda**: abre la configuración en la pestaña correspondiente, o el manual.
-- **Botones de ventana** (minimizar, maximizar, cerrar) — la ventana es frameless.
-- **PLAY/STOP**: exporta y abre el emulador integrado con la ROM.
+### Top Bar (EditorTopBar)
+- **Menus**: File, Edit, Game, Plugin, Help.
+  - **File**: save, export GBA, export assets, close project.
+  - **Edit**: undo/redo, copy/paste.
+  - **Game**: PLAY/STOP of the integrated emulator.
+  - **Plugin**: plugin management (future).
+  - **Help**: open the settings in the corresponding tab, or the manual.- **Window buttons** (minimize, maximize, close) — the window is frameless.
+- **PLAY/STOP**: export and open the emulator integrated with the ROM.
 
-### Pestañas
-Las 7 pestañas del editor, cada una con su lienzo, jerarquía e inspector:
-- **Mundo**: escenas, cámara, actores, conexiones, transiciones.
-- **Scripting**: lógica en C.
-- **Sprite**: spritesheets y animaciones.
-- **Imagen**: fondos y capas.
+### Tabs
+The 7 tabs of the editor, each with its canvas, hierarchy and inspector:
+- **World**: scenes, camera, actors, connections, transitions.
+- **Scripting**: logic in C.
+- **Sprite**: spritesheets and animations.
+- **Image**: backgrounds and layers.
 - **Music**: piano roll / tracker.
-- **Sound**: efectos de sonido.
-- **Dialogo**: diálogos con filas e idiomas.
+- **Sound**: sound effects.
+- **Dialogue**: dialogues with rows and languages.
 
-### Panel de jerarquía (izquierda)
-Árbol con secciones y elementos. Permite:
-- **Seleccionar** un elemento.
-- **Renombrar** (doble clic o F2).
-- **Eliminar** (botón ✕ con confirmación).
-- **Menú contextual** (clic derecho): renombrar, eliminar.
-- **Colapsar** secciones.
-- **Arrastrar** escenas (en Mundo).
+### Hierarchy panel (left)
+Tree with sections and elements. Allows:
+- **Select** an element.
+- **Rename** (double click or F2).
+- **Delete** (✕ button with confirmation).
+- **Context menu** (right click): rename, delete.
+- **Collapse** sections.
+- **Drag** scenes (in World).
 
-### Lienzo (centro)
-El área de trabajo de cada pestaña: escenas, código, sprites, fondos, piano roll, etc.
+### Canvas (center)
+The work area of each tab: scenes, code, sprites, backgrounds, piano roll, etc.
 
-### Inspector (derecha)
-Muestra las propiedades del elemento seleccionado. Cambia según la pestaña y el elemento.
+### Inspector (right)
+Shows the properties of the selected element. It changes depending on the tab and the element.
 
-### Terminal del pipeline (abajo, en Mundo)
-Muestra el log de exportación (INFO, WARN, ERROR) con auto-scroll y botones **Copiar** y **Limpiar**.
+### Pipeline terminal (below, in World)
+Shows the export log (INFO, WARN, ERROR) with auto-scroll and **Copy** and **Clear** buttons.
 
-### Atajos de teclado globales
-- **Ctrl+S**: guardar proyecto.
-- **Ctrl+Z / Ctrl+Y**: deshacer/rehacer.
-- **Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A**: portapapeles (respeta el campo con foco).
-- **Supr**: borrar (respeta el campo con foco).
-- **Escape**: cerrar menús/modales.
-
----
-
-## 4. Pestaña Mundo
-
-![Mundo](assets/capturas/02-tab-mundo.png)
-
-Es la pestaña principal: aquí se colocan las **escenas**, los **actores**, la **cámara**, las **conexiones** y las **transiciones**.
-
-### Lienzo
-- **Escenas** (tarjetas) con su mini-mapa (la imagen de fondo), el nombre y el indicador `CAM x,y` si la escena es mayor que 240×160.
-- **Cámara** (rectángulo discontinuo 240×160): se puede **arrastrar** para mover el punto de vista. Es la porción de la escena que se ve en la GBA.
-- **Conexiones** entre escenas (líneas curvas con flecha). El color indica el tipo (entrada/salida).
-- **Zoom/pan**: rueda para zoom (Ctrl+rueda en algunos casos), arrastre con botón medio o con la herramienta mover.
-- **Cuadrícula** de píxeles (tamaño configurable).
-
-### Herramientas (barra inferior del lienzo)
-- **Mover**: arrastrar la vista.
-- **Añadir escena**: crea una escena nueva (la nombra `Escena N`).
-- **Conectar**: une dos escenas (entrada/salida).
-- **Eliminar**: borra la escena o conexión seleccionada.
-- **Colisión**: pinta tiles de colisión (sólido, plataformas, rampas).
-
-### Jerarquía
-- **SplashScreen** (la pantalla de presentación, no se puede borrar).
-- **Escenas**: cada una con sus **actores** anidados.
-- **Conexiones**: las relaciones entre escenas.
-- Se puede **renombrar** (doble clic), **eliminar** (con confirmación) y usar el **menú contextual**.
-
-### Inspector de escena
-- **Nombre**.
-- **Tipo**: platformer / topdown / rpg / fighting (informativo, no cambia el motor).
-- **Posición** (x, y en el mundo del editor).
-- **Tamaño** (ancho, alto).
-- **Color de fondo** (si no hay imagen).
-- **Imagen de fondo**: se asigna desde **Imagen** (fondos y capas).
-- **Cámara**: `Camara X` e `Camara Y` (el punto de vista).
-- **Colisión**: tamaño de tile y mapa de colisión (se pinta en el lienzo con la herramienta colisión).
-- **Canción**: la canción de fondo de la escena.
-- **Sonido de fondo**: efecto PCM en bucle.
-
-### Inspector de actor
-- **Nombre**, **tipo** (Estático, Interactuable, Objeto, Texto).
-- **Posición** (x, y), **tamaño** (ancho, alto), **z** (orden de pintado).
-- **Sprite**: el spritesheet y la animación.
-- **Colisión**: collider (anchura, altura, offset) y colisión por tiles.
-- **Área**: zona de disparo (anchura, altura, offset) para `actor_in_area`/`actor_entered` en el script.
-- **Dialog Box** (para actores de tipo Texto): ver sección 10.
-- **Script**: el script C asignado (el que se ejecuta para este actor).
-- **Canción / sonido**: asignados al actor.
-
-### Conexiones
-- Se crean con la herramienta **Conectar** (clic en la escena origen y en la destino).
-- **Inspector de conexión**: nombre, tipo de transición de entrada y salida (fundido, instante o tileset), velocidad y tileset/degradado.
-- **Menú contextual**: renombrar, eliminar.
-- El motor reproduce la transición configurada al hacer `switchScene(n)`.
-
-### Transiciones
-- **Fundido**: la escena se oscurece/aparece gradualmente.
-- **Instante**: cambio directo.
-- **Tileset personalizado**: una imagen 3×3 (o más) que se anima como máscara (ver sección 12).
-- Se configuran en el inspector de la **conexión** (entrada/salida) y del **SplashScreen**.
-
-### Terminal del pipeline
-- Muestra el log de exportación: escenas, actores, fuentes, diálogos, errores.
-- Botones **Copiar** y **Limpiar**.
+### Global keyboard shortcuts
+- **Ctrl+S**: save project.
+- **Ctrl+Z / Ctrl+Y**: undo/redo.
+- **Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A**: clipboard (respects the field with focus).
+- **Del**: delete (respects the field with focus).
+- **Escape**: close menus/modals.
 
 ---
 
-## 5. Pestaña Scripting (C)
+## 4. World Tab![Mundo](assets/capturas/02-tab-mundo.png)
+
+It is the main tab: **scenes**, **actors**, **camera**, **connections** and **transitions** are placed here.
+
+### Canvas
+- **Scenes** (cards) with their mini-map (the background image), the name and the `CAM x,y` indicator if the scene is larger than 240×160.
+- **Camera** (dashed rectangle 240×160): can be **dagged** to move the point of view. It's the portion of the scene seen on the GBA.
+- **Connections** between scenes (curved lines with arrow). The color indicates the type (input/output).
+- **Zoom/pan**: wheel to zoom (Ctrl+wheel in some cases), drag with the middle button or with the move tool.
+- Pixel **grid** (configurable size).
+
+### Tools (bottom canvas bar)
+- **Move**: drag the view.
+- **Add scene**: creates a new scene (name it `Scene N`).
+- **Connect**: join two scenes (input/output).
+- **Delete**: delete the selected scene or connection.
+- **Collision**: paints collision tiles (solid, platforms, ramps).
+
+### Hierarchy
+- **SplashScreen** (the splash screen, cannot be deleted).
+- **Scenes**: each one with its nested **actors**.
+- **Connections**: the relationships between scenes.
+- You can **rename** (double click), **delete** (with confirmation) and use the **context menu**.
+
+### Scene Inspector
+- **Name**.
+- **Type**: platformer / topdown / rpg / fighting (informative, does not change the engine).- **Position** (x, y in the editor's world).
+- **Size** (width, height).
+- **Background color** (if there is no image).
+- **Background Image**: assigned from **Image** (backgrounds and layers).
+- **Camera**: `Camera X` and `Camera Y` (the point of view).
+- **Collision**: tile size and collision map (painted on the canvas with the collision tool).
+- **Song**: the background song of the scene.
+- **Background sound**: looped PCM effect.
+
+### Actor Inspector
+- **Name**, **type** (Static, Interactable, Object, Text).
+- **Position** (x, y), **size** (width, height), **z** (painting order).
+- **Sprite**: the spritesheet and animation.
+- **Collision**: collider (width, height, offset) and collision by tiles.
+- **Area**: trigger zone (width, height, offset) for `actor_in_area`/`actor_entered` in the script.
+- **Dialog Box** (for Text type actors): see section 10.
+- **Script**: the assigned C script (the one that is executed for this actor).
+- **Song / sound**: assigned to the actor.
+
+### Connections
+- They are created with the **Connect** tool (click on the source scene and the destination scene).
+- **Connection Inspector**: name, input and output transition type (fade, instant or tileset), speed and tileset/gradient.
+- **Context menu**: rename, delete.
+- The engine plays the transition configured by doing `switchScene(n)`.
+
+### Transitions
+- **Fade Out**: The scene fades in/fades in.
+- **Instant**: direct change.- **Custom Tileset**: a 3×3 (or larger) image that is animated as a mask (see section 12).
+- They are configured in the **connection** (input/output) and **SplashScreen** inspector.
+
+### Pipeline terminal
+- Shows the export log: scenes, actors, sources, dialogues, errors.
+- **Copy** and **Clear** buttons.
+
+---
+
+## 5. Scripting Tab (C)
 
 ![Scripting](assets/capturas/03-tab-scripting.png)
 
-Aquí se programa la **lógica del juego** en **C**. Es el único modo habilitado (AdvanceCode y Bloques están deshabilitados por ahora).
+Here the **game logic** is programmed in **C**. It is the only mode enabled (AdvanceCode and Blocks are disabled for now).
 
-### Modos
-- **Bloques**: deshabilitado (próximamente).
-- **AdvanceCode**: deshabilitado (próximamente).
-- **C**: el lenguaje del motor. Es el que se usa.
+### Modes
+- **Blocks**: disabled (coming soon).
+- **AdvanceCode**: disabled (coming soon).
+- **C**: the engine language. It is the one that is used.
 
-### Jerarquía
-- Sección **C**: lista los scripts en modo C.
-- Botón **+** para crear un script nuevo.
-- Doble clic para renombrar, ✕ para eliminar (con confirmación).
-- Al crear, el campo **Nombre** del inspector queda enfocado y seleccionado para renombrarlo al instante.
+### Hierarchy
+- Section **C**: lists the scripts in C mode.
+- **+** button to create a new script.
+- Double click to rename, ✕ to delete (with confirmation).
+- When creating, the inspector's **Name** field is focused and selected for instant renaming.
 
-### Editor de código
-- **Gutter** con números de línea.
-- **Resaltado de sintaxis**: comentarios, `#include`, cadenas, números, palabras clave, tipos de devkitARM (`u8`, `s16`…) y la API del motor.
-- **Tab** = 2 espacios, **auto-indent** al Enter, **auto-cierre** de llaves/paréntesis.
-- **Deshacer/rehacer** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) con historial propio (agrupa lo escrito seguido).
-- **Zoom** (Ctrl+rueda, 9–26 px) con indicador de porcentaje (clic para volver al 100%).
-- **Minimapa** estilo VS Code a la derecha (barritas por línea; clic o arrastre para saltar).
-- **Snippets** (barra superior): `script_update()`, `script_init()`, leer teclas, primitivas, diálogos, guardado, etc.
+### Code Editor
+- **Gutter** with line numbers.
+- **Syntax highlighting**: comments, `#include`, strings, numbers, keywords, devkitARM types (`u8`, `s16`...) and the engine API.
+- **Tab** = 2 spaces, **auto-indent** on Enter, **auto-closing** of braces/parentheses.
+- **Undo/redo** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) with its own history (groups what was written in succession).
+- **Zoom** (Ctrl+wheel, 9–26 px) with percentage indicator (click to return to 100%).- VS Code style **minimap** on the right (bars per line; click or drag to jump).
+- **Snippets** (top bar): `script_update()`, `script_init()`, read keys, primitives, dialogs, saving, etc.
 
-### Inspector de script
-- **Nombre**.
-- **Modo** (C, deshabilitado el resto).
-- **Estado**: "Se exporta", "Sin asignar", "Vacío", "Falta script_update", etc.
-- **Asignación**: el script se ejecuta **por cada actor asignado** (Mundo → actor → Script). Si no está asignado, no se ejecuta.
-- **Ayuda**: explicación del modo y del contrato.
+### Script inspector
+- **Name**.
+- **Mode** (C, disabled the rest).
+- **Status**: "Exported", "Unallocated", "Empty", "Script_update missing", etc.
+- **Assignment**: the script is executed **for each assigned actor** (World → actor → Script). If it is not assigned, it is not executed.
+- **Help**: explanation of the method and contract.
 
-### El contrato
+### The contract
 ```c
 void script_init(void) {
   // 1 vez, al entrar en la escena (después de colocar los actores).
@@ -256,261 +249,257 @@ void script_update(void) {
   // cada frame del juego.
 }
 ```
-- Ambos son opcionales. Si no defines `script_update`, el script solo hace setup.
-- Debe haber **exactamente una** definición de cada uno (el motor no llama a ninguna si hay varias).
-- El motor llama a `script_update` **cada frame** (60 fps).
+-
+ Both are optional. If you don't define `script_update`, the script only does setup.
+- There must be **exactly one** definition of each (the engine does not call any if there are several).
+- The engine calls `script_update` **every frame** (60 fps).
 
-### La API del motor (C)
-Ver la **sección 13** para la referencia completa función por función.
+### The Engine API (C)
+See **section 13** for the complete feature-by-feature reference.
 
 ---
 
-## 6. Pestaña Sprite
+## 6. Sprite Tab
 
 ![Sprite](assets/capturas/04-tab-sprite.png)
 
-Editor de **spritesheets y animaciones**. Importas la imagen y defines la rejilla y los frames.
+**spritesheets and animations** editor. You import the image and define the grid and frames.
 
-### Lienzo
-- Muestra el **spritesheet** con la **rejilla** de tiles (cols × rows).
-- **Zoom y pan** con rueda y arrastre.
-- **Paginación** de tiles y **selección de brush** (tile).
-- **Línea de tiempo** de frames con reproducción (play/pause).
-- **Papel cebolla** (onion skin) para ver el frame anterior/debajo.
-- **Cuadrícula** y suavizado de imagen configurables.
+### Canvas
+- Shows the **spritesheet** with the **grid** of tiles (cols × rows).
+- **Zoom and pan** with wheel and drag.
+- **Pagination** of tiles and **selection of brush** (tile).
+- **Timeline** of frames with playback (play/pause).
+- **Onion skin** (onion skin) to see the previous/below frame.
+- Configurable **Grid** and image smoothing.
 
-### Jerarquía
-- **Sprites**: lista de spritesheets (con su imagen).
-- Botón **+** para crear uno nuevo (o importar una imagen).
-- Renombrar/eliminar con el menú contextual o el ✕.
+### Hierarchy
+- **Sprites**: list of spritesheets (with their image).
+- *+** button to create a new one (or import an image).
+- Rename/delete with the context menu or the ✕.
 
 ### Inspector
-- **Nombre** del spritesheet.
-- **Imagen**: cargar/importar (PNG/JPG), con la ruta.
-- **Rejilla**: columnas y filas.
-- **Tile**: ancho y alto de cada tile.
-- **Animaciones**: lista de animaciones con sus frames, modo (loop/once/pingpong) y velocidad.
-- **Frame**: tile, duración.
+- **Name** of the spritesheet.
+- **Image**: load/import (PNG/JPG), with path.
+- **Grid**: columns and rows.
+- **Tile**: width and height of each tile.
+- **Animations**: list of animations with their frames, mode (loop/once/pingpong) and speed.
+- **Frame**: tile, duration.
 
-### Notas
-- El spritesheet se importa como imagen (no se dibuja píxel a píxel en el editor).
-- El motor dibuja los tiles con **transparencia real** (el canal alfa del PNG).
+### Notes
+- The spritesheet is imported as an image (it is not drawn pixel by pixel in the editor).- The engine draws the tiles with **real transparency** (the alpha channel of the PNG).
 
 ---
 
-## 7. Pestaña Imagen
+## 7. Image Tab
 
 ![Imagen](assets/capturas/05-tab-imagen.png)
 
-Editor de **fondos y capas** (con parallax).
+**backgrounds and layers** editor (with parallax).
 
-### Lienzo
-- Muestra el **fondo** con las capas apiladas.
-- **Zoom y pan**.
-- **Vista previa** de la capa seleccionada (con su tamaño real o escalado).
-- **Importar imagen** (botón o arrastrar y soltar).
+### Canvas
+- Shows the **background** with the layers stacked.
+- **Zoom and pan**.
+- **Preview** of the selected layer (with its actual size or scaled).
+- **Import image** (button or drag and drop).
 
-### Jerarquía
-- **Fondos**: lista de fondos con sus **capas** anidadas.
-- Botón **+** para crear un fondo o capa.
-- Renombrar/eliminar con el menú contextual o el ✕.
+### Hierarchy
+- **Backgrounds**: list of backgrounds with their nested **layers**.
+- *+** button to create a background or layer.
+- Rename/delete with the context menu or the ✕.
 
-### Inspector de capa
-- **Nombre**.
-- **Imagen**: cargar/importar.
-- **Parallax**: velocidad X/Y (se mueve con la cámara).
-- **Velocidad**: animación de la capa (si es animada).
-- **Visibilidad** (ojo) y **rescale** (escalar al tamaño de la pantalla).
-- **Modo de animación** (loop/once/pingpong).
+### Layer inspector
+- **Name**.
+- **Image**: load/import.
+- **Parallax**: X/Y speed (moves with the camera).
+- **Speed**: layer animation (if animated).
+- **Visibility** (eye) and **rescale** (scale to screen size).
+- **Animation mode** (loop/once/pingpong).
 
-### Notas
-- Las capas se pueden reordenar (arrastrar en la jerarquía).
-- La capa seleccionada se puede previsualizar con su tamaño real o escalada.
+### Notes
+- Layers can be reordered (drag in the hierarchy).
+- The selected layer can be previewed at its actual size or scaled.
 
 ---
 
-## 8. Pestaña Music
+## 8. Music Tab
 
 ![Music](assets/capturas/06-tab-music.png)
 
-Editor de **música** con piano roll (PNO) y tracker (TRK).
+**music** editor with piano roll (PNO) and tracker (TRK).
 
-### Lienzo
-- **Piano roll** (PNO): teclado real + grid de notas.
-- **Tracker** (TRK): vista compacta tipo tracker.
-- **Zoom** (Ctrl+rueda), **scroll horizontal** (Shift+rueda).
-- **Grid** con tamaño de paso configurable (16/32/48/64).
-- **Fondo** configurable: cuadrícula o ajedrez.
-- **Playhead** arrastrable.
+### Canvas
+- **Piano roll** (PNO): real keyboard + note grid.
+- **Tracker** (TRK): compact tracker-type view.
+- **Zoom** (Ctrl+wheel), **horizontal scroll** (Shift+wheel).
+- **Grid** with configurable step size (16/32/48/64).
+- **Background** configurable: grid or chess.
+- **Playhead** draggable.
 
-### Herramientas
-- **Lápiz**: pintar notas.
-- **Seleccionar**: seleccionar notas.
-- **Borrador**: borrar notas.
+### Tools- **Pencil**: paint notes.
+- **Select**: select notes.
+- **Draft**: delete notes.
 
-### Instrumentos
-- **Canales**: Pulse 1, Pulse 2, Wave, Noise, PCM.
-- **Instrumentos** por canal con presets.
-- **Mute/Solo** por canal.
-- **Undo/Redo** (Ctrl+Z/Y) para todas las operaciones.
+### Instruments
+- **Channels**: Pulse 1, Pulse 2, Wave, Noise, PCM.
+- **Instruments** per channel with presets.
+- **Mute/Solo** per channel.
+- **Undo/Redo** (Ctrl+Z/Y) for all operations.
 
-### Patrones
-- Lista de patrones con reproducción (play/pause).
-- **Patrones redimensionables** (16/32/48/64 pasos).
-- **Loop** multi-patrón.
+### Patterns
+- List of patterns with playback (play/pause).
+- **Resizable patterns** (16/32/48/64 steps).
+- Multi-pattern **Loop**.
 
 ### Inspector
-- **Canción**: nombre, artista, tempo (BPM).
-- **Patrón**: pasos, instrumentos.
-- **Instrumento**: tipo (duty/wave/noise), volumen, duty, envelope, sweep, etc.
+- **Song**: name, artist, tempo (BPM).
+- **Pattern**: steps, instruments.
+- **Instrument**: type (duty/wave/noise), volume, duty, envelope, sweep, etc.
 
-### Notas
-- La música se exporta a la ROM con los 4 canales PSG + PCM.
-- Los instrumentos se derivan de los presets usados por las notas.
+### Notes
+- Music is exported to ROM with the 4 PSG + PCM channels.
+- Instruments are derived from the presets used by the notes.
 
 ---
 
-## 9. Pestaña Sound
+## 9. Sound tab
 
 ![Sound](assets/capturas/07-tab-sound.png)
 
-Editor de **efectos de sonido**.
+**sound effects** editor.
 
-### Lienzo
-- **Forma de onda** visualizada según el tipo.
-- **Preview** en tiempo real con Web Audio.
-- **Importar** WAV/MP3/OGG.
+### Canvas
+- **Waveform** displayed according to type.
+- **Preview** in real time with Web Audio.
+- **Import** WAV/MP3/OGG.
 
 ### Inspector
-- **Nombre** del efecto.
-- **Tipo**: Pulse / Wave / Noise.
-- **Nota**, **duración**, **volumen**, **duty cycle**, **envelope**, **sweep**.
-- **Waveform** (para Wave).
+- **Name** of the effect.
+- **Type**: Pulse / Wave / Noise.
+- **Note**, **duration**, **volume**, **duty cycle**, **envelope**, **sweep**.
+- **Waveform** (for Wave).
 - **Preview** (play/stop).
 
-### Notas
-- Los efectos se pueden reproducir en el editor y en el juego (`sound_play` desde el script, o asignados a un actor/diálogo).
+### Notes
+- Effects can be played in the editor and in-game (`sound_play` from the script, or assigned to an actor/dialogue).
 
 ---
 
-## 10. Pestaña Dialogo
+## 10. Dialog Tab
 
 ![Dialogo](assets/capturas/08-tab-dialogo.png)
 
-Editor de **diálogos** con filas e idiomas.
+**dialog** editor with rows and languages.
 
-### Tabla
-- **Columnas**: ID, Código, Nombre (hablante), y una columna por idioma (ES, FR, etc.).
-- **Filas**: cada fila es un "renglón" del diálogo.
-- **Cabecera de sección**: el diálogo, con su número de filas y idiomas.
-- **+ Fila** para añadir filas.
-- **Edición en línea** de todas las celdas.
-- **Navegación con flechas** entre celdas.
-- **Eliminar** filas con el ✕.
+### Board- **Columns**: ID, Code, Name (speaker), and one column per language (ES, FR, etc.).
+- **Rows**: each row is a "row" of the dialog.
+- **Section header**: the dialog, with its number of rows and languages.
+- **+ Row** to add rows.
+- **Online editing** of all cells.
+- **Navigation with arrows** between cells.
+- **Delete** rows with the ✕.
 
-### Jerarquía
-- **Diálogos**: lista de diálogos.
-- Botón **+** para crear.
-- Renombrar/eliminar con el menú contextual o el ✕.
+### Hierarchy
+- **Dialogues**: list of dialogues.
+- *+** button to create.
+- Rename/delete with the context menu or the ✕.
 
-### Inspector de fila
-- **ID** (solo lectura).
-- **Código** (identificador corto, para `showDialogueRow("codigo")`).
-- **Nombre** (hablante).
-- **Texto por idioma**.
-- **Sonido** (efecto al mostrar la fila).
-- **Fuente** (tileset de la fila).
-- **Eliminar fila**.
+### Row Inspector
+- **ID** (read only).
+- **Code** (short identifier, for `showDialogueRow("code")`).
+- **Name** (speaker).
+- **Text by language**.
+- **Sound** (effect when displaying the row).
+- **Source** (row tileset).
+- **Delete row**.
 
-### Inspector de diálogo
-- **Nombre**.
-- **Escena** vinculada.
-- **Idiomas** (hasta 6, con + para añadir).
-- **Eliminar diálogo**.
+### Dialog inspector
+- **Name**.
+- Linked **Scene**.
+- **Languages** (up to 6, with + to add).
+- **Delete dialogue**.
 
-### Dialog Box (caja 9-slice)
-En el inspector del **actor de tipo Texto** (Mundo → actor):
-- **Imagen 3×3**: esquinas, bordes y centro.
-- **Ancho / Alto** (limitados a la pantalla).
-- **Offset X / Offset Y** (posición, limitada a la pantalla).
-- **Nombre del hablante dentro de la caja** (checkbox).
-- **Salto de línea**: Por palabra / Por carácter.
+### Dialog Box (9-slice box)
+In the inspector of the **actor of type Text** (World → actor):
+- **3×3 image**: corners, edges and center.
+- **Width / Height** (limited to the screen).
+- **Offset X / Offset Y** (position, limited to the screen).
+- **Name of the speaker inside the box** (checkbox).
+- **Line break**: By word / By character.
 
-### Motor de diálogos (C)
-- `showDialogue(id)`: muestra el diálogo desde la fila 0.
-- `showDialogueRow("codigo")` / `showDialogueRow("ID")`: salta a una fila.
-- `nextDialogueRow()`: avanza a la siguiente **página** (si el texto no cabe, la siguiente página; si no, la siguiente fila).
-- `dialogueUpdate()`: avanza solo al pulsar A (llamar cada frame).
-- `hideDialogue()`: oculta.
+### Dialogue engine (C)
+- `showDialogue(id)`: show the dialog from row 0.
+- `showDialogueRow("code")` / `showDialogueRow("ID")`: jump to a row.- `nextDialogueRow()`: advances to the next **page** (if the text does not fit, the next page; if not, the next row).
+- `dialogueUpdate()`: advances only when pressing A (call each frame).
+- `hideDialogue()`: hide.
 
 ---
 
-## 11. Ajustes
+## 11. Settings
 
-Se abren con **Opciones** (AppHeader) o **Ayuda → Tabs/General**.
+They are opened with **Options** (AppHeader) or **Help → Tabs/General**.
 
 ### General
-- **Idioma** de la app (es-ES, en-US, ja-JP, ru-RU).
-- **Tema** (7 predefinidos + colores personalizados).
-- **Tamaño del texto**.
-- **Colores planos** (interruptor).
-- **Splash**: duración, imagen de fondo.
-- **devkitPro**: instalar/verificar.
+- **Language** of the app (es-ES, en-US, ja-JP, ru-RU).
+- **Theme** (7 predefined + custom colors).
+- **Text size**.
+- **Flat colors** (switch).
+- **Splash**: duration, background image.
+- **devkitPro**: install/verify.
 
-### Apariencia
-- Colores del tema (panel, acento, texto, fondo).
-- Tamaño de fuente.
+### Appearance
+- Theme colors (panel, accent, text, background).
+- Font size.
 
-### Pestañas de módulos
-- **Mundo**: cuadrícula, colores de conexión, animaciones.
-- **Scripting**: tamaño de fuente del editor, minimapa.
-- **Sprite**: rejilla, onion skin.
-- **Imagen**: suavizado.
-- **Music**: vista por defecto (PNO/TRK), colores del piano.
-- **Sound**: volumen.
-- **Dialogo**: colores de la caja, fondo del lienzo.
-- **Emulador**: remapeo de botones, tema de la ventana.
+### Modules tabs
+- **World**: grid, connection colors, animations.
+- **Scripting**: editor font size, minimap.
+- **Sprite**: grid, onion skin.
+- **Image**: smoothing.
+- **Music**: default view (PNO/TRK), piano colors.
+- **Sound**: volume.
+- **Dialogue**: box colors, canvas background.
+- **Emulator**: button remapping, window theme.
 
 ---
 
-## 12. Exportación a GBA
+## 12. Export to GBA
 
-### Pipeline
-1. **Guardas** el proyecto (Ctrl+S) — se genera el `main.c` y el `Makefile` en `<proyecto>/build/`.
-2. **Exportar GBA** (Juego → Exportar, o PLAY) — compila la ROM con devkitARM.
-3. Se abre el **emulador integrado** con la ROM.
+###Pipeline
+1. **Save** the project (Ctrl+S) — the `main.c` and the `Makefile` are generated in `&lt;project&gt;/build/`.
+2. **Export GBA** (Game → Export, or PLAY) — build the ROM with devkitARM.
+3. The **integrated emulator** with the ROM opens.
 
-### Estructura generada
+### Generated structure
 ```
-<proyecto>/build/
+proyecto/build/
 ├── main.c          # el código fuente C del juego
 ├── Makefile
-├── <proyecto>.elf
-└── <proyecto>.gba
+├── proyecto.elf
+└── proyecto.gba
 ```
+### The `main.c`
+- **Scenes**: all the scenes in the project, with their background image, collision, camera, actors and song.
+- **Actors**: sprites, animations, colliders, areas.
+- **Sources and dialogs**: text tables and 9-slice boxes.
+- **C Scripts**: your logic, inserted before `main()`.
+- **Engine**: software render, PSG + PCM sound, input, saved in SRAM.
 
-### El `main.c`
-- **Escenas**: todas las escenas del proyecto, con su imagen de fondo, colisión, cámara, actores y canción.
-- **Actores**: sprites, animaciones, colliders, áreas.
-- **Fuentes y diálogos**: tablas de texto y cajas 9-slice.
-- **Scripts C**: tu lógica, insertada antes de `main()`.
-- **Motor**: render por software, sonido PSG + PCM, entrada, guardado en SRAM.
+### Requirements
+- **devkitARM** (installed from Options → General).
+- The ROM works on **mGBA** (external and integrated) and on **flashcarts**.
 
-### Requisitos
-- **devkitARM** (instalado desde Opciones → General).
-- La ROM funciona en **mGBA** (externo y el integrado) y en **flashcarts**.
-
-### Notas
-- El render es por software: presupuesto ~5.600 píxeles visibles por frame.
-- La SRAM persiste en el `.sav` (mGBA externo y flashcarts). El emulador interno no volca la SRAM al cerrar.
+### Notes
+- The render is by software: budget ~5,600 visible pixels per frame.
+- SRAM persists in the `.sav` (external mGBA and flashcarts). The internal emulator does not dump the SRAM on shutdown.
 
 ---
 
-## 13. Referencia de la API C del motor
+## 13. Engine C API Reference
 
-> Esta es la referencia **función por función** de lo que el motor pone a disposición de tus scripts. Tu código se inserta antes de `main()` y puede llamar a todo lo que aquí aparece.
+> This is the **function by function** reference of what the engine makes available to your scripts. Your code is inserted before `main()` and can call everything here.
 
-### Tipos
+### Guys
 ```c
 typedef struct {
   u16 period;   // valor del registro FREQ (o ratio|cs<<3 para noise); 0xFFFF = silencio
@@ -544,8 +533,7 @@ extern GBAActor gActors[ACTOR_COUNT];
 extern GBAActor* gSelf;      // el actor cuyo script se está ejecutando
 #define PLAYER_INDEX 0       // el actor 0 es "el jugador"
 ```
-
-### Entrada
+### Entrance
 ```c
 #define KEY_A       0x0001
 #define KEY_B       0x0002
@@ -561,11 +549,12 @@ extern GBAActor* gSelf;      // el actor cuyo script se está ejecutando
 
 #define REG_KEYINPUT *(vu16*)0x04000130   // 0 = pulsado
 ```
-- `u16 keys = ~REG_KEYINPUT & 0x3FF;` → bits con 1 = pulsado.
-- `gJp` → flanco (bits pulsados **este frame**). Se actualiza solo; se usa para "pulsé A ahora".
-- `gKeysPrev` → estado del frame anterior.
+-
+ `u16 keys = ~REG_KEYINPUT & 0x3FF;` → bits with 1 = pressed.
+- `gJp` → edge (bits pressed **this frame**). It updates itself; is used for "press A now."
+- `gKeysPrev` → state of the previous frame.
 
-### Actores y movimiento
+### Actors and movement
 ```c
 // Mover con colisiones (desliza por paredes)
 void moveActorCollide(GBAActor* a, s16 dx, s16 dy);
@@ -585,24 +574,25 @@ static inline void actorBox(const GBAActor* a, s16* bx, s16* by, s16* bw, s16* b
 static inline int rectsOverlap(...);
 static inline int rectHitsSolid(s16 bx, s16 by, s16 bw, s16 bh, s16 dx, s16 dy);
 ```
-
-### Escenas
+### Scenes
 ```c
 void switchScene(int n);                       // cambia a la escena n (orden del editor)
 void switchSceneNamed(int n, const char* name); // con el nombre de la conexión
 extern int gScene;
 ```
-- `n` es el **orden del diálogo en el editor** (0, 1, 2…).
+-
+ `n` is the **order of the dialog in the editor** (0, 1, 2...).
 
-### Sonido
+### Sound
 ```c
 void noteOn(int ch, const GBAInst* inst, u16 period);  // suena una nota
 void soundPlay(int idx, int loop);                     // efecto PCM (0 = una vez, 1 = bucle)
 void soundStop(void);
 ```
-- `idx` es el índice del efecto entre los que tienen PCM.
+-
+ `idx` is the index of the effect among those with PCM.
 
-### Diálogos
+### Dialogues
 ```c
 void showDialogue(int id);              // muestra el diálogo id desde la fila 0
 void showDialogueRow(const char* key);  // salta a una fila por su Código o ID
@@ -611,22 +601,24 @@ void hideDialogue(void);
 void dialogueUpdate(void);              // avanza solo al pulsar A
 extern int gLang;                       // 0 = primer idioma, 1 = segundo, …
 ```
-- `id` = orden del diálogo en el editor.
-- `key` = el campo **Código** o el **ID completo** de la fila.
-- El texto se divide en **páginas** que caben en la caja; al avanzar pasa a la siguiente página y luego a la siguiente fila.
+-
+ `id` = order of the dialog in the editor.
+- `key` = the **Code** field or the **Full ID** of the row.
+- The text is divided into **pages** that fit in the box; As you move forward you go to the next page and then to the next row.
 
-### Guardado (SRAM)
+### Saved (SRAM)
 ```c
 int  aeSaveHasGame(void);              // 1 si hay partida guardada válida
 int  aeSaveWrite(const u8* data, u32 size); // guarda (0 ok, -1 si no cabe)
 int  aeSaveRead(u8* data, u32 size);   // carga (0 ok, -1 sin partida)
 void aeSaveClear(void);                // borra la partida
 ```
-- Bloque de **256 bytes** (`AE_SAVE_MAX`), en la SRAM `0x0E000000`.
-- Con magic, versión y checksum (FNV-1a). Si el checksum no coincide, se trata como "sin partida".
-- La SRAM persiste en el `.sav` (mGBA externo y flashcarts).
+-
+ Block of **256 bytes** (`AE_SAVE_MAX`), in SRAM `0x0E000000`.
+- With magic, version and checksum (FNV-1a). If the checksum does not match, it is treated as "no match".
+- SRAM persists in the `.sav` (external mGBA and flashcarts).
 
-### Constantes y defines
+### Constants and defines
 ```c
 #define SCREEN_W 240
 #define SCREEN_H 160
@@ -642,58 +634,56 @@ void aeSaveClear(void);                // borra la partida
 #define COYOTE_FRAMES 5
 #define JUMP_BUFFER 5
 ```
-
-### Depuración
-- El motor no tiene consola. Para depurar, usa `gBackBuf` y revisa los píxeles, o añade un indicador visual (como el píxel de la esquina en el proyecto de prueba).
-- La terminal del pipeline (Mundo) muestra el log de exportación.
+### Debugging
+- The engine does not have a console. To debug, use `gBackBuf` and check the pixels, or add a visual indicator (like the corner pixel in the test project).
+- The pipeline terminal (World) shows the export log.
 
 ---
 
-## 14. Guía: hacer un juego de 0 a fin
+## 14. Guide: make a game from 0 to finish
 
-### 1. Crear el proyecto
-- Launcher → **Crear** → nombre, autor, plantilla, portada.
-- Se abre el editor.
+### 1. Create the project
+- Launcher → **Create** → name, author, template, cover.
+- The editor opens.
 
-### 2. Dibujar los assets (externo)
-- **Sprites**: un PNG con la rejilla de tiles (por ejemplo 16×16 por tile).
-- **Fondos**: una imagen 240×160 (o mayor, se recorta con la cámara).
-- **Tilesets de transición**: una imagen con los frames de la máscara.
+### 2. Draw the assets (external)
+- **Sprites**: a PNG with the tile grid (for example 16×16 per tile).
+- **Backgrounds**: a 240×160 image (or larger, it is cropped with the camera).
+- **Transition Tilesets**: an image with the mask frames.
 
-### 3. Mundo
-- **Mundo → +** para crear escenas. Arrastra para colocarlas.
-- Asigna la **imagen de fondo** (desde Imagen) y la **canción**.
-- **Añade actores** (botón + del actor en la jerarquía) y asígnales un sprite y una animación.
-- Pinta la **colisión** con la herramienta colisión.
-- **Conecta** escenas con la herramienta conectar.
+### 3. World
+- **World → +** to create scenes. Drag to place them.
+- Assign the **background image** (from Image) and the **song**.
+- **Add actors** (actor + button in the hierarchy) and assign them a sprite and an animation.
+- Paint the **collision** with the collision tool.
+- **Connect** scenes with the connect tool.
 
 ### 4. Sprite
-- Importa el spritesheet, define la rejilla (cols × rows).
-- Crea una **animación** y sus frames.
+- Import the spritesheet, define the grid (cols × rows).
+- Create an **animation** and its frames.
 
-### 5. Imagen
-- Importa el fondo, define las capas y el parallax.
+### 5. Image
+- Import the background, define the layers and parallax.
 
-### 6. Music
-- Crea una canción, un patrón, y pinta notas con los instrumentos.
+### 6.Music
+- Create a song, a pattern, and paint notes with the instruments.
 
 ### 7. Sound
-- Crea efectos (Pulse/Wave/Noise) o importa un WAV.
+- Create effects (Pulse/Wave/Noise) or import a WAV.
 
-### 8. Dialogo
-- Crea un diálogo, añade filas (con el **Código** para referenciarlas), idiomas, fuentes y caja 9-slice.
+### 8. Dialogue
+- Create a dialog, add rows (with **Code** to reference them), languages, fonts and 9-slice box.
 
-### 9. Scripting (C)
-- Crea un script en modo **C**, asígnalo a un actor.
-- Escribe `script_update` con la lógica (input, movimiento, diálogos, guardado).
-- Usa las primitivas (`moveTopDown`/`movePlatformer`), `showDialogueRow`, `aeSaveWrite`, etc.
+### 9. Scripting (C)- Create a script in **C** mode, assign it to an actor.
+- Write `script_update` with the logic (input, movement, dialogs, saved).
+- Use the primitives (`moveTopDown`/`movePlatformer`), `showDialogueRow`, `aeSaveWrite`, etc.
 
-### 10. Exportar y probar
-- **Juego → Exportar GBA** (o PLAY).
-- La ROM se genera en `<proyecto>/build/`.
-- Pruébala en el emulador integrado o en mGBA/flashcart.
+### 10. Export and test
+- **Game → Export GBA** (or PLAY).
+- The ROM is generated in `&lt;project&gt;/build/`.
+- Try it in the built-in emulator or in mGBA/flashcart.
 
-### Ejemplo: plataformas con diálogo y guardado
+### Example: platforms with dialogue and save
 ```c
 u8 save[16];
 
@@ -718,40 +708,40 @@ void script_update(void) {
   dialogueUpdate();
 }
 ```
+--
+-
+
+## 15. Troubleshooting
+
+### ROM does not compile
+- Look at the log in the pipeline terminal (World). C errors appear there.
+- Common errors: undeclared function (adds forward declaration), undefined variable, wrong type.
+
+### Text is not visible
+- Check that the font has an image and that `gFontCharMap` has the character.
+- The text is drawn in the box; if the box is too small, the text is cut off (pagination).
+
+### Dialogue does not progress
+- `dialogueUpdate()` must be called every frame.
+- `showDialogueRow` uses the **Code** or **ID** of the row.
+
+### Save does not persist
+- In external mGBA/flashcart, the `.sav` is saved on exit.
+- In the internal emulator (EJS), SRAM is not dumped on shutdown.
+- Verify with the visual indicator (red/green) that the write/read works in the session.
+
+### The game is slow
+- Reduces visible pixels per frame (fewer actors on camera, smaller sprites).
+- Use `animSpeed` for animation.
+- Check the VBLANK budget (~5,600 visible pixels).
+
+### The actor blinks
+- Use double buffering (the engine already does this).
+- Don't redraw actors unnecessarily.
+
+### The transition tile is not visible
+- The tileset must have frames; the mask uses bit 0x8000 for transparency.
 
 ---
 
-## 15. Solución de problemas
-
-### La ROM no compila
-- Mira el log en la terminal del pipeline (Mundo). Los errores de C aparecen ahí.
-- Errores comunes: función sin declarar (añade la declaración adelantada), variable sin definir, tipo incorrecto.
-
-### El texto no se ve
-- Revisa que la fuente tenga imagen y que `gFontCharMap` tenga el carácter.
-- El texto se dibuja en la caja; si la caja es muy pequeña, el texto se corta (paginación).
-
-### El diálogo no avanza
-- `dialogueUpdate()` debe llamarse cada frame.
-- `showDialogueRow` usa el **Código** o el **ID** de la fila.
-
-### El guardado no persiste
-- En mGBA externo/flashcart, el `.sav` se guarda al salir.
-- En el emulador interno (EJS), la SRAM no se vuelca al cerrar.
-- Verifica con el indicador visual (rojo/verde) que el write/read funciona en la sesión.
-
-### El juego va lento
-- Reduce los píxeles visibles por frame (menos actores en cámara, sprites más pequeños).
-- Usa `animSpeed` para la animación.
-- Revisa el presupuesto VBLANK (~5.600 píxeles visibles).
-
-### El actor parpadea
-- Usa el doble buffer (el motor ya lo hace).
-- No redibujes actores innecesariamente.
-
-### El tile de transición no se ve
-- El tileset debe tener frames; la máscara usa el bit 0x8000 para la transparencia.
-
----
-
-> **Nota**: Este manual describe la versión **0.70.0**. Algunas funciones avanzadas (AdvanceCode, Bloques, editor de tiles/píxeles) están en desarrollo.
+> **Note**: This manual describes version **0.70.0**. Some advanced features (AdvanceCode, Blocks, tile/pixel editor) are in development.

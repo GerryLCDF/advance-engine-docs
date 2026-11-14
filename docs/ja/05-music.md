@@ -1,88 +1,83 @@
-# 05 — Módulo Music (Chiptune Tracker & Sequencer)
+#05 — 音楽モジュール (チップチューン・トラッカー & シーケンサー)
+
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
 ![Módulo Music](assets/capturas/tab-music.png)
 
-El editor **Music** es una herramienta integrada de composición y secuenciación chiptune, orientada al hardware de audio PSG (*Programmable Sound Generator*) clásico retro. Permite crear temas musicales con dos interfaces intercambiables: un **Piano Roll** gráfico y una vista tradicional de **Tracker**.
+**ミュージック**エディターグラーは、クラシックでレトロなPSGジェネレーター*)オーディオハードウェアを対象とした、統合されたチップチューンの合成およびシーケンスツールです。グラフィカル**ピアノロール**と従来の**トラッカー**というビューという2つの交換可能なインターフェイスを使用して音楽テーマを作成できます。
 
-## 1. Jerarquía lateral y canales
+## 1. 横方向の交渉とチャネル
 
-### 1.1. Lista de canciones (`SONGS`)
-- Permite crear (+), renombrar y gestionar las canciones del proyecto.
-- Muestra el nombre del tema activo y su velocidad en BPM.
+＃＃＃１．１．曲リスト（`SONGS`）
+- プロジェクト内の曲の作成(+)、名前変更、管理が可能です。
+- アクティブなトラックの名前とその速度をBPMで表示します。
 
-### 1.2. Canales de hardware (`CHANNELS`)
-El sistema emula la arquitectura de sonido PSG de 4 canales:
+＃＃＃１．２． ハードウェアチャネル (`CHANNELS`)
+システムは 4 チャンネル PSG サウンドアーキテクチャをエミュレートします。
 
-- **Pulse 1:** canal de pulso u onda cuadrada con soporte de barrido de frecuencia (*sweep*). Ideal para melodías principales.
-- **Pulse 2:** segundo canal de pulso. Para contramelodías, armonías o acompañamiento.
-- **Wave:** canal de onda personalizada programable por tabla de muestras. Predominante para líneas de bajo.
-- **Noise:** generador de ruido pseudoaleatorio blanco/percusivo. Para efectos rítmicos (batería, platillos, golpes).
+- **パルス 1:** (*勧*)。メインメロディーに最適です。
+- **パルス 2:** 2 番目のパルス チャネル。対旋律、ハーモニー、伴奏用。
+- **Wave:** サンプルテーブルによってプログラム可能なカスタムウェーブチャンネル。ベースラインで主に使用されます。
+- **ノイズ:**ホワイト/パーカッシブな擬似ランダムノイズジェネレーター。リズミックエフェクト用（ドラム、シンバル、ヒット）。
 
-> **Controles rápidos por canal:**
-> - **Visibilidad (ojo):** muestra u oculta las notas de ese canal en el lienzo.
-> - **S (Solo):** silencia todos los demás canales.
-> - **M (Mute):** enmudece el canal activo.
+> **チャンネルごとのクイックコントロール:**
+> - **進行性 (目):** キャンバス上のそのチャンネルのノートを表示または非表示にします。
+> - **S (ソロ):** 他のすべてのチャンネルをミュートします。
+> - **M (ミュート):** アクティブなチャンネルをミュートします。
 
-### 1.3. Biblioteca de instrumentos (`INSTRUMENTS`)
-Catálogo de timbres sonoros agrupados por tipo de síntesis:
+＃＃＃１．３． 楽器ライブラリ (`INSTRUMENTS`)
+合成のタイプごとにグループ化されたサウンド音色のカタログ:- **DUTY:**パルスデューティサイクル (12.5%、25%、50%、75%) に基づく機器。
+- **WAVE:** テーブル合成用の定義済み波形。
+- **ノイズ:** パーカッション プリセットとサウンド エフェクト (白 7 ビット...)。
+- **SURDO /カスタマイズ:**独自の銀行。OS スピーカーの色、名前、物理的特性を割り当ててインストゥルメントを作成できます。
 
-- **DUTY:** instrumentos basados en ciclo de trabajo de pulsos (12.5%, 25%, 50%, 75%).
-- **WAVE:** formas de onda predefinidas para síntesis por tabla.
-- **NOISE:** presets de percusión y efectos sonoros (White Noise, Snare, Hi-Hat, Metallic, Gritty 7-bit…).
-- **SURDO / Personalizados:** bancos propios; permite crear instrumentos asignando color, nombre y propiedades físicas del oscilador.
+## 2. 編集モードとワークスペース
 
-## 2. Modos de edición y espacio de trabajo
+インターフェースには 2 つの切り替え可能な合成モードがあります (右上のスイッチ)。
 
-La interfaz tiene dos modos de composición intercambiables (conmutador superior derecho):
+- **PNO (ピアノロール):** 縦軸に半音周波数、横軸に時間をキーボードで視覚的に表現します。
+- **TRK (トラッカー):** 垂直ステップシーケンサービュー; 各列はチャンネル (パルス 1、パルス 2、ウェーブ、ノイズ) であり、割り当てられたインストゥルメントの隣にノートが表示されます。
 
-- **PNO (Piano Roll):** representación visual con teclado de frecuencias cromáticas en el eje vertical y tiempo en el horizontal.
-- **TRK (Tracker):** vista secuenciador vertical por pasos; cada columna es un canal (Pulse 1, Pulse 2, Wave, Noise) y muestra la nota junto al instrumento asignado.
+### 上部の編集バー コントロール- **保存 (💾):** オーディオ ファイルへの変更を保存します。 - **再生 (▶) / 一時停止 / 停止 (⏹):**アクティブなソングまたはパターンのトランスポート。
+- **ペン:** キャンバス上にメモまたはトリガーを描画します。
+- **選択/選択:** あなたのノートを配置、移動、再配置します。
+- **ラバー:** 個人のメモを削除します。
+- **ステップセレクター:** アクティブな小節/パターンの長さ (8、16、32、または 64 ステップ)。
+- **インストゥルメントクイックセレクター(Inst):**時にペイント適用されるプリセット。
+- **アクティブ チャネル:**論点ーと、それが書き込まれるパラレル チャネルのセレクター。
+- **ズーム/スケール (-、2x、+):** セルの視覚的なスケール。## 3. パターンの順序付け (`PATTERNS`)
 
-### Controles de la barra superior de edición
-- **Guardar (💾):** almacena los cambios en el archivo de audio.
-- **Reproducir (▶) / Pausa / Stop (⏹):** transporte de la canción o patrón activo.
-- **Lápiz:** dibuja notas o disparadores en el lienzo.
-- **Selección / Cursor:** arrastra, mueve y reubica notas existentes.
-- **Goma:** elimina notas individuales.
-- **Selector de pasos (Steps):** longitud del compás/patrón activo (8, 16, 32 o 64 pasos).
-- **Selector rápido de instrumento (Inst):** preset que se aplicará al pintar.
-- **Canal activo:** indicador y selector del canal en el que se escribe.
-- **Zoom / Escala (-, 2x, +):** escala visual de las celdas.
+テーマの構成構造は下のバーで管理されます。
 
-## 3. Secuenciación de patrones (`PATTERNS`)
+- **パターンライン:** 連続した音楽ブロックをチェーンします (例: `1: E35_`、`2: …`)。
+- 各パターンには、定義されたステップ数の 4 つのチャンネルすべてからのノートの組み合わせが保存されます。
+-再生中、パターンはタイムラインに沿って順番に再生されます。
+- **下部チャンネルクイックパネル (CH):** は、ミュート (M) およびソロ (S) にアクセスできる各オシレーターのステータスを表示します。
 
-En la barra inferior se gestiona la estructura compositiva del tema:
+![SHAPTURE: ノート付き PNO (ピアノロール) ビュー → `assets/music-pianoroll.png`]
+![SHAPTURE: 4 つのチャンネルすべてを含む TRK (トラッカー) ビュー → `assets/music-tracker.png`]
 
-- **Línea de patrones:** encadena bloques musicales secuenciales (p. ej. `1: E35_`, `2: …`).
-- Cada patrón almacena la combinación de notas de los cuatro canales para una cantidad definida de pasos.
-- Durante la reproducción, los patrones se ejecutan en orden secuencial a lo largo de la línea temporal.
-- **Panel rápido de canales inferior (CH):** muestra el estado de cada oscilador con accesos a Mute (M) y Solo (S).
+## 4. インスペクターパネル
 
-![CAPTURA: vista PNO (piano roll) con notas → `assets/music-pianoroll.png`]
-![CAPTURA: vista TRK (tracker) con los cuatro canales → `assets/music-tracker.png`]
+権利のパネルのオプションは、選択した項目に適応します。
 
-## 4. Panel inspector
+＃＃＃４．１．ソングのプロパティ（グローバル選択）
+- **名前:** トラックのわかりやすいタイトル。
+- **アーティスト:** 著者名または作曲者のクレジット。
+- **Tempo:** ノブのコントロールと、シーケンスのBPMと全体の速度を定義する数値。
 
-Las opciones del panel lateral derecho se adaptan al elemento seleccionado:
+＃＃＃４．２． 楽器/周波数特性 (ノートまたはプリセット)
+- **名前と色の識別子:** 音符と楽器を区別するための視覚的なラベル。
+- **LENGTH (デュレーション):** ノートの減衰または持続時間。
+- **INITIAL VOL (初期ボリューム):** ノートをトリガーするときのアタックゲイン。
+- **CHANGE (Surround):** 音量の漸進的な増加または減少の勾配。 - **テストオクターブ(C3…C8):**異なるオクターブで楽器を聴く前に。
+- **オシロスコープ ビューア:** 波形は起こって生成されます。
+- **デューティ サイクル:** 方形波サイクルの割合 (12.5%、25%、50%、75%)。
+- **意識シフト & Hz:** ダイナミックピッチシフト (周波数を 1/128 Hz最適です。
 
-### 4.1. Propiedades de la canción (selección global)
-- **Nombre:** título descriptivo de la pista.
-- **Artista:** créditos de autoría o compositor.
-- **Tempo:** control de perilla y valor numérico que define los BPM y la velocidad global de la secuencia.
-
-### 4.2. Propiedades de instrumento / frecuencia (nota o preset)
-- **Nombre e identificador de color:** etiqueta visual para distinguir notas e instrumentos.
-- **LENGTH (Duración):** tiempo de decaimiento o sostenimiento de la nota.
-- **VOL INICIAL (Volumen inicial):** ganancia del ataque al disparar la nota.
-- **CHANGE (Envolvente):** gradiente de subida o bajada progresiva de volumen.
-- **Octavas de prueba (C3…C8):** escucha previa del instrumento en distintas octavas.
-- **Visor osciloscopio:** forma de onda generada en tiempo real.
-- **Duty Cycle:** porcentaje del ciclo de onda cuadrada (12.5%, 25%, 50%, 75%).
-- **Sweep Shift & Hz:** desplazamiento dinámico de tono (frecuencia de barrido en fracciones como 1/128 Hz), ideal para subida, caída o vibrato.
-
-### 4.3. Propiedades de canal
-- Información técnica del oscilador seleccionado: nombre (`Pulse 1`, `Pulse 2`, `Wave`, `Noise`), **volumen general** y **pan/panning** (izquierda / centro / derecha).
-
----
-
-**Anterior:** [04 — Módulo Imagen](04-imagen.md) · **Siguiente:** [06 — Módulo Sound](06-sound.md)
+＃＃＃４．３． チャネルのプロパティ
+- 選択したオシレーターの技術情報: 名前 (「パルス 1」、「パルス 2」、「波形」、「ノイズ」)、**一般ボリューム**、**パン/パン** (左/中央/右)。---**前:** [04 — 画像モジュール](04-imagen.md) · **次:** [06 — サウンドモジュール](06-sound.md)

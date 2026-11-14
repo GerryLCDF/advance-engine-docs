@@ -1,44 +1,50 @@
-# 04 — Módulo Imagen
+#04 — 画像モジュール
 
-El módulo **Imagen** gestiona los fondos del juego: la imagen de cada escena y las capas con parallax.
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+**画像**モジュールは、ゲームの背景、今後各シーンの画像と視差のあるレイヤーを管理します。
 
 ![Módulo Imagen](assets/capturas/tab-imagen.png)
 
 ---
 
-## 1. Fondos de escena
+## 1. シーンの背景
 
-Cada escena tiene una **imagen de fondo**. Se asigna desde el inspector de la escena (Mundo) o importando aquí.
+各シーンには**背景画像**があります。シーンインスペクター(ワールド)から、またはここからインポートすることで決まります。
 
-- La imagen se recorta según la cámara si la escena es más grande que la pantalla (240×160).
-- Si la escena es más pequeña, se centra.
+-シーンが画面（240x160）より大きい場合、カメラによっては画像がトリミングされます。
+-シーンが小さい場合は中央に配置されます。
 
-## 2. Capas (parallax)
+## 2. レイヤー（視差）
 
-Puedes añadir **capas** sobre el fondo para dar profundidad. Cada capa es una imagen que se desplaza a distinto ritmo que la cámara.
+背景に**レイヤー**を追加して視点を考えることができます。各レイヤーは、カメラとは異なるペースで移動する画像です。
 
-| Campo | Descripción |
+|フィールド |説明 |
 | :--- | :---| 
-| **Imagen** | La imagen de la capa. |
-| **Parallax X / Y** | 0 = no se mueve, 1 = se mueve con la cámara, >1 = más rápido. |
-| **Repetición** | Si la capa se repite en horizontal/vertical (tiles). |
-| **Velocidad de animación** | Si la capa es un fondo animado. |
+| **画像** |レイヤーのイメージです。
+| **視差 X / Y** | 0 = 移動しない、1 = カメラと一緒に移動、>1 = 速くなります。
+| **繰り返し** |
+| **アニメーション速度** |アニメーション速度** |
 
-## 3. Fondos animados
+## 3. アニメーションの背景
 
-Una capa puede ser un **fondo animado**: una secuencia de frames que se reproduce en bucle.
+レイヤーは、**アニメーション化された背景**、途中ループで再生される連続のフレームにすることができます。
 
-- **Velocidad**: frames por vsync.
-- **Modo**: bucle o una vez.
-- **Dirección**: avance o retroceso.
+- **速度**: vsyncあたりのフレーム数。
+- **モード**: ループまたは 1 回。
+- **方向**: 前方または後方。
 
-## 4. Inspector de capa
+## 4. レイヤーインスペクター
 
-- **Ojo** — muestra/oculta la capa.
-- **Nombre** — el identificador.
-- **Parallax X / Y** — la velocidad de seguimiento.
-- **Animación** — si tiene frames y su velocidad.
+- **注** — レイヤーの表示/非表示を切り替えます。
+- **名前** — 識別子。
+- **視差 X / Y** — トラッキング速度。
+- **アニメーション** — フレームとその速度がある場合。
 
 ---
 
-**Anterior:** [03 — Sprite](03-sprite.md) · **Siguiente:** [05 — Music](05-music.md)
+**前:** [03 — スプライト](03-sprite.md) · **次:** [05 — 音楽](05-music.md)

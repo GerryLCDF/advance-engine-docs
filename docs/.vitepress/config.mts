@@ -16,15 +16,37 @@ const esSidebar = [
   { text: '11 — Manual completo', link: '/11-manual-completo' }
 ]
 
-const enSidebar = esSidebar.map((item) => ({
-  ...item,
-  link: item.link === '/' ? '/en/' : '/en' + item.link
-}))
+const enSidebar = [
+  { text: 'Home', link: '/en/' },
+  { text: '00 — Getting started', link: '/en/00-inicio' },
+  { text: '01 — Interface', link: '/en/01-interfaz' },
+  { text: '02 — World', link: '/en/02-mundo' },
+  { text: '03 — Sprite', link: '/en/03-sprite' },
+  { text: '04 — Image', link: '/en/04-imagen' },
+  { text: '05 — Music', link: '/en/05-music' },
+  { text: '06 — Sound', link: '/en/06-sound' },
+  { text: '07 — Dialog', link: '/en/07-dialogo' },
+  { text: '08 — Scripting', link: '/en/08-scripting' },
+  { text: '09 — Export', link: '/en/09-exportar' },
+  { text: '10 — Programming in C', link: '/en/10-programar-c-gba' },
+  { text: '11 — Complete manual', link: '/en/11-manual-completo' }
+]
 
-const jaSidebar = esSidebar.map((item) => ({
-  ...item,
-  link: item.link === '/' ? '/ja/' : '/ja' + item.link
-}))
+const jaSidebar = [
+  { text: 'ホーム', link: '/ja/' },
+  { text: '00 — はじめに', link: '/ja/00-inicio' },
+  { text: '01 — インターフェース', link: '/ja/01-interfaz' },
+  { text: '02 — ワールド', link: '/ja/02-mundo' },
+  { text: '03 — スプライト', link: '/ja/03-sprite' },
+  { text: '04 — 画像', link: '/ja/04-imagen' },
+  { text: '05 — ミュージック', link: '/ja/05-music' },
+  { text: '06 — サウンド', link: '/ja/06-sound' },
+  { text: '07 — ダイアログ', link: '/ja/07-dialogo' },
+  { text: '08 — スクリプティング', link: '/ja/08-scripting' },
+  { text: '09 — エクスポート', link: '/ja/09-exportar' },
+  { text: '10 — Cプログラミング', link: '/ja/10-programar-c-gba' },
+  { text: '11 — 完全マニュアル', link: '/ja/11-manual-completo' }
+]
 
 export default defineConfig({
   title: 'AdvanceEngine Docs',

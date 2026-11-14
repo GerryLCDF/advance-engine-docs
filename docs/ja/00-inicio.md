@@ -1,88 +1,86 @@
-# 00 — Primeros pasos
+#00 — はじめに
 
-## 0.1. Primer arranque
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
-Al abrir la aplicación por primera vez, se comprueban las herramientas necesarias para compilar ROMs de Game Boy Advance. Si **devkitARM** no está instalado, aparece una ventana informándote y dándote dos opciones:
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
-- **Instalar devkitPro** automáticamente (en Linux puede pedir tu contraseña del sistema).
-- **Descargarlo manualmente**, siguiendo la guía oficial de devkitPro, e instalarlo tú mismo.
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+##0.1。最初のブート
+
+ROM **devkitARM** がインストールされていない場合は、次の 2 つのオプションを通知するウィンドウが表示されます。
+
+- **devkitPro** を自動的にインストールします (Linux ではシステムパスワードが要求される場合があります)。
+- **公式のdevkitProガイドに従って手動でダウンロード**し、自分でインストールします。
 
 ![Ventana de estado del entorno sin devkitARM](assets/launcher-devkitarm.png)
 
-> Puedes seguir editando tu proyecto aunque falten herramientas; la compilación de la ROM requerirá que estén instaladas.
+ROMをビルドする必要があります。
 
-## 0.2. Pantalla inicial (Proyectos recientes)
+## 0.2.ホーム画面（最近のプロジェクト）
 
-Una vez tienes devkitARM instalado, la aplicación te lleva a la pantalla de **proyectos recientes**, donde se muestran hasta los **3 proyectos abiertos más recientemente**.
+devkitARM [**最近のプロジェクト**]画面が表示され、**最近最大3つ**表示されます。
 
 ![Proyectos recientes](assets/launcher-recientes.png)
 
-Cada tarjeta muestra el cartucho del proyecto y su nombre. Debajo de cada uno, el engranaje (⚙️) permite **editar el proyecto** (cambiar el cartucho, la portada o el nombre). Pulsar sobre el cartucho lo abre en el editor.
+各カードには、プロジェクトそれぞれの下にある歯車を使用すると、**プロジェクトを編集** (カートリッジ、カバー、または名前を変更)できます。カートリッジをクリックすると、エディタでカートリッジが開きます。
 
-## 0.3. Barra superior y opciones
+##0.3。トップバーとオプション
 
-En la parte superior se encuentra la navegación principal:
+上部にはメインナビゲーションがあります。
 
 ![Barra superior](assets/launcher-barra-superior.png)
 
-- **Documentación:** acceso a esta documentación.
-- **Créditos:** pantalla de reconocimientos del proyecto.
-- **Opciones:** menú de configuración de la aplicación.
+- **ドキュメント:** このドキュメントへのアクセス。
+- **クレジット:** プロジェクトの承認画面。
+- **オプション:** アプリケーション構成メニュー。![Menú de opciones](assets/launcher-opciones.png)
 
-![Menú de opciones](assets/launcher-opciones.png)
+> **注:** 現在のバージョンでは、**外観** (ビジュアルテーマ) オプションのみが機能します。 **言語**と**スケール**は「近日公開」とマークされています。
 
-> **Nota:** en la versión actual, la opción **Aspecto** (tema visual) es la única operativa. **Idioma** y **Escala** están marcadas como “próximamente”.
+##0.4。すべてのプロジェクト
 
-## 0.4. Todos los proyectos
-
-El botón **Todos los proyectos** abre la lista completa de proyectos creados e importados, para acceder a cualquiera de ellos sin depender de la pantalla de recientes.
+[**すべてのプロジェクト**]ボタンをクリックすると、作成およびインポートされたプロジェクトの完全なリストが開き、最近の画面に依存せずにプロジェクトのいずれかにアクセスできます。
 
 ![Botón todos los proyectos](assets/launcher-boton-todos.png)
 
 ![Lista de todos los proyectos](assets/launcher-lista-proyectos.png)
 
-## 0.5. Crear un proyecto
+##0.5。プロジェクトを作成する
 
-En la pestaña **Crear** se configura un nuevo proyecto:
+[**作成**]タブで、新しいプロジェクトを構成します。
 
-- **Nombre:** identificador del proyecto.
-- **Ruta:** carpeta donde se guardará (usa el botón `...` para elegirla en el explorador).
-- **Plantillas:** una de las plantillas base (Clásico, Color plano, Transparente).
-- **Modificar cartucho:** personalizar el cartucho del proyecto.
+- **名前:** プロジェクト識別子。
+- **パス:** 保存先確定 (エクスプローラーで[...]ボタンを使用して選択します)。
+- **テンプレート:**基本テンプレートの 1 つ (クラシック、フラットカラー、透明)。
+- **カートリッジの変更:** プロジェクトカートリッジをカスタマイズします。![Pestaña crear](assets/launcher-crear.png)
 
-![Pestaña crear](assets/launcher-crear.png)
+**作成**を押してプロジェクトを生成し、エディタに直接入力します。
 
-Pulsa **Crear** para generar el proyecto y entrar directamente al editor.
+##0.6。プロジェクトをインポートする[**インポート**]タブでは、以前に作成したプロジェクトをリンクできます。
 
-## 0.6. Importar un proyecto
+- みんなのプロジェクト設定の**パス**を選択します。
+- 必要に応じて **名前** を調整します。
+- 作成時と同様に**カートリッジを変更**できます。
 
-En la pestaña **Importar** se puede vincular un proyecto ya creado anteriormente:
+これにより、プロジェクトを最初から作成しなくても、プロジェクトでの作業を続けることができます。
 
-- Elige la **ruta** de la carpeta del proyecto existente.
-- Ajusta el **nombre** si quieres.
-- Puedes **modificar el cartucho** igual que al crear.
+##0.7。 カートリッジのカスタマイズ
 
-Esto te permite continuar trabajando en un proyecto sin necesidad de crearlo desde cero.
+**カートリッジの変更** (歯車)ボタンをクリックすると、カスタマイズ画面が開きます。![Panel del cartucho](assets/launcher-cartucho-panel.png)
 
-## 0.7. Personalización del cartucho
-
-El botón **Modificar cartucho** (engranaje) abre la pantalla de personalización:
-
-![Panel del cartucho](assets/launcher-cartucho-panel.png)
-
-- **Tipo de cartucho:** *Color plano* o *Color transparente*.
-- **Color:** uno de los 9 colores fijos (gris, blanco, rojo, verde, azul, morado, café, amarillo, negro) o un color personalizado con selector.
+- **カートリッジタイプ:** *フラットカラー* または *透明カラー*。
+- **色:** 9 つの固定色 (グレー、白、赤、緑、青、紫、茶色、黄、黒) のいずれか、またはセレクターを使用したカスタムカラー。
 
 ![Selección del tipo y color de cartucho](assets/launcher-cartucho-seleccion.png)
 
-También puedes añadir una **portada (calcomanía)** personalizada:
+カスタム **カバー (デカール)** を追加することもできます。
 
 ![Requisitos de la portada](assets/launcher-calcomania-requisitos.png)
 
-> **Requisito:** usa exactamente **480×270 px** para mejores resultados.
+>>
 
 ![Cartucho con portada aplicada](assets/launcher-cartucho-final.png)
 
 ---
 
-**Siguiente:** [01 — Interfaz de la aplicación](01-interfaz.md)
+**次へ:** [01 — アプリケーションインターフェイス](01-interfaz.md)

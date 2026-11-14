@@ -1,25 +1,26 @@
-# AdvanceEngine — Documentación
+# AdvanceEngine — Documentation
 
-Documentación de la versión 1.0.0 de Advance Engine, el mejor motor para desarrollar juegos para GBA de la forma más simple posible y con resultados muy buenos. Sigue en progreso de mejora y puedes ver el proyecto aquí: [itch.io](https://gerardolcdf.itch.io/advanceengine).
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+Documentation of version 1.0.0 of Advance Engine, the best engine to develop games for GBA in the simplest way possible and with very good results. It is still in improvement progress and you can see the project here: [itch.io](https://gerardolcdf.itch.io/advanceengine).
 
 
 ---
 
-## Índice
+## Index
 
-| Sección | Contenido |
+| Section | Content |
 | :--- | :--- |
-| [00 — Primeros pasos](00-inicio.md) | Arranque, instalación de devkitARM, crear/importar proyectos, personalizar el cartucho. |
-| [01 — Interfaz de la aplicación](01-interfaz.md) | Barra superior, menús, pestañas, consola, atajos de teclado. |
-| [02 — Módulo Mundo](02-mundo.md) | Lienzo, herramientas, menú radial, colisiones, transiciones, inspector de escena/actor. |
-| [03 — Módulo Sprite](03-sprite.md) | Importar hoja, dividir en frames, saltar vacíos, animaciones, modos de ciclo. |
-| [04 — Módulo Imagen](04-imagen.md) | Fondos, capas, parallax, fondos animados. |
-| [05 — Módulo Music](05-music.md) | Piano roll y tracker, canales, instrumentos, presets, BPM. |
-| [06 — Módulo Sound](06-sound.md) | SFX, importar, forma de onda, opciones. |
-| [07 — Módulo Diálogo](07-dialogo.md) | Diálogos, filas, idiomas, cajas de texto, hablante. |
-| [08 — Scripting](08-scripting.md) | Modos (Bloques / AdvanceCode / C), editor, recientes, inspector. |
-| [09 — Exportar y probar](09-exportar.md) | Emulador integrado, ROM GBA, web, escritorio (.exe / .AppImage). |
-| [10 — Programar en C para la GBA](10-programar-c-gba.md) | Referencia de hardware, memoria, API completa función por función. |
-| [11 — Manual completo](11-manual-completo.md) | Referencia completa y manual extendido. |
+| [00 — Getting started](00-inicio.md) | Booting, installing devkitARM, creating/importing projects, customizing the cartridge. |
+| [01 — Application interface](01-interfaz.md) | Top bar, menus, tabs, console, keyboard shortcuts. |
+| [02 — World Module](02-mundo.md) | Canvas, tools, radial menu, collisions, transitions, scene inspector/actor. |
+| [03 — Sprite Module](03-sprite.md) | Import sheet, split into frames, skip gaps, animations, cycle modes. |
+| [04 — Image Module](04-imagen.md) | Backgrounds, layers, parallax, animated backgrounds. |
+| [05 — Music Module](05-music.md) | Piano roll and tracker, channels, instruments, presets, BPM. |
+| [06 — Sound Module](06-sound.md) | SFX, import, waveform, options. |
+| [07 — Dialogue Module](07-dialogo.md) | Dialogues, rows, languages, text boxes, speaker. |
+| [08 — Scripting](08-scripting.md) | Modes (Blocks / AdvanceCode / C), editor, recent, inspector. |
+| [09 — Export and test](09-exportar.md) | Built-in emulator, GBA ROM, web, desktop (.exe / .AppImage). || [10 — Programming in C for the GBA](10-programar-c-gba.md) | Hardware reference, memory, full API feature by feature. |
+| [11 — Complete manual](11-manual-completo.md) | Complete reference and extended manual. |
 
 ---

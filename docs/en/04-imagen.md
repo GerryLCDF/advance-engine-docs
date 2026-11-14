@@ -1,44 +1,49 @@
-# 04 — Módulo Imagen
+#04 — Image Module
 
-El módulo **Imagen** gestiona los fondos del juego: la imagen de cada escena y las capas con parallax.
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+The **Image** module manages the game backgrounds: the image of each scene and the layers with parallax.
 
 ![Módulo Imagen](assets/capturas/tab-imagen.png)
 
 ---
 
-## 1. Fondos de escena
+## 1. Scene Backgrounds
 
-Cada escena tiene una **imagen de fondo**. Se asigna desde el inspector de la escena (Mundo) o importando aquí.
+Each scene has a **background image**. It is assigned from the scene inspector (World) or by importing here.
 
-- La imagen se recorta según la cámara si la escena es más grande que la pantalla (240×160).
-- Si la escena es más pequeña, se centra.
+- The image is cropped depending on the camera if the scene is larger than the screen (240x160).
+- If the scene is smaller, it is centered.
 
-## 2. Capas (parallax)
+## 2. Layers (parallax)
 
-Puedes añadir **capas** sobre el fondo para dar profundidad. Cada capa es una imagen que se desplaza a distinto ritmo que la cámara.
+You can add **layers** over the background to give depth. Each layer is an image that moves at a different pace than the camera.
 
-| Campo | Descripción |
+| Field | Description |
 | :--- | :---| 
-| **Imagen** | La imagen de la capa. |
-| **Parallax X / Y** | 0 = no se mueve, 1 = se mueve con la cámara, >1 = más rápido. |
-| **Repetición** | Si la capa se repite en horizontal/vertical (tiles). |
-| **Velocidad de animación** | Si la capa es un fondo animado. |
+| **Image** | The image of the layer. |
+| **Parallax X / Y** | 0 = does not move, 1 = moves with the camera, >1 = faster. |
+| **Repeat** | If the layer repeats horizontally/vertically (tiles). |
+| **Animation speed** | Whether the layer is an animated background. |
 
-## 3. Fondos animados
+## 3. Animated backgrounds
 
-Una capa puede ser un **fondo animado**: una secuencia de frames que se reproduce en bucle.
+A layer can be an **animated background**: a sequence of frames that plays in a loop.
 
-- **Velocidad**: frames por vsync.
-- **Modo**: bucle o una vez.
-- **Dirección**: avance o retroceso.
+- **Speed**: frames per vsync.
+- **Mode**: loop or once.
+- **Direction**: forward or backward.
 
-## 4. Inspector de capa
+## 4. Layer Inspector
 
-- **Ojo** — muestra/oculta la capa.
-- **Nombre** — el identificador.
-- **Parallax X / Y** — la velocidad de seguimiento.
-- **Animación** — si tiene frames y su velocidad.
+- **Note** — show/hide the layer.
+- **Name** — the identifier.
+- **Parallax X / Y** — the tracking speed.- **Animation** — if it has frames and its speed.
 
 ---
 
-**Anterior:** [03 — Sprite](03-sprite.md) · **Siguiente:** [05 — Music](05-music.md)
+**Previous:** [03 — Sprite](03-sprite.md) · **Next:** [05 — Music](05-music.md)

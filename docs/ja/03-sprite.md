@@ -1,71 +1,72 @@
-# 03 — Módulo Sprite
+#03 — スプライトモジュール
 
-El módulo **Sprite** convierte una hoja de sprites (spritesheet) en los frames que el motor anima: divide la imagen en una rejilla, descarta los frames vacíos y crea animaciones con sus modos de ciclo.
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+**ライトスプ** モジュールは、スプライトシートをエンジンがアニメーション化するフレームに変換します。画像をグリッドに分割し、空のフレームを破棄し、そのサイクルモードでアニメーションを作成します。
 
 ![Módulo Sprite](assets/capturas/tab-sprite.png)
 
 ---
 
-## 1. Importar una hoja
+## 1. シートをインポートする
 
-1. Pulsa **IMPORTAR** (o arrastra el PNG al lienzo).
-2. Elige la imagen. Se guarda en `sprites/` del proyecto.
-3. En la lista de sprites aparece con su nombre y su rejilla.
+1. **IMPORT** を押します (または PNG をキャンバスにします)。
+2. 画像を選択します。プロジェクトの`sprites/`に保存されます。
+3.名前とグリに表示されます。
 
-## 2. Dividir la hoja (rejilla)
+## 2. 分割シート（グリッド）
 
-Al importar, el asistente pide la **rejilla**:
+インポート時に、ウィザードは**グリッド**を要求します。
 
-| Campo | Descripción |
+|フィールド |説明 |
 | :--- | :--- |
-| **Columnas** | Cuántos frames hay en horizontal. |
-| **Filas** | Cuántos frames hay en vertical. |
-| **Ancho / Alto de tile** | Tamaño de cada frame en píxeles. |
+| **コラム** |横方向のフレームは何フレームありますか? |
+| **行** |縦に何フレームありますか。
+| **タイルの幅 / 高さ** |各フレームのピクセル単位のサイズ。
 
-La hoja se divide en `columnas × filas` frames. Cada frame es un tile independiente que el motor puede animar.
+シートは「列×行」のフレームに分割されています。各フレームは、エンジンがアニメーション化できる独立したタイルです。
 
-## 3. Saltar frames vacíos
+## 3. 空のフレームをスキップする
 
-Si la hoja tiene huecos (frames transparentes o de relleno), usa **«Saltar frames vacíos»**: marca en rojo los frames que no quieres y el motor los omite al exportar. Así una hoja con espacios irregulares no genera frames fantasma.
+シートにギャップ (透明なフレームまたは塗りつぶしフレーム) がある場合は、**«空のフレームをスキップ»** を使用します。不要なフレームを赤でマークすると、外出時にエンジンがそのフレームをスキップします。そのため、不規則な隙間のあるシートでもゴーストフレームが発生しません。
 
-## 4. Animaciones
+## 4. アニメーション
 
-Cada sprite puede tener varias **animaciones**. Una animación es una secuencia de frames con un retardo.
+各スプライトには複数の**アニメーション**を含めることができます。アニメーションは、遅延のある連続のフレームです。
 
-| Campo | Descripción |
+|フィールド |説明 |
 | :--- | :--- |
-| **Nombre** | El identificador (WALK_DOWN, IDLE…). |
-| **Frames** | La lista de frames que componen la animación. |
-| **Retardo** | Cuántos vsyncs dura cada frame (6 ≈ 10 veces/sg). |
-| **Modo** | **Una vez** (once), **bucle** (loop) o **ping-pong** (ida y vuelta). |
+| **名前** |識別子 (ウォークダウン、アイドルなど)。
+| **フレーム** | アニメーションを構成するフレームのリスト。
+| **遅延** | 各フレームが持続する vsync の数 (6 ≈ 10 回/sg)。 **1 回** (11 回)、**loop** (ループ)、または **ピンポン** (往復)。
 
-### Modos de ciclo
+### サイクルモード
 
-- **Una vez**: la animación se reproduce una sola vez y se queda en el último frame.
-- **Bucle**: al terminar vuelve al primer frame.
-- **Ping-pong**: va del primero al último y del último al primero (para caminar, aleteos…).
+- **1 回**: アニメーションは 1 回だけ再生され、最後のフレームに残ります。
+- **ループ**: 終了すると最初のフレームに戻ります。
+- **ピンポン**: 最初から最後へ、最後から最初へ行きます (歩く、羽ばたくなど)。
 
-## 5. Inspector del sprite
+## 5. スプライトインスペクター
 
 ![Inspector de sprite](assets/capturas/sprite-inspector.png)
 
-- **Lista de sprites** (izquierda): todas las hojas del proyecto.
-- **Previsualización**: el frame seleccionado, con la rejilla.
-- **Animaciones**: lista, añadir, eliminar, renombrar.
-- **Línea de tiempo**: los frames de la animación, con el onion skin (encaje con el frame anterior).
+- **スプライトのリスト** (左): プロジェクト内のすべてのシート。
+- **プレビュー**: 選択したフレームとグリッド。
+- **アニメーション**: リスト、追加、削除、名前変更。
+- **タイムライン**:オニオンスキン付きのアニメーションのフレーム(前のフレームに合わせます)。##6.オニオンスキン**オニオンスキン**は、前のフレームをゴーストとして描画し、アニメーションを手動でチェーンします(各フレームは前のフレームを継続します)。対応するボタンが有効になります。
 
-## 6. Onion skin
+## 7. ゲーム内での使用
 
-El **onion skin** dibuja el frame anterior como fantasma para encadenar animaciones a mano (cada fotograma continúa el anterior). Se activa con el botón correspondiente.
-
-## 7. Uso en el juego
-
-- Un actor tiene un **spritesheet** y una **animación inicial**.
-- El script puede cambiar de animación y de frame:
-  - `gSelf->frame` — frame actual.
-  - `gSelf->animSpeed` — cuántos frames de reloj avanza por vsync (0/1 = cadencia exacta; 2+ = más rápido).
-- La animación corre en el motor (`advanceAllActors`), salvo que un diálogo/menú esté abierto (se congela).
+- アクターには **スプライトシート** と **開始アニメーション**があります。
+- スクリプトはアニメーションとフレームを変更できます。
+  - `gSelf->frame` — 現在のフレーム。
+  - `gSelf->animSpeed` — vsyncによって何クロックフレームが進むか (0/1 = 正確なケイデンス、2+ = 高速)。
+- ダイアログ/メニューが開いていない限り(フリーズします)、アニメーションはエンジン(`advanceAllActors`)で実行されます。
 
 ---
 
-**Anterior:** [02 — Mundo](02-mundo.md) · **Siguiente:** [04 — Imagen](04-imagen.md)
+**前:** [02 — ワールド](02-mundo.md) · **次:** [04 — 画像](04-imagen.md)

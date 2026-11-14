@@ -1,253 +1,246 @@
-# Manual completo de AdvanceEngine
+#AdvanceEngine完全マニュアル
 
-> **AdvanceEngine** es un IDE visual para hacer juegos de Game Boy Advance: dibujas escenas, animas sprites, compones música, escribes diálogos y programas la lógica en C. Luego exporta una ROM `.gba` que funciona en emuladores y en flashcarts.
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **AdvanceEngine** は、Game Boy Advance ゲームを作成するためのビジュアル IDE です。シーンを描画し、スプライトをアニメーション化し、音楽を作成し、ダイアログとプログラム ロジックを C で作成します。その後、エミュレータやフラッシュカートで動作する `.gba` ROM をエクスポートします。
 >
-> Este manual explica **cada pestaña, cada panel, cada opción y cada función de la API de C**, con capturas de la aplicación real.
+> このマニュアルでは、**C API のすべてのタブ、すべてのパネル、すべてのオプション、およびすべての機能** について、実際のアプリケーションのスクリーンショットを使用して説明しています。
 
 ---
 
-## Índice
+## インデックス
 
-1. [Introducción y arranque](#1-introducción-y-arranque)
-2. [El Launcher (pantalla principal)](#2-el-launcher-pantalla-principal)
-3. [El Editor (estructura general)](#3-el-editor-estructura-general)
-4. [Pestaña Mundo](#4-pestaña-mundo)
-5. [Pestaña Scripting (C)](#5-pestaña-scripting-c)
-6. [Pestaña Sprite](#6-pestaña-sprite)
-7. [Pestaña Imagen](#7-pestaña-imagen)
-8. [Pestaña Music](#8-pestaña-music)
-9. [Pestaña Sound](#9-pestaña-sound)
-10. [Pestaña Dialogo](#10-pestaña-dialogo)
-11. [Ajustes](#11-ajustes)
-12. [Exportación a GBA](#12-exportación-a-gba)
-13. [Referencia de la API C del motor](#13-referencia-de-la-api-c-del-motor)
-14. [Guía: hacer un juego de 0 a fin](#14-guía-hacer-un-juego-de-0-a-fin)
-15. [Solución de problemas](#15-solución-de-problemas)
-
----
-
-## 1. Introducción y arranque
-
-### Qué se puede hacer
-- Juegos 2D completos: **plataformas, top-down/RPG, puzzles, visual novels**, etc.
-- Escenas con imagen de fondo, colisión por tiles, actores con sprites y animaciones.
-- Multi-escena con transiciones (fundido, instante o tileset personalizado).
-- Música (4 canales PSG + PCM) y efectos de sonido.
-- Diálogos con fuentes (tilesets), caja 9-slice, varios idiomas y paginación.
-- Lógica en **C** con primitivas de movimiento y guardado en SRAM.
-
-### Requisitos
-- Windows 10/11 (x64) o Linux (x64/arm64).
-- **devkitARM** para exportar la ROM. La app lo instala sola desde **Opciones → General → Instalar devkitPro**.
-- Un editor de imágenes externo (Aseprite, GIMP, Photoshop) para sprites y fondos.
-
-### Arranque rápido
-1. Abre la app. Aparece el **Launcher** (pestañas Reciente / Crear / Importar).
-2. Crea un proyecto nuevo o abre uno existente.
-3. En el **Editor**, trabaja en las pestañas: Mundo, Scripting, Sprite, Imagen, Music, Sound, Dialogo.
-4. Pulsa **Juego → Exportar GBA** (o el botón PLAY) para generar la ROM.
-5. Pruébala en el emulador integrado.
+1. [イントロとスタート](#1-イントロとスタート)
+2. [ランチャー(メイン画面)](#2-ランチャー-メイン画面)
+3. [エディター (一般構造)](#3-エディターの一般構造)
+4. [ワールドタブ](#4-ワールドタブ)
+5. [スクリプトタブ(C)](#5-scripting-tab-c)
+6. [スプライトタブ](#6-スプライトタブ)
+7. [画像タブ](#7-画像タブ)
+8. [音楽タブ](#8-音楽タブ)
+9. [サウンドタブ](#9-サウンドタブ)
+10. [ダイアログタブ](#10-ダイアログタブ)
+11. [設定](#11-設定)
+12. [GBAへエクスポート](#12-export-to-gba)
+13. [エンジン C API リファレンス](#13-engine-c-api-reference)
+14. [ガイド: 0 から終わりまでゲームを作る](#14-guide-make-a-game-from-0-to-end)
+15. [トラブルシューティング](#15-トラブルシューティング)
 
 ---
 
-## 2. El Launcher (pantalla principal)
+## 1. 概要と開始
+
+###何ができるのか
+- 完全な 2D ゲーム: **プラットフォーム、トップダウン/RPG、パズル、ビジュアル ノベル** など。
+- 背景画像を含むシーン、タイルによる衝突、スプライトとアニメーションを含むアクター。
+- トランジションを備えたマルチシーン (フェード、インスタント、またはカスタム タイルセット)。- 音楽 (4 チャンネル PSG + PCM) と効果音。
+- フォント (タイルセット)、9 スライス ボックス、複数の言語、ページネーションを備えたダイアログ。
+- 動作プリミティブを備えた **C** のロジックで、SRAM に保存されます。
+
+### 要件
+- Windows 10/11 (x64) または Linux (x64/arm64)。
+- **devkitARM** で ROM をエクスポートします。アプリは、**オプション → 一般 → devkitPro のインストール** から自動的にインストールします。
+- スプライトと背景用の外部画像エディター (Aseprite、GIMP、Photoshop)。
+
+### 高速ブート
+1. アプリを開きます。 **ランチャー** が表示されます ([最近]、[作成]、[インポート] タブ)。
+2. 新しいプロジェクトを作成するか、既存のプロジェクトを開きます。
+3. **エディタ**で、[ワールド]、[スクリプト]、[スプライト]、[画像]、[音楽]、[サウンド]、[ダイアログ]のタブで作業します。
+4. **Game → Export GBA** (または PLAY ボタン) を押して ROM を生成します。
+5. 内蔵エミュレータで試してください。
+
+---
+
+## 2. ランチャー (メイン画面)
 
 ![Launcher](assets/capturas/00-launcher.png)
 
-Es la pantalla al abrir la app. Arriba está el **AppHeader** y abajo las pestañas.
+アプリを開いた時の画面です。上は **AppHeader** で、下はタブです。
 
-### AppHeader
-- **Logo y versión** (`AdvanceEngine`, `V alfa 0.70.0`).
-- **Documentacion**: abre el manual (este archivo y el resto de la documentación).
-- **Creditos**: pantalla de créditos con fondo de nubes animado.
-- **Opciones**: abre el modal de Ajustes (ver sección 11).
+### アプリヘッダー
+- **ロゴとバージョン** (`AdvanceEngine`、`V alpha 0.70.0`)。
+- **ドキュメント**: マニュアル (このファイルと残りのドキュメント) を開きます。
+- **クレジット**: 雲の背景がアニメーション化されたクレジット画面。
+- **オプション**: 設定モーダルを開きます (セクション 11 を参照)。
 
-### Pestañas del Launcher
+### ランチャータブ
 
-#### Reciente
-Muestra los **3 últimos proyectos** abiertos como cartuchos (con portada si tiene). Al hacer clic en un cartucho se abre el proyecto. Debajo está el botón **Todos los proyectos**.
+#### 最近の
+カートリッジとして開かれた **最後の 3 つのプロジェクト**を表示します (カバーがある場合はカバー付き)。カートリッジをクリックするとプロジェクトが開きます。以下は [**すべてのプロジェクト**] ボタンです。#### 作成
+新しいプロジェクトを作成するためのフォーム:
+- プロジェクトの **名前**。
+- **著者**。
+- **テンプレート** (カートリッジの色): `透明:白`、`フラット:黄色`など。
+- **パス** (デフォルトでは「AdvanceEngineProjects」フォルダー) が保存されます。
+- **カバー** (PNG 480×270 を推奨)。
 
-#### Crear
-Formulario para crear un proyecto nuevo:
-- **Nombre** del proyecto.
-- **Autor**.
-- **Plantilla** (color del cartucho): `transparente:blanco`, `plano:amarillo`, etc.
-- **Ruta** donde se guarda (carpeta `AdvanceEngineProjects` por defecto).
-- **Portada** (PNG 480×270 recomendado).
+作成時には、エディターが開き、デフォルトのシーンが表示されます。
 
-Al crear, se abre el editor con una escena por defecto.
+#### インポート
+フォルダー (ダウンロードまたはコピーしたプロジェクトなど) からプロジェクトをインポートできます。
 
-#### Importar
-Permite importar un proyecto desde una carpeta (por ejemplo, uno descargado o copiado).
+#### すべてのプロジェクト
+以下を含むプロジェクトの完全なリスト:
+- 名前、作成者、日付。
+- コンテキスト メニュー (右クリック): **開く**、**表紙の変更**、**削除**。
+- 検索。
 
-#### Todos los proyectos
-Lista completa de proyectos con:
-- Nombre, autor, fecha.
-- Menú contextual (clic derecho): **Abrir**, **Modificar portada**, **Eliminar**.
-- Búsqueda.
-
-### Cartucho
-El cartucho es la representación visual del proyecto:
-- **Portada** (imagen 480×270).
-- **Color** (según la plantilla).
-- **Calcomanía** (recorte/plantilla decorativa).
-- Menú contextual: renombrar, modificar portada, eliminar.
+### カートリッジ
+カートリッジはプロジェクトを視覚的に表現したものです。
+- **表紙** (画像 480×270)。
+- **色** (テンプレートによって異なります)。
+- **デカール** (装飾的な切り抜き/ステンシル)。
+- コンテキスト メニュー: 名前の変更、表紙の変更、削除。
 
 ---
 
-## 3. El Editor (estructura general)
+## 3. エディター (一般的な構造)
 
 ![Editor](assets/capturas/01-editor-mundo.png)
 
-Al abrir un proyecto se entra al **Editor**, que es la pantalla principal. Se organiza en:
+プロジェクトを開くと、メイン画面である **エディタ** に入ります。構成は次のとおりです。
 
-### Barra superior (EditorTopBar)
-- **Menús**: Archivo, Edición, Juego, Plugin, Ayuda.
-  - **Archivo**: guardar, exportar GBA, exportar assets, cerrar proyecto.
-  - **Edición**: deshacer/rehacer, copiar/pegar.
-  - **Juego**: PLAY/STOP del emulador integrado.
-  - **Plugin**: gestión de plugins (futuro).
-  - **Ayuda**: abre la configuración en la pestaña correspondiente, o el manual.
-- **Botones de ventana** (minimizar, maximizar, cerrar) — la ventana es frameless.
-- **PLAY/STOP**: exporta y abre el emulador integrado con la ROM.
+### トップバー (EditorTopBar)
+- **メニュー**: ファイル、編集、ゲーム、プラグイン、ヘルプ。
+  - **ファイル**: 保存、GBA のエクスポート、アセットのエクスポート、プロジェクトの終了。
+  - **編集**: 元に戻す/やり直し、コピー/貼り付け。
+  - **ゲーム**: 統合エミュレータのPLAY/STOP。
+  - **プラグイン**: プラグイン管理 (将来)。
+  - **ヘルプ**: 対応するタブの設定、またはマニュアルを開きます。- **ウィンドウ ボタン** (最小化、最大化、閉じる) - ウィンドウはフレームレスです。
+- **PLAY/STOP**: ROM に統合されたエミュレータをエクスポートして開きます。
 
-### Pestañas
-Las 7 pestañas del editor, cada una con su lienzo, jerarquía e inspector:
-- **Mundo**: escenas, cámara, actores, conexiones, transiciones.
-- **Scripting**: lógica en C.
-- **Sprite**: spritesheets y animaciones.
-- **Imagen**: fondos y capas.
-- **Music**: piano roll / tracker.
-- **Sound**: efectos de sonido.
-- **Dialogo**: diálogos con filas e idiomas.
+### タブ
+エディターの 7 つのタブ。それぞれにキャンバス、階層、インスペクターが含まれます。
+- **ワールド**: シーン、カメラ、俳優、接続、トランジション。
+- **スクリプト**: C のロジック。
+- **スプライト**: スプライトシートとアニメーション。
+- **画像**: 背景とレイヤー。
+- **音楽**: ピアノロール/トラッカー。
+- **サウンド**: サウンドエフェクト。
+- **ダイアログ**: 行と言語によるダイアログ。
 
-### Panel de jerarquía (izquierda)
-Árbol con secciones y elementos. Permite:
-- **Seleccionar** un elemento.
-- **Renombrar** (doble clic o F2).
-- **Eliminar** (botón ✕ con confirmación).
-- **Menú contextual** (clic derecho): renombrar, eliminar.
-- **Colapsar** secciones.
-- **Arrastrar** escenas (en Mundo).
+### 階層パネル (左)
+セクションと要素を含むツリー。許可するもの:
+- **要素を選択**します。
+- **名前を変更** (ダブルクリックまたは F2)。
+- **削除** (✕ ボタンで確認)。
+- **コンテキスト メニュー** (右クリック): 名前の変更、削除。
+- **セクションを折りたたむ**。
+- **シーンをドラッグ**します(ワールド内)。
 
-### Lienzo (centro)
-El área de trabajo de cada pestaña: escenas, código, sprites, fondos, piano roll, etc.
+### キャンバス (中央)
+各タブの作業領域: シーン、コード、スプライト、背景、ピアノロールなど。
 
-### Inspector (derecha)
-Muestra las propiedades del elemento seleccionado. Cambia según la pestaña y el elemento.
+### 警部（右）
+選択した要素のプロパティを表示します。タブや要素によって変わります。
 
-### Terminal del pipeline (abajo, en Mundo)
-Muestra el log de exportación (INFO, WARN, ERROR) con auto-scroll y botones **Copiar** y **Limpiar**.
+### パイプラインターミナル (以下、ワールド内)
+自動スクロール、**コピー**、**クリア** ボタンを使用して、エクスポート ログ (情報、警告、エラー) を表示します。
 
-### Atajos de teclado globales
-- **Ctrl+S**: guardar proyecto.
-- **Ctrl+Z / Ctrl+Y**: deshacer/rehacer.
-- **Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A**: portapapeles (respeta el campo con foco).
-- **Supr**: borrar (respeta el campo con foco).
-- **Escape**: cerrar menús/modales.
-
----
-
-## 4. Pestaña Mundo
-
-![Mundo](assets/capturas/02-tab-mundo.png)
-
-Es la pestaña principal: aquí se colocan las **escenas**, los **actores**, la **cámara**, las **conexiones** y las **transiciones**.
-
-### Lienzo
-- **Escenas** (tarjetas) con su mini-mapa (la imagen de fondo), el nombre y el indicador `CAM x,y` si la escena es mayor que 240×160.
-- **Cámara** (rectángulo discontinuo 240×160): se puede **arrastrar** para mover el punto de vista. Es la porción de la escena que se ve en la GBA.
-- **Conexiones** entre escenas (líneas curvas con flecha). El color indica el tipo (entrada/salida).
-- **Zoom/pan**: rueda para zoom (Ctrl+rueda en algunos casos), arrastre con botón medio o con la herramienta mover.
-- **Cuadrícula** de píxeles (tamaño configurable).
-
-### Herramientas (barra inferior del lienzo)
-- **Mover**: arrastrar la vista.
-- **Añadir escena**: crea una escena nueva (la nombra `Escena N`).
-- **Conectar**: une dos escenas (entrada/salida).
-- **Eliminar**: borra la escena o conexión seleccionada.
-- **Colisión**: pinta tiles de colisión (sólido, plataformas, rampas).
-
-### Jerarquía
-- **SplashScreen** (la pantalla de presentación, no se puede borrar).
-- **Escenas**: cada una con sus **actores** anidados.
-- **Conexiones**: las relaciones entre escenas.
-- Se puede **renombrar** (doble clic), **eliminar** (con confirmación) y usar el **menú contextual**.
-
-### Inspector de escena
-- **Nombre**.
-- **Tipo**: platformer / topdown / rpg / fighting (informativo, no cambia el motor).
-- **Posición** (x, y en el mundo del editor).
-- **Tamaño** (ancho, alto).
-- **Color de fondo** (si no hay imagen).
-- **Imagen de fondo**: se asigna desde **Imagen** (fondos y capas).
-- **Cámara**: `Camara X` e `Camara Y` (el punto de vista).
-- **Colisión**: tamaño de tile y mapa de colisión (se pinta en el lienzo con la herramienta colisión).
-- **Canción**: la canción de fondo de la escena.
-- **Sonido de fondo**: efecto PCM en bucle.
-
-### Inspector de actor
-- **Nombre**, **tipo** (Estático, Interactuable, Objeto, Texto).
-- **Posición** (x, y), **tamaño** (ancho, alto), **z** (orden de pintado).
-- **Sprite**: el spritesheet y la animación.
-- **Colisión**: collider (anchura, altura, offset) y colisión por tiles.
-- **Área**: zona de disparo (anchura, altura, offset) para `actor_in_area`/`actor_entered` en el script.
-- **Dialog Box** (para actores de tipo Texto): ver sección 10.
-- **Script**: el script C asignado (el que se ejecuta para este actor).
-- **Canción / sonido**: asignados al actor.
-
-### Conexiones
-- Se crean con la herramienta **Conectar** (clic en la escena origen y en la destino).
-- **Inspector de conexión**: nombre, tipo de transición de entrada y salida (fundido, instante o tileset), velocidad y tileset/degradado.
-- **Menú contextual**: renombrar, eliminar.
-- El motor reproduce la transición configurada al hacer `switchScene(n)`.
-
-### Transiciones
-- **Fundido**: la escena se oscurece/aparece gradualmente.
-- **Instante**: cambio directo.
-- **Tileset personalizado**: una imagen 3×3 (o más) que se anima como máscara (ver sección 12).
-- Se configuran en el inspector de la **conexión** (entrada/salida) y del **SplashScreen**.
-
-### Terminal del pipeline
-- Muestra el log de exportación: escenas, actores, fuentes, diálogos, errores.
-- Botones **Copiar** y **Limpiar**.
+### グローバル キーボード ショートカット
+- **Ctrl+S**: プロジェクトを保存します。
+- **Ctrl+Z / Ctrl+Y**: 元に戻す/やり直し。
+- **Ctrl+C / Ctrl+V / Ctrl+X / Ctrl+A**: クリップボード (フォーカスのあるフィールドを尊重)。
+- **Del**: 削除 (フォーカスのあるフィールドを尊重)。
+- **エスケープ**: メニュー/モーダルを閉じます。
 
 ---
 
-## 5. Pestaña Scripting (C)
+## 4.「世界」タブ![Mundo](assets/capturas/02-tab-mundo.png)
+
+これはメイン タブです。**シーン**、**アクター**、**カメラ**、**接続**、**トランジション**がここに配置されます。
+
+### キャンバス
+- **シーン** (カード) とそのミニマップ (背景画像)、名前、およびシーンが 240×160 より大きい場合の「CAM x,y」インジケーター。
+- **カメラ** (破線の長方形 240×160): **ダッギング**して視点を移動できます。 GBAで見られたシーンの一部です。
+- シーン間の **接続** (矢印付きの曲線)。色はタイプ（入力/出力）を示します。
+- **ズーム/パン**: ホイールでズーム (場合によっては Ctrl+ホイール)、中央ボタンまたは移動ツールでドラッグします。
+- ピクセル **グリッド** (サイズは設定可能)。
+
+### ツール (下部のキャンバス バー)
+- **移動**: ビューをドラッグします。
+- **シーンの追加**: 新しいシーンを作成します (「シーン N」という名前を付けます)。
+- **接続**: 2 つのシーン (入力/出力) を結合します。
+- **削除**: 選択したシーンまたは接続を削除します。
+- **衝突**: 衝突タイル (ソリッド、プラットフォーム、ランプ) をペイントします。
+
+### 階層
+- **SplashScreen** (スプラッシュ スクリーン。削除できません)。
+- **シーン**: それぞれにネストされた**アクター**が含まれます。
+- **接続**: シーン間の関係。
+- **名前変更** (ダブルクリック)、**削除** (確認付き)、**コンテキスト メニュー**を使用できます。
+
+### シーンインスペクター
+- **名前**。
+- **タイプ**: プラットフォーマー / トップダウン / rpg / 格闘 (参考情報、エンジンは変更されません)。- **位置** (エディターの世界における x、y)。
+- **サイズ** (幅、高さ)。
+- **背景色** (画像がない場合)。
+- **背景画像**: **画像** (背景とレイヤー) から割り当てられます。
+- **カメラ**: `カメラ X` および `カメラ Y` (視点)。
+- **衝突**: タイルのサイズと衝突マップ (衝突ツールを使用してキャンバスに描画)。
+- **ソング**: シーンのバックグラウンドソング。
+- **バックグラウンド サウンド**: ループ PCM エフェクト。
+
+### 俳優検査官
+- **名前**、**タイプ** (静的、対話可能、オブジェクト、テキスト)。
+- **位置** (x、y)、**サイズ** (幅、高さ)、**z** (描画順序)。
+- **スプライト**: スプライトシートとアニメーション。
+- **衝突**: コライダー (幅、高さ、オフセット) とタイルによる衝突。
+- **エリア**: スクリプト内の `actor_in_area`/`actor_entered` のトリガー ゾーン (幅、高さ、オフセット)。
+- **ダイアログ ボックス** (テキスト タイプ アクターの場合): セクション 10 を参照してください。
+- **スクリプト**: 割り当てられた C スクリプト (このアクターに対して実行されるスクリプト)。
+- **歌/サウンド**: 俳優に割り当てられます。
+
+### 接続
+- **接続** ツールを使用して作成されます (ソース シーンと宛先シーンをクリックします)。
+- **接続インスペクター**: 名前、入力および出力トランジション タイプ (フェード、インスタント、またはタイルセット)、速度、タイルセット/グラデーション。
+- **コンテキスト メニュー**: 名前の変更、削除。
+- エンジンは「switchScene(n)」を実行することで設定されたトランジションを再生します。
+
+### トランジション
+- **フェードアウト**: シーンがフェードイン/フェードインします。
+- **インスタント**: 直接変更。- **カスタム タイルセット**: マスクとしてアニメーション化される 3×3 (またはそれ以上の) 画像 (セクション 12 を参照)。
+- これらは、**接続** (入力/出力) および **SplashScreen** インスペクターで構成されます。
+
+### パイプラインターミナル
+- エクスポート ログを表示します: シーン、アクター、ソース、ダイアログ、エラー。
+- **コピー** および **クリア** ボタン。
+
+---
+
+## 5. [スクリプト] タブ (C)
 
 ![Scripting](assets/capturas/03-tab-scripting.png)
 
-Aquí se programa la **lógica del juego** en **C**. Es el único modo habilitado (AdvanceCode y Bloques están deshabilitados por ahora).
+ここでは、**ゲーム ロジック**が **C** でプログラムされています。これが有効な唯一のモードです (現時点では AdvanceCode と Blocks は無効になっています)。
 
-### Modos
-- **Bloques**: deshabilitado (próximamente).
-- **AdvanceCode**: deshabilitado (próximamente).
-- **C**: el lenguaje del motor. Es el que se usa.
+### モード
+- **ブロック**: 無効になります (近日公開予定)。
+- **AdvanceCode**: 無効になっています (近日公開予定)。
+- **C**: エンジン言語。使用されているものです。
 
-### Jerarquía
-- Sección **C**: lista los scripts en modo C.
-- Botón **+** para crear un script nuevo.
-- Doble clic para renombrar, ✕ para eliminar (con confirmación).
-- Al crear, el campo **Nombre** del inspector queda enfocado y seleccionado para renombrarlo al instante.
+### 階層
+- セクション **C**: C モードのスクリプトをリストします。
+- 新しいスクリプトを作成するための **+** ボタン。
+- ダブルクリックして名前を変更し、✕ で削除します (確認あり)。
+- 作成時に、インスペクターの **名前** フィールドがフォーカスされ、即時に名前を変更できるように選択されます。
 
-### Editor de código
-- **Gutter** con números de línea.
-- **Resaltado de sintaxis**: comentarios, `#include`, cadenas, números, palabras clave, tipos de devkitARM (`u8`, `s16`…) y la API del motor.
-- **Tab** = 2 espacios, **auto-indent** al Enter, **auto-cierre** de llaves/paréntesis.
-- **Deshacer/rehacer** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) con historial propio (agrupa lo escrito seguido).
-- **Zoom** (Ctrl+rueda, 9–26 px) con indicador de porcentaje (clic para volver al 100%).
-- **Minimapa** estilo VS Code a la derecha (barritas por línea; clic o arrastre para saltar).
-- **Snippets** (barra superior): `script_update()`, `script_init()`, leer teclas, primitivas, diálogos, guardado, etc.
+### コードエディタ
+- **行番号付きの**ガター**。
+- **構文のハイライト**: コメント、`#include`、文字列、数値、キーワード、devkitARM タイプ (`u8`、`s16`...)、およびエンジン API。
+- **Tab** = 2 つのスペース、Enter 時の **自動インデント**、中括弧/括弧の **自動終了**。
+- **元に戻す/やり直し** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) 独自の履歴付き (連続して書き込まれたものをグループ化)。
+- **ズーム** (Ctrl+ホイール、9 ～ 26 ピクセル) パーセント インジケーター付き (クリックすると 100% に戻ります)。- 右側の VS Code スタイル **ミニマップ** (1 行にバー、クリックまたはドラッグしてジャンプ)。
+- **スニペット** (上部バー): `script_update()`、`script_init()`、読み取りキー、プリミティブ、ダイアログ、保存など。
 
-### Inspector de script
-- **Nombre**.
-- **Modo** (C, deshabilitado el resto).
-- **Estado**: "Se exporta", "Sin asignar", "Vacío", "Falta script_update", etc.
-- **Asignación**: el script se ejecuta **por cada actor asignado** (Mundo → actor → Script). Si no está asignado, no se ejecuta.
-- **Ayuda**: explicación del modo y del contrato.
+### スクリプトインスペクタ
+- **名前**。
+- **モード** (C、残りを無効化)。
+- **ステータス**: 「エクスポート済み」、「未割り当て」、「空」、「Script_update missing」など。
+- **割り当て**: スクリプトは**割り当てられた各アクター**に対して実行されます(ワールド → アクター → スクリプト)。割り当てられていない場合は実行されません。
+- **ヘルプ**: 方法と契約の説明。
 
-### El contrato
+### 契約書
 ```c
 void script_init(void) {
   // 1 vez, al entrar en la escena (después de colocar los actores).
@@ -256,231 +249,228 @@ void script_update(void) {
   // cada frame del juego.
 }
 ```
-- Ambos son opcionales. Si no defines `script_update`, el script solo hace setup.
-- Debe haber **exactamente una** definición de cada uno (el motor no llama a ninguna si hay varias).
-- El motor llama a `script_update` **cada frame** (60 fps).
+-
+ どちらもオプションです。 `script_update` を定義しない場合、スクリプトはセットアップのみを行います。
+- それぞれの定義は **正確に 1 つ**必要です (複数ある場合、エンジンは何も呼び出しません)。
+- エンジンは **フレームごと** (60 fps) `script_update` を呼び出します。
 
-### La API del motor (C)
-Ver la **sección 13** para la referencia completa función por función.
+### エンジン API (C)
+機能ごとの完全なリファレンスについては、**セクション 13** を参照してください。
 
 ---
 
-## 6. Pestaña Sprite
+## 6. スプライトタブ
 
 ![Sprite](assets/capturas/04-tab-sprite.png)
 
-Editor de **spritesheets y animaciones**. Importas la imagen y defines la rejilla y los frames.
+**スプライトシートとアニメーション** エディター。画像をインポートし、グリッドとフレームを定義します。
 
-### Lienzo
-- Muestra el **spritesheet** con la **rejilla** de tiles (cols × rows).
-- **Zoom y pan** con rueda y arrastre.
-- **Paginación** de tiles y **selección de brush** (tile).
-- **Línea de tiempo** de frames con reproducción (play/pause).
-- **Papel cebolla** (onion skin) para ver el frame anterior/debajo.
-- **Cuadrícula** y suavizado de imagen configurables.
+### キャンバス
+- **スプライトシート**をタイル(列×行)の**グリッド**で表示します。
+- ホイールとドラッグで **ズームとパン**。
+- タイルの**ページネーション**と**ブラシの選択** (タイル)。
+- 再生付きフレームの **タイムライン** (再生/一時停止)。
+- **オニオン スキン** (オニオン スキン) 前/下のフレームを表示します。
+- 構成可能な **グリッド** と画像のスムージング。
 
-### Jerarquía
-- **Sprites**: lista de spritesheets (con su imagen).
-- Botón **+** para crear uno nuevo (o importar una imagen).
-- Renombrar/eliminar con el menú contextual o el ✕.
+### 階層
+- **スプライト**: スプライトシートのリスト (画像付き)。
+- *+** ボタンをクリックして、新しいものを作成します (または画像をインポートします)。
+- コンテキストメニューまたは✕で名前の変更/削除を行います。
 
-### Inspector
-- **Nombre** del spritesheet.
-- **Imagen**: cargar/importar (PNG/JPG), con la ruta.
-- **Rejilla**: columnas y filas.
-- **Tile**: ancho y alto de cada tile.
-- **Animaciones**: lista de animaciones con sus frames, modo (loop/once/pingpong) y velocidad.
-- **Frame**: tile, duración.
+### 検査官
+- スプライトシートの **名前**。
+- **画像**: パス付きでロード/インポート (PNG/JPG)。
+- **グリッド**: 列と行。
+- **タイル**: 各タイルの幅と高さ。
+- **アニメーション**: フレーム、モード (ループ/1 回/ピンポン)、および速度を含むアニメーションのリスト。
+- **フレーム**: タイル、期間。
 
-### Notas
-- El spritesheet se importa como imagen (no se dibuja píxel a píxel en el editor).
-- El motor dibuja los tiles con **transparencia real** (el canal alfa del PNG).
+### 注記
+- スプライトシートは画像としてインポートされます (エディターではピクセルごとに描画されません)。- エンジンは **実際の透明度** (PNG のアルファ チャネル) でタイルを描画します。
 
 ---
 
-## 7. Pestaña Imagen
+## 7. 画像タブ
 
 ![Imagen](assets/capturas/05-tab-imagen.png)
 
-Editor de **fondos y capas** (con parallax).
+**背景とレイヤー** エディター (視差あり)。
 
-### Lienzo
-- Muestra el **fondo** con las capas apiladas.
-- **Zoom y pan**.
-- **Vista previa** de la capa seleccionada (con su tamaño real o escalado).
-- **Importar imagen** (botón o arrastrar y soltar).
+### キャンバス
+- レイヤーを重ねた**背景**を表示します。
+- **ズームとパン**。
+- 選択したレイヤーの **プレビュー** (実際のサイズまたは拡大縮小された)。
+- **画像をインポート** (ボタンまたはドラッグ アンド ドロップ)。
 
-### Jerarquía
-- **Fondos**: lista de fondos con sus **capas** anidadas.
-- Botón **+** para crear un fondo o capa.
-- Renombrar/eliminar con el menú contextual o el ✕.
+### 階層
+- **背景**: ネストされた**レイヤー**を含む背景のリスト。
+- *+** ボタンで背景またはレイヤーを作成します。
+- コンテキストメニューまたは✕で名前の変更/削除を行います。
 
-### Inspector de capa
-- **Nombre**.
-- **Imagen**: cargar/importar.
-- **Parallax**: velocidad X/Y (se mueve con la cámara).
-- **Velocidad**: animación de la capa (si es animada).
-- **Visibilidad** (ojo) y **rescale** (escalar al tamaño de la pantalla).
-- **Modo de animación** (loop/once/pingpong).
+### レイヤーインスペクター
+- **名前**。
+- **画像**: ロード/インポート。
+- **視差**: X/Y 速度 (カメラと一緒に動きます)。
+- **速度**: レイヤーアニメーション (アニメーション化されている場合)。
+- **可視性** (目) および **再スケール** (画面サイズに合わせたスケール)。
+- **アニメーション モード** (ループ/1 回/ピンポン)。
 
-### Notas
-- Las capas se pueden reordenar (arrastrar en la jerarquía).
-- La capa seleccionada se puede previsualizar con su tamaño real o escalada.
+### 注記
+- レイヤーの順序を変更できます (階層内でドラッグ)。
+- 選択したレイヤーを実際のサイズでプレビューしたり、拡大縮小したりできます。
 
 ---
 
-## 8. Pestaña Music
+## 8.「音楽」タブ
 
 ![Music](assets/capturas/06-tab-music.png)
 
-Editor de **música** con piano roll (PNO) y tracker (TRK).
+ピアノロール (PNO) とトラッカー (TRK) を備えた **音楽** エディター。
 
-### Lienzo
-- **Piano roll** (PNO): teclado real + grid de notas.
-- **Tracker** (TRK): vista compacta tipo tracker.
-- **Zoom** (Ctrl+rueda), **scroll horizontal** (Shift+rueda).
-- **Grid** con tamaño de paso configurable (16/32/48/64).
-- **Fondo** configurable: cuadrícula o ajedrez.
-- **Playhead** arrastrable.
+### キャンバス
+- **ピアノロール** (PNO): 本物のキーボード + ノートグリッド。
+- **トラッカー** (TRK): コンパクトなトラッカー タイプのビュー。
+- **ズーム** (Ctrl+ホイール)、**水平スクロール** (Shift+ホイール)。
+- 設定可能なステップ サイズ (16/32/48/64) の **グリッド**。
+- **背景** 設定可能: グリッドまたはチェス。
+- **再生ヘッド** ドラッグ可能。
 
-### Herramientas
-- **Lápiz**: pintar notas.
-- **Seleccionar**: seleccionar notas.
-- **Borrador**: borrar notas.
+### ツール- **鉛筆**: メモをペイントします。
+- **選択**: ノートを選択します。
+- **下書き**: メモを削除します。
 
-### Instrumentos
-- **Canales**: Pulse 1, Pulse 2, Wave, Noise, PCM.
-- **Instrumentos** por canal con presets.
-- **Mute/Solo** por canal.
-- **Undo/Redo** (Ctrl+Z/Y) para todas las operaciones.
+### 楽器
+- **チャンネル**: パルス 1、パルス 2、ウェーブ、ノイズ、PCM。
+- チャンネルごとの **インストゥルメント** (プリセット付き)。
+- チャンネルごとの **ミュート/ソロ**。
+- すべての操作に対する **元に戻す/やり直し** (Ctrl+Z/Y)。
 
-### Patrones
-- Lista de patrones con reproducción (play/pause).
-- **Patrones redimensionables** (16/32/48/64 pasos).
-- **Loop** multi-patrón.
+### パターン
+- 再生（再生/一時停止）のあるパターンのリスト。
+- **サイズ変更可能なパターン** (16/32/48/64 ステップ)。
+- マルチパターン**ループ**。
 
-### Inspector
-- **Canción**: nombre, artista, tempo (BPM).
-- **Patrón**: pasos, instrumentos.
-- **Instrumento**: tipo (duty/wave/noise), volumen, duty, envelope, sweep, etc.
+### 検査官
+- **曲**: 名前、アーティスト、テンポ (BPM)。
+- **パターン**: ステップ、楽器。
+- **インストゥルメント**: タイプ (デューティ/波形/ノイズ)、ボリューム、デューティ、エンベロープ、スイープなど。
 
-### Notas
-- La música se exporta a la ROM con los 4 canales PSG + PCM.
-- Los instrumentos se derivan de los presets usados por las notas.
+### 注記
+- 音楽は 4 PSG + PCM チャンネルで ROM にエクスポートされます。
+- インストゥルメントは、ノートで使用されるプリセットから派生します。
 
 ---
 
-## 9. Pestaña Sound
+## 9. [サウンド]タブ
 
 ![Sound](assets/capturas/07-tab-sound.png)
 
-Editor de **efectos de sonido**.
+**サウンドエフェクト**エディタ。
 
-### Lienzo
-- **Forma de onda** visualizada según el tipo.
-- **Preview** en tiempo real con Web Audio.
-- **Importar** WAV/MP3/OGG.
+### キャンバス
+- **波形**はタイプに従って表示されます。
+- Web オーディオを使用してリアルタイムで**プレビュー**します。
+- **インポート** WAV/MP3/OGG​​。
 
-### Inspector
-- **Nombre** del efecto.
-- **Tipo**: Pulse / Wave / Noise.
-- **Nota**, **duración**, **volumen**, **duty cycle**, **envelope**, **sweep**.
-- **Waveform** (para Wave).
-- **Preview** (play/stop).
+### 検査官
+- エフェクトの**名前**。
+- **タイプ**: パルス/波/ノイズ。
+- **メモ**、**持続時間**、**ボリューム**、**デューティサイクル**、**エンベロープ**、**スイープ**。
+- **波形** (波形の場合)。
+- **プレビュー** (再生/停止)。
 
-### Notas
-- Los efectos se pueden reproducir en el editor y en el juego (`sound_play` desde el script, o asignados a un actor/diálogo).
+### 注記
+- エフェクトはエディターとゲーム内で再生できます (スクリプトからの「sound_play」、またはアクター/ダイアログに割り当てられます)。
 
 ---
 
-## 10. Pestaña Dialogo
+## 10. ダイアログタブ
 
 ![Dialogo](assets/capturas/08-tab-dialogo.png)
 
-Editor de **diálogos** con filas e idiomas.
+行と言語を備えた **ダイアログ** エディター。
 
-### Tabla
-- **Columnas**: ID, Código, Nombre (hablante), y una columna por idioma (ES, FR, etc.).
-- **Filas**: cada fila es un "renglón" del diálogo.
-- **Cabecera de sección**: el diálogo, con su número de filas y idiomas.
-- **+ Fila** para añadir filas.
-- **Edición en línea** de todas las celdas.
-- **Navegación con flechas** entre celdas.
-- **Eliminar** filas con el ✕.
+＃＃＃ ボード- **列**: ID、コード、名前 (話者)、言語ごとに 1 列 (ES、FR など)。
+- **行**: 各行はダイアログの「行」です。
+- **セクション ヘッダー**: ダイアログとその行数および言語。
+- **+ Row** 行を追加します。
+- すべてのセルの **オンライン編集**。
+- **矢印によるセル間のナビゲーション**。
+- **行を削除**するには、✕を使用します。
 
-### Jerarquía
-- **Diálogos**: lista de diálogos.
-- Botón **+** para crear.
-- Renombrar/eliminar con el menú contextual o el ✕.
+### 階層
+- **ダイアログ**: ダイアログのリスト。
+- *+** ボタンで作成します。
+- コンテキストメニューまたは✕で名前の変更/削除を行います。
 
-### Inspector de fila
-- **ID** (solo lectura).
-- **Código** (identificador corto, para `showDialogueRow("codigo")`).
-- **Nombre** (hablante).
-- **Texto por idioma**.
-- **Sonido** (efecto al mostrar la fila).
-- **Fuente** (tileset de la fila).
-- **Eliminar fila**.
+### 行インスペクター
+- **ID** (読み取り専用)。
+- **コード** (短い識別子、`showDialogueRow("code")`)。
+- **名前** (発言者)。
+- **言語別のテキスト**。
+- **サウンド** (行を表示するときの効果)。
+- **ソース** (行タイルセット)。
+- **行を削除**。
 
-### Inspector de diálogo
-- **Nombre**.
-- **Escena** vinculada.
-- **Idiomas** (hasta 6, con + para añadir).
-- **Eliminar diálogo**.
+### ダイアログインスペクタ
+- **名前**。
+- リンクされた**シーン**。
+- **言語** (最大 6 つ、+ を使用して追加)。
+- **ダイアログを削除**。
 
-### Dialog Box (caja 9-slice)
-En el inspector del **actor de tipo Texto** (Mundo → actor):
-- **Imagen 3×3**: esquinas, bordes y centro.
-- **Ancho / Alto** (limitados a la pantalla).
-- **Offset X / Offset Y** (posición, limitada a la pantalla).
-- **Nombre del hablante dentro de la caja** (checkbox).
-- **Salto de línea**: Por palabra / Por carácter.
+### ダイアログ ボックス (9 スライス ボックス)
+**テキスト型**のアクターのインスペクター (ワールド → アクター):
+- **3×3 画像**: コーナー、エッジ、中央。
+- **幅/高さ** (画面に限定)。
+- **オフセット X / オフセット Y** (位置、画面に限定)。
+- **ボックス内のスピーカーの名前** (チェックボックス)。
+- **改行**: 単語ごと/文字ごと。
 
-### Motor de diálogos (C)
-- `showDialogue(id)`: muestra el diálogo desde la fila 0.
-- `showDialogueRow("codigo")` / `showDialogueRow("ID")`: salta a una fila.
-- `nextDialogueRow()`: avanza a la siguiente **página** (si el texto no cabe, la siguiente página; si no, la siguiente fila).
-- `dialogueUpdate()`: avanza solo al pulsar A (llamar cada frame).
-- `hideDialogue()`: oculta.
+### 対話エンジン (C)
+- `showDialogue(id)`: 行 0 からダイアログを表示します。
+- `showDialogueRow("code")` / `showDialogueRow("ID")`: 行にジャンプします。- `nextDialogueRow()`: 次の **ページ** (テキストが収まらない場合は次のページ、収まらない場合は次の行) に進みます。
+- `dialogueUpdate()`: A を押したときのみ進みます (各フレームを呼び出します)。
+- `hideDialogue()`: 非表示にします。
 
 ---
 
-## 11. Ajustes
+## 11. 設定
 
-Se abren con **Opciones** (AppHeader) o **Ayuda → Tabs/General**.
+これらは、**オプション** (AppHeader) または **ヘルプ → タブ/全般** で開きます。
 
-### General
-- **Idioma** de la app (es-ES, en-US, ja-JP, ru-RU).
-- **Tema** (7 predefinidos + colores personalizados).
-- **Tamaño del texto**.
-- **Colores planos** (interruptor).
-- **Splash**: duración, imagen de fondo.
-- **devkitPro**: instalar/verificar.
+### 一般
+- アプリの **言語** (es-ES、en-US、ja-JP、ru-RU)。
+- **テーマ** (7 つの定義済み + カスタム色)。
+- **テキストサイズ**。
+- **フラットカラー** (切り替え)。
+- **スプラッシュ**: 継続時間、背景画像。
+- **devkitPro**: インストール/確認します。
 
-### Apariencia
-- Colores del tema (panel, acento, texto, fondo).
-- Tamaño de fuente.
+### 外観
+- テーマの色 (パネル、アクセント、テキスト、背景)。
+- フォントサイズ。
 
-### Pestañas de módulos
-- **Mundo**: cuadrícula, colores de conexión, animaciones.
-- **Scripting**: tamaño de fuente del editor, minimapa.
-- **Sprite**: rejilla, onion skin.
-- **Imagen**: suavizado.
-- **Music**: vista por defecto (PNO/TRK), colores del piano.
-- **Sound**: volumen.
-- **Dialogo**: colores de la caja, fondo del lienzo.
-- **Emulador**: remapeo de botones, tema de la ventana.
+### 「モジュール」タブ
+- **ワールド**: グリッド、接続色、アニメーション。
+- **スクリプト**: エディターのフォント サイズ、ミニマップ。
+- **スプライト**: グリッド、オニオンスキン。
+- **画像**: スムージング。
+- **音楽**: デフォルト ビュー (PNO/TRK)、ピアノの色。
+- **サウンド**: 音量。
+- **ダイアログ**: ボックスの色、キャンバスの背景。
+- **エミュレータ**: ボタンの再マッピング、ウィンドウのテーマ。
 
 ---
 
-## 12. Exportación a GBA
+## 12. GBA へのエクスポート
 
-### Pipeline
-1. **Guardas** el proyecto (Ctrl+S) — se genera el `main.c` y el `Makefile` en `<proyecto>/build/`.
-2. **Exportar GBA** (Juego → Exportar, o PLAY) — compila la ROM con devkitARM.
-3. Se abre el **emulador integrado** con la ROM.
+###パイプライン
+1. プロジェクトを **保存** (Ctrl+S) — `main.c` と `Makefile` が `&lt;project&gt;/build/` に生成されます。
+2. **GBA のエクスポート** (ゲーム → エクスポート、または PLAY) — devkitARM で ROM をビルドします。
+3. ROM を含む **統合エミュレータ** が開きます。
 
-### Estructura generada
+### 生成された構造体
 ```
 <proyecto>/build/
 ├── main.c          # el código fuente C del juego
@@ -488,29 +478,28 @@ Se abren con **Opciones** (AppHeader) o **Ayuda → Tabs/General**.
 ├── <proyecto>.elf
 └── <proyecto>.gba
 ```
+### `main.c`
+- **シーン**: プロジェクト内のすべてのシーンとその背景画像、衝突、カメラ、俳優、および歌。
+- **アクター**: スプライト、アニメーション、コライダー、エリア。
+- **ソースとダイアログ**: テキスト テーブルと 9 スライス ボックス。
+- **C スクリプト**: `main()` の前に挿入されるロジック。
+- **エンジン**: ソフトウェア レンダリング、PSG + PCM サウンド、入力、SRAM に保存。
 
-### El `main.c`
-- **Escenas**: todas las escenas del proyecto, con su imagen de fondo, colisión, cámara, actores y canción.
-- **Actores**: sprites, animaciones, colliders, áreas.
-- **Fuentes y diálogos**: tablas de texto y cajas 9-slice.
-- **Scripts C**: tu lógica, insertada antes de `main()`.
-- **Motor**: render por software, sonido PSG + PCM, entrada, guardado en SRAM.
+### 要件
+- **devkitARM** (オプション → 一般からインストール)。
+- ROM は **mGBA** (外部および統合) および **フラッシュカート** で動作します。
 
-### Requisitos
-- **devkitARM** (instalado desde Opciones → General).
-- La ROM funciona en **mGBA** (externo y el integrado) y en **flashcarts**.
-
-### Notas
-- El render es por software: presupuesto ~5.600 píxeles visibles por frame.
-- La SRAM persiste en el `.sav` (mGBA externo y flashcarts). El emulador interno no volca la SRAM al cerrar.
+### 注記
+- レンダリングはソフトウェアによって行われます。予算は 1 フレームあたり最大 5,600 の可視ピクセルです。
+- SRAM は `.sav` (外部 mGBA およびフラッシュカート) に保存されます。内部エミュレータはシャットダウン時に SRAM をダンプしません。
 
 ---
 
-## 13. Referencia de la API C del motor
+## 13. エンジン C API リファレンス
 
-> Esta es la referencia **función por función** de lo que el motor pone a disposición de tus scripts. Tu código se inserta antes de `main()` y puede llamar a todo lo que aquí aparece.
+> これは、エンジンがスクリプトで利用できるようにするものについての **関数ごとの** リファレンスです。コードは「main()」の前に挿入され、ここですべてを呼び出すことができます。
 
-### Tipos
+＃＃＃ みんな
 ```c
 typedef struct {
   u16 period;   // valor del registro FREQ (o ratio|cs<<3 para noise); 0xFFFF = silencio
@@ -544,8 +533,7 @@ extern GBAActor gActors[ACTOR_COUNT];
 extern GBAActor* gSelf;      // el actor cuyo script se está ejecutando
 #define PLAYER_INDEX 0       // el actor 0 es "el jugador"
 ```
-
-### Entrada
+＃＃＃ 入り口
 ```c
 #define KEY_A       0x0001
 #define KEY_B       0x0002
@@ -561,11 +549,12 @@ extern GBAActor* gSelf;      // el actor cuyo script se está ejecutando
 
 #define REG_KEYINPUT *(vu16*)0x04000130   // 0 = pulsado
 ```
-- `u16 keys = ~REG_KEYINPUT & 0x3FF;` → bits con 1 = pulsado.
-- `gJp` → flanco (bits pulsados **este frame**). Se actualiza solo; se usa para "pulsé A ahora".
-- `gKeysPrev` → estado del frame anterior.
+-
+ `u16 キー = ~REG_KEYINPUT & 0x3FF;` → 1 のビット = 押された。
+- `gJp` → エッジ (ビットが押された **このフレーム**)。それ自体が更新されます。 「今すぐAを押してください」という意味で使われます。
+- `gKeysPrev` → 前のフレームの状態。
 
-### Actores y movimiento
+### 俳優と動き
 ```c
 // Mover con colisiones (desliza por paredes)
 void moveActorCollide(GBAActor* a, s16 dx, s16 dy);
@@ -585,24 +574,25 @@ static inline void actorBox(const GBAActor* a, s16* bx, s16* by, s16* bw, s16* b
 static inline int rectsOverlap(...);
 static inline int rectHitsSolid(s16 bx, s16 by, s16 bw, s16 bh, s16 dx, s16 dy);
 ```
-
-### Escenas
+### シーン
 ```c
 void switchScene(int n);                       // cambia a la escena n (orden del editor)
 void switchSceneNamed(int n, const char* name); // con el nombre de la conexión
 extern int gScene;
 ```
-- `n` es el **orden del diálogo en el editor** (0, 1, 2…).
+-
+ `n` は **エディター内のダイアログの順序** (0、1、2...) です。
 
-### Sonido
+＃＃＃ 音
 ```c
 void noteOn(int ch, const GBAInst* inst, u16 period);  // suena una nota
 void soundPlay(int idx, int loop);                     // efecto PCM (0 = una vez, 1 = bucle)
 void soundStop(void);
 ```
-- `idx` es el índice del efecto entre los que tienen PCM.
+-
+ `idx` は、PCM を使用したエフェクトの中でのエフェクトのインデックスです。
 
-### Diálogos
+### 対話
 ```c
 void showDialogue(int id);              // muestra el diálogo id desde la fila 0
 void showDialogueRow(const char* key);  // salta a una fila por su Código o ID
@@ -611,22 +601,24 @@ void hideDialogue(void);
 void dialogueUpdate(void);              // avanza solo al pulsar A
 extern int gLang;                       // 0 = primer idioma, 1 = segundo, …
 ```
-- `id` = orden del diálogo en el editor.
-- `key` = el campo **Código** o el **ID completo** de la fila.
-- El texto se divide en **páginas** que caben en la caja; al avanzar pasa a la siguiente página y luego a la siguiente fila.
+-
+ `id` = エディター内のダイアログの順序。
+- `key` = **コード**フィールドまたは行の**完全なID**。
+- テキストはボックスに収まる **ページ** に分割されています。先に進むと、次のページに進み、さらに次の行に進みます。
 
-### Guardado (SRAM)
+### 保存済み (SRAM)
 ```c
 int  aeSaveHasGame(void);              // 1 si hay partida guardada válida
 int  aeSaveWrite(const u8* data, u32 size); // guarda (0 ok, -1 si no cabe)
 int  aeSaveRead(u8* data, u32 size);   // carga (0 ok, -1 sin partida)
 void aeSaveClear(void);                // borra la partida
 ```
-- Bloque de **256 bytes** (`AE_SAVE_MAX`), en la SRAM `0x0E000000`.
-- Con magic, versión y checksum (FNV-1a). Si el checksum no coincide, se trata como "sin partida".
-- La SRAM persiste en el `.sav` (mGBA externo y flashcarts).
+-
+ **256 バイト** のブロック (`AE_SAVE_MAX`)、SRAM `0x0E000000` 内。
+- マジック、バージョン、チェックサム付き (FNV-1a)。チェックサムが一致しない場合は「不一致」として扱われます。
+- SRAM は `.sav` (外部 mGBA およびフラッシュカート) に保存されます。
 
-### Constantes y defines
+### 定数と定義
 ```c
 #define SCREEN_W 240
 #define SCREEN_H 160
@@ -642,58 +634,56 @@ void aeSaveClear(void);                // borra la partida
 #define COYOTE_FRAMES 5
 #define JUMP_BUFFER 5
 ```
-
-### Depuración
-- El motor no tiene consola. Para depurar, usa `gBackBuf` y revisa los píxeles, o añade un indicador visual (como el píxel de la esquina en el proyecto de prueba).
-- La terminal del pipeline (Mundo) muestra el log de exportación.
+### デバッグ
+- エンジンにはコンソールがありません。デバッグするには、`gBackBuf` を使用してピクセルをチェックするか、視覚的なインジケーター (テスト プロジェクトの隅のピクセルなど) を追加します。
+- パイプライン ターミナル (World) にはエクスポート ログが表示されます。
 
 ---
 
-## 14. Guía: hacer un juego de 0 a fin
+## 14. ガイド: 0 から最後までゲームを作る
 
-### 1. Crear el proyecto
-- Launcher → **Crear** → nombre, autor, plantilla, portada.
-- Se abre el editor.
+### 1. プロジェクトを作成する
+- ランチャー → **作成** → 名前、作成者、テンプレート、カバー。
+- エディタが開きます。
 
-### 2. Dibujar los assets (externo)
-- **Sprites**: un PNG con la rejilla de tiles (por ejemplo 16×16 por tile).
-- **Fondos**: una imagen 240×160 (o mayor, se recorta con la cámara).
-- **Tilesets de transición**: una imagen con los frames de la máscara.
+### 2. アセット (外部) を描画します
+- **スプライト**: タイル グリッドを含む PNG (たとえば、タイルあたり 16×16)。
+- **背景**: 240×160 の画像 (またはそれ以上の画像、カメラでトリミングされます)。
+- **トランジション タイルセット**: マスク フレームを含む画像。
 
-### 3. Mundo
-- **Mundo → +** para crear escenas. Arrastra para colocarlas.
-- Asigna la **imagen de fondo** (desde Imagen) y la **canción**.
-- **Añade actores** (botón + del actor en la jerarquía) y asígnales un sprite y una animación.
-- Pinta la **colisión** con la herramienta colisión.
-- **Conecta** escenas con la herramienta conectar.
+### 3. 世界
+- **ワールド → +** でシーンを作成します。ドラッグして配置します。
+- **背景画像** (画像から) と **曲**を割り当てます。
+- **アクターを追加** (階層内のアクター + ボタン)、スプライトとアニメーションを割り当てます。
+- 衝突ツールを使用して**衝突**をペイントします。
+- **接続ツールを使用してシーンを接続**します。
 
-### 4. Sprite
-- Importa el spritesheet, define la rejilla (cols × rows).
-- Crea una **animación** y sus frames.
+### 4. スプライト
+- スプライトシートをインポートし、グリッド(列×行)を定義します。
+- **アニメーション**とそのフレームを作成します。
 
-### 5. Imagen
-- Importa el fondo, define las capas y el parallax.
+### 5. 画像
+- 背景をインポートし、レイヤーと視差を定義します。
 
-### 6. Music
-- Crea una canción, un patrón, y pinta notas con los instrumentos.
+### 6.音楽
+- 曲、パターンを作成し、楽器を使ってノートをペイントします。
 
-### 7. Sound
-- Crea efectos (Pulse/Wave/Noise) o importa un WAV.
+### 7. サウンド
+- エフェクト (パルス/ウェーブ/ノイズ) を作成するか、WAV をインポートします。
 
-### 8. Dialogo
-- Crea un diálogo, añade filas (con el **Código** para referenciarlas), idiomas, fuentes y caja 9-slice.
+### 8. 対話
+- ダイアログを作成し、行 (行を参照するための **コード** を含む)、言語、フォント、および 9 スライス ボックスを追加します。
 
-### 9. Scripting (C)
-- Crea un script en modo **C**, asígnalo a un actor.
-- Escribe `script_update` con la lógica (input, movimiento, diálogos, guardado).
-- Usa las primitivas (`moveTopDown`/`movePlatformer`), `showDialogueRow`, `aeSaveWrite`, etc.
+### 9. スクリプト (C)- **C** モードでスクリプトを作成し、アクターに割り当てます。
+- `script_update`にロジック（入力、移動、ダイアログ、保存）を記述します。
+- プリミティブ (`moveTopDown`/`movePlatformer`)、`showDialogueRow`、`aeSaveWrite` などを使用します。
 
-### 10. Exportar y probar
-- **Juego → Exportar GBA** (o PLAY).
-- La ROM se genera en `<proyecto>/build/`.
-- Pruébala en el emulador integrado o en mGBA/flashcart.
+### 10. エクスポートとテスト
+- **ゲーム → GBA をエクスポート** (または PLAY)。
+- ROM は `<プロジェクト>/build/` に生成されます。
+- 内蔵エミュレータまたは mGBA/フラッシュカートで試してください。
 
-### Ejemplo: plataformas con diálogo y guardado
+### 例: ダイアログと保存を備えたプラットフォーム
 ```c
 u8 save[16];
 
@@ -718,40 +708,40 @@ void script_update(void) {
   dialogueUpdate();
 }
 ```
+--
+-
+
+## 15. トラブルシューティング
+
+### ROM がコンパイルされません
+- パイプラインターミナル (World) のログを確認します。そこにCエラーが表示されます。
+- 一般的なエラー: 未宣言の関数 (前方宣言の追加)、未定義の変数、間違った型。
+
+### テキストが表示されません
+- フォントに画像が含まれていることと、`gFontCharMap` に文字が含まれていることを確認します。
+- テキストはボックス内に描画されます。ボックスが小さすぎる場合、テキストは切り取られます (ページネーション)。
+
+### 対話が進まない
+- `dialogueUpdate()` はフレームごとに呼び出す必要があります。
+- `showDialogueRow` は、行の **コード** または **ID** を使用します。
+
+### 保存が持続しない
+- 外部 mGBA/フラッシュカートでは、終了時に `.sav` が保存されます。
+・内蔵エミュレータ(EJS)ではシャットダウン時にSRAMダンプを行いません。
+- セッションで書き込み/読み取りが機能していることを視覚的なインジケーター (赤/緑) で確認します。
+
+### ゲームが遅い
+- フレームごとの可視ピクセルを減らします (カメラ上のアクターが減り、スプライトが小さくなります)。
+- アニメーションには `animSpeed` を使用します。
+- VBLANK バジェット (~5,600 可視ピクセル) を確認します。
+
+### 俳優が瞬きする
+- ダブルバッファリングを使用します (エンジンはすでにこれを行っています)。
+- アクターを不必要に再描画しないでください。
+
+### トランジション タイルが表示されません
+- タイルセットにはフレームが必要です。マスクは透明度にビット 0x8000 を使用します。
 
 ---
 
-## 15. Solución de problemas
-
-### La ROM no compila
-- Mira el log en la terminal del pipeline (Mundo). Los errores de C aparecen ahí.
-- Errores comunes: función sin declarar (añade la declaración adelantada), variable sin definir, tipo incorrecto.
-
-### El texto no se ve
-- Revisa que la fuente tenga imagen y que `gFontCharMap` tenga el carácter.
-- El texto se dibuja en la caja; si la caja es muy pequeña, el texto se corta (paginación).
-
-### El diálogo no avanza
-- `dialogueUpdate()` debe llamarse cada frame.
-- `showDialogueRow` usa el **Código** o el **ID** de la fila.
-
-### El guardado no persiste
-- En mGBA externo/flashcart, el `.sav` se guarda al salir.
-- En el emulador interno (EJS), la SRAM no se vuelca al cerrar.
-- Verifica con el indicador visual (rojo/verde) que el write/read funciona en la sesión.
-
-### El juego va lento
-- Reduce los píxeles visibles por frame (menos actores en cámara, sprites más pequeños).
-- Usa `animSpeed` para la animación.
-- Revisa el presupuesto VBLANK (~5.600 píxeles visibles).
-
-### El actor parpadea
-- Usa el doble buffer (el motor ya lo hace).
-- No redibujes actores innecesariamente.
-
-### El tile de transición no se ve
-- El tileset debe tener frames; la máscara usa el bit 0x8000 para la transparencia.
-
----
-
-> **Nota**: Este manual describe la versión **0.70.0**. Algunas funciones avanzadas (AdvanceCode, Bloques, editor de tiles/píxeles) están en desarrollo.
+> **注**: このマニュアルではバージョン **0.70.0** について説明します。一部の高度な機能 (AdvanceCode、ブロック、タイル/ピクセル エディター) は開発中です。

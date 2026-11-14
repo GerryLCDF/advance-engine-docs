@@ -1,67 +1,67 @@
-# 09 — Exportar y probar
+#09 — Export and Test
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
 
 ![Editor — Mundo](assets/capturas/editor-barra.png)
 
-## 9.1. Emulador integrado (PLAY / STOP)
+## 9.1. Integrated emulator (PLAY / STOP)
 
-El botón **PLAY** de la barra del editor compila el estado actual del proyecto (genera el código C, lo compila con devkitARM y produce la ROM) y la ejecuta en el **emulador integrado** dentro de la aplicación. El botón **STOP** detiene el emulador.
+The **PLAY** button in the editor bar compiles the current state of the project (generates the C code, compiles it with devkitARM, and produces the ROM) and runs it in the **built-in emulator** within the application. The **STOP** button stops the emulator.
 
-- Requiere tener **devkitARM** instalado (ver [00 — Primeros pasos](00-inicio.md)).
-- Es la forma más rápida de probar escenas, actores y transiciones sin salir del editor.
-- **Nota:** el emulador integrado es más tolerante que el hardware real con el reparto de tiempos (no muestra ciertos defectos de timing). Para asegurarte del rendimiento final, prueba la ROM en un emulador fiel (p. ej. mGBA) o en una consola real.
+- Requires having **devkitARM** installed (see [00 — Getting started](00-inicio.md)).
+- It's the fastest way to test scenes, actors and transitions without leaving the editor.
+- **Note:** the integrated emulator is more tolerant than real hardware with timing distribution (it does not show certain timing defects). To ensure final performance, test the ROM on a faithful emulator (e.g. mGBA) or a real console.
 
-![CAPTURA: emulador integrado ejecutando la ROM con el botón PLAY → `assets/emulador-play.png`]
+![CAPTURE: Embedded emulator running the ROM with the PLAY button → `assets/emulator-play.png`]
 
-## 9.2. Exportar la ROM
+## 9.2. Export the ROM
 
-El botón **EXPORT** abre un menú con las acciones de salida:
+The **EXPORT** button opens a menu with the output actions:
 
-- **Guardar proyecto:** persiste el estado actual.
-- **Exportar ROM GBA:** guarda el proyecto, compila y genera la **ROM ejecutable** (archivo `.gba`), y abre automáticamente la carpeta de build del proyecto.
-- **Exportar canciones / sprites / fondos / scripts:** extrae recursos individuales (útil si se perdió el asset de origen).
-- **Abrir carpeta del proyecto:** abre la carpeta raíz del proyecto en el explorador.
+- **Save project:** the current state persists.
+- **Export GBA ROM:** saves the project, compiles and generates the **executable ROM** (`.gba` file), and automatically opens the project's build folder.- **Export songs / sprites / backgrounds / scripts:** Extracts individual assets (useful if the source asset was lost).- **Open project folder:** Opens the root folder of the project in the explorer.The exported ROM can be run on any GBA emulator or dumped into a **flashcart** to test it on a real console.
 
-La ROM exportada puede correrse en cualquier emulador de GBA o volcarse a una **flashcart** para probarla en consola real.
+![SHAPTURE: EXPORT menu displayed with “Export GBA ROM” → `assets/exportar-rom.png`]
 
-![CAPTURA: menú EXPORT desplegado con “Exportar ROM GBA” → `assets/exportar-rom.png`]
+## 9.3. debug console
 
-## 9.3. Consola de depuración
+The bottom panel of the editor records the output of the pipeline:
 
-El panel inferior del editor registra la salida del pipeline:
+- Loading of projects and asset routes.
+- Build output when using **PLAY** or **Export GBA ROM**.
+- Alerts for missing dependencies, performance and unused code.
 
-- Carga de proyectos y rutas de assets.
-- Salida de compilación al usar **PLAY** o **Exportar ROM GBA**.
-- Alertas de dependencias faltantes, rendimiento y código no utilizado.
+![SHAPTURE: bottom console with build output → `assets/editor-consola.png`]
 
-![CAPTURA: consola inferior con la salida de compilación → `assets/editor-consola.png`]
+## 9.4. GBA platform limits
 
-## 9.4. Límites de la plataforma GBA
+The GBA draws by software (not hardware sprite); all scene rendering occurs within the **VBLANK** interval (~83,800 cycles per frame, 68 lines × 1232 cycles). If the work exceeds that time, the application loses frames and the animations slow down.
 
-El GBA dibuja por software (sin hardware de sprites); todo el render de la escena ocurre dentro del intervalo de **VBLANK** (~83.800 ciclos por frame, 68 líneas × 1232 ciclos). Si el trabajo supera ese tiempo, la aplicación pierde frames y las animaciones se ralentizan.
-
-### Regla de presupuesto
-El límite no es un número fijo de actores: es la **cantidad de píxeles de sprite visibles por la cámara**:
-
+###Budget rule
+The limit is not a fixed number of actors: it is the **number of sprite pixels visible by the camera**:
 ```
 ~83.800 ciclos ÷ ~15 ciclos por píxel ≈ ~5.600 px de sprite en cámara por frame
 ```
-
-| Combinación de sprites | ¿Cabe? |
+| Sprite combination | Does it fit? |
 | :--- | :--- |
-| 5-6 actores de 21×31 px (651 px c/u) | Cómodo |
-| 1 actor de 64×64 px (4096 px) + 2 de 16×16 | Bien |
-| ~21 actores de 16×16 px (256 px c/u) | Al límite |
-| Más elementos en el encuadre activo | Ralentiza animaciones |
+| 5-6 actors of 21×31 px (651 px each) | Comfortable |
+| 1 actor of 64×64 px (4096 px) + 2 of 16×16 | Good |
+| ~21 actors of 16×16 px (256 px each) | To the limit |
+| More elements in the active frame | Slow down animations |
 
-### Actores fuera de cámara
-- Los actores **fuera de la cámara apenas gastan VBLANK**: solo el recorte de su rectángulo y la actualización de sus timers (~decenas de ciclos).
-- Un actor **parcialmente fuera** de pantalla solo paga la parte visible.
-- Puedes colocar **todos los actores que quieras** en la escena; solo cuentan los que el encuadre enfoca en ese momento.
+### Actors off camera
+- Actors **off camera hardly spend VBLANK**: only cropping their rectangle and updating their timers (~dozens of cycles).
+- An actor **partially off-screen** only pays for the visible part.
+- You can place **as many actors as you want** in the scene; Only those that the frame focuses on at that moment count.
 
-### Otros límites
-- **Memoria:** no es el límite. El fondo de los actores (`gActorBack`) es 240×160 en EWRAM (~76.8 KB), los frames de los sprites van en ROM y la lista de actores es pequeña.
-- **Transiciones:** una transición de tileset de 30×20 tiles × 8 frames × velocidad 5 equivale a ~24.000 vsyncs ≈ 6-7 minutos; ajusta la velocidad en el inspector para acortarla.
+### Other limits
+- **Memory:** is not the limit. The actor background (`gActorBack`) is 240x160 in EWRAM (~76.8 KB), the sprite frames are in ROM and the list of actors is small.
+- **Transitions:** a tileset transition of 30×20 tiles × 8 frames × speed 5 is equivalent to ~24,000 vsyncs ≈ 6-7 minutes; Adjust the speed in the inspector to make it shorter.
 
 ---
 
-**Anterior:** [08 — Scripting](08-scripting.md) · **Siguiente:** [10 — Programar en C para la GBA](10-programar-c-gba.md) · **Volver al [índice](README.md)**
+**Previous:** [08 — Scripting](08-scripting.md) · **Next:** [10 — Programming in C for the GBA](10-programar-c-gba.md) · **Return to [index](README.md)**

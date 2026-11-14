@@ -1,74 +1,74 @@
-# 01 — Interfaz de la aplicación
+#01 — アプリケーションインターフェイス
 
-## 1.1. Barra de título
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
-En la parte superior se muestra el logo y el nombre de la aplicación (**AdvanceEngine**), la versión en uso y los accesos a **Documentación**, **Créditos** y **Opciones**.
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
-Desde aquí también se cierra la ventana con el botón ✕.
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
-## 1.2. Menú de opciones
+## 1.1。タイトルバー
 
-Opción | Estado | Descripción
+上部には、アプリケーションのロゴと名前(**AdvanceEngine**)、使用中のバージョン、**ドキュメント**、**クレジット**、**オプション**へのアクセスが表示されます。
+
+ここから✕ボタンでウィンドウを閉じます。
+
+＃＃1.2。オプションメニュー
+
+オプション |状態 |説明
 :--- | :--- | :---
-**Idioma** | Próximamente | Cambio de idioma de la interfaz.
-**Aspecto** | Operativo | Abre el selector de tema visual.
-**Escala** | Próximamente | Ajuste de la escala de la interfaz.
+**言語** |近日公開予定 |インターフェイス言語の変更。
+**外観** | 運用中 | ビジュアルテーマセレクターを開きます。
+**スケール** |近日公開予定 |インターフェイスのスケーリング調整。
 
-## 1.3. Pestañas del launcher
+##1.3。ランチャータブ
 
-La barra inferior del lanzador agrupa las tres vistas principales:
+ランチャーの下部バーには、次の3つの主要なビューがグループ化されています。
 
-- **Reciente:** proyectos abiertos recientemente.
-- **Crear:** formulario de creación de proyectos.
-- **Importar:** vinculación de proyectos existentes.
+- **最近:**最近オープンしたプロジェクト。
+- **作成:** プロジェクト作成フォーム。
+- **インポート:** 既存のプロジェクトのリンク。
 
-## 1.4. Editor de proyectos
+##1.4。プロジェクトエディター
 
-Al abrir un proyecto se entra al **editor**, una pantalla a pantalla completa con:
+プロジェクトを開くと、**エディタ** (全画面表示)が表示され、次の画面が表示されます。
 
-### Menús de la aplicación (barra superior izquierda)
-- **Archivo:** nuevo proyecto, abrir, guardar (Ctrl+S), guardar como, salir a la lista de proyectos, recargar o cerrar.
-- **Edición:** deshacer (Ctrl+Z), rehacer (Ctrl+Y), cortar/copiar/pegar, eliminar (Del) y seleccionar todo (Ctrl+A).
-- **Vista / Ejecución:** iniciar (Play), detener (Stop) y exportar ROM GBA.
-- **Ventana / Ayuda:** accesos a los módulos, tema, idioma y visibilidad de colisiones/conexiones.
+### アプリケーションメニュー (左上のバー)
+- **ファイル:**新しいプロジェクトを開き、保存(Ctrl+S)、名前を付けて保存、終了してプロジェクトリストに戻り、再ロードするか閉じます。
+- **編集:** 元に戻す (Ctrl+Z)、やり直し(Ctrl+Y)、取り切り/コピー/貼り付け、削除(Del)、すべて選択(Ctrl+A)。
+- **表示/実行:** 開始 (再生)、停止 (停止)、GBA ROM のエクスポート。
+- **ウィンドウ/ヘルプ:** モジュール、テーマ、言語、および衝突/接続の切断性へのアクセス。
 
-### Pestañas de los módulos (centradas)
-El editor cuenta con las siguientes pestañas de módulo:
+### モジュールタブ (中央揃え)
+エディターには次のモジュールタブがあります。
 
-| Pestaña | Módulo |
-| :--- | :--- |
-| Mundo | Escenas, actores y colisiones. |
-| Scripting | Lógica del juego (próximamente). |
-| Sprite | Hojas de sprites y animaciones. |
-| Imagen | Fondos y capas. |
-| Music | Secuenciador chiptune. |
-| Sound | Efectos de sonido. |
-| Dialogo | Conversaciones y textos. |
+|タブ |モジュール || :--- | :--- |
+|世界 |シーン、俳優、衝突。
+| スクリプト | ゲームロジック (近日公開予定)。
+|スプライト |スプライトシートとアニメーション。
+|画像 |背景とレイヤー。
+|音楽 |チップチューンシーケンサー。
+| サウンド | 効果音。
+| ダイアログ |会話とテキスト。
 
-En cada pestaña el nombre del proyecto aparece centrado en la parte superior, con un indicador `*` si hay cambios sin guardar. La pestaña activa se resalta con un borde superior de color de acento.
+各タブでは、プロジェクト名が上部中央に表示され、保存されていない変更がある場合は「*」ーが表示されます。アクティブなタブは、アクセントカラーの上枠で強調表示されます。
 
-### Barra derecha del editor
+### 右側のエディター バー
 
-- **IMPORTAR:** incorpora assets externos al proyecto (imágenes, sonidos, sprites, etc.).
-- **EXPORT:** menú desplegable con las acciones de salida:
-  - Guardar proyecto.
-  - Exportar ROM GBA (compila y genera la ROM ejecutable, y abre la carpeta de build).
-  - Exportar canciones, sprites, fondos y scripts.
-  - Abrir la carpeta del proyecto.
-- **PLAY:** compila el estado actual y lo ejecuta en el emulador integrado.
-- **STOP:** detiene el emulador.
+- **IMPORT:** 外部アセット (画像、サウンド、スプライトなど) をプロジェクトに組み込みます。
+- **暴露:** アクション出力を含むドロップダウン メニュー:
+  - プロジェクトを保存します。 - GBA ROM の公開 (実行可能 ROM をコンパイルして生成し、ビルドを開きます)。
+  - 曲、スプライト、背景、スクリプトを公開します。
+  - プロジェクト決定を開きます。
+- **PLAY:** は最新をコンパイルし、組み込みの状態で実行します。
+- **STOP:** は多くを停止します。![SHAPTURE: モジュールを含むエディターのトップバー、IMPORT、EXPORT、および PLAY タブ → `assets/editor-bar.png`]
 
-![CAPTURA: barra superior del editor con las pestañas de módulos, IMPORTAR, EXPORT y PLAY → `assets/editor-barra.png`]
+##1.5。デバッグコンソール
 
-## 1.5. Consola de depuración
-
-En el panel inferior del editor se muestra la **consola de depuración**, donde se registran:
-- Carga de proyectos y rutas de assets.
-- Salida de compilación al ejecutar PLAY o exportar la ROM.
-- Alertas de dependencias faltantes, rendimiento y código no utilizado para optimización de la ROM.
-
-![CAPTURA: consola inferior con la salida de compilación → `assets/editor-consola.png`]
+エディターの下部パネルには**デバッグコンソール**が表示され、以下の内容が記録されます。
+- プロジェクトとアセットルートのロード。
+- PLAYの実行時またはROMの公開時のビルド出力。
+- 欠落している依存関係、パフォーマンス、ROM [SHAPTURE: ビルド出力のある下部コンソール→ `assets/editor-consola.png`]
 
 ---
 
-**Siguiente:** [02 — Módulo Mundo](02-mundo.md)
+**次へ:** [02 — ワールドモジュール](02-mundo.md)

@@ -1,71 +1,74 @@
-# 03 — Módulo Sprite
+#03 — Sprite Module
 
-El módulo **Sprite** convierte una hoja de sprites (spritesheet) en los frames que el motor anima: divide la imagen en una rejilla, descarta los frames vacíos y crea animaciones con sus modos de ciclo.
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+The **Sprite** module converts a sprite sheet into the frames that the engine animates: it divides the image into a grid, discards empty frames and creates animations with its cycle modes.
 
 ![Módulo Sprite](assets/capturas/tab-sprite.png)
 
 ---
 
-## 1. Importar una hoja
+## 1. Import a sheet
 
-1. Pulsa **IMPORTAR** (o arrastra el PNG al lienzo).
-2. Elige la imagen. Se guarda en `sprites/` del proyecto.
-3. En la lista de sprites aparece con su nombre y su rejilla.
+1. Press **IMPORT** (or drag the PNG to the canvas).
+2. Choose the image. It is saved in `sprites/` of the project.
+3. It appears in the sprite list with its name and grid.
 
-## 2. Dividir la hoja (rejilla)
+## 2. Split sheet (grid)
 
-Al importar, el asistente pide la **rejilla**:
+When importing, the wizard asks for the **grid**:
 
-| Campo | Descripción |
+| Field | Description |
 | :--- | :--- |
-| **Columnas** | Cuántos frames hay en horizontal. |
-| **Filas** | Cuántos frames hay en vertical. |
-| **Ancho / Alto de tile** | Tamaño de cada frame en píxeles. |
+| **Columns** | How many frames are there horizontally? |
+| **Rows** | How many frames are there vertically. |
+| **Width / Height of tile** | Size of each frame in pixels. |
 
-La hoja se divide en `columnas × filas` frames. Cada frame es un tile independiente que el motor puede animar.
+The sheet is divided into `columns × rows` frames. Each frame is an independent tile that the engine can animate.
 
-## 3. Saltar frames vacíos
+## 3. Skip empty frames
 
-Si la hoja tiene huecos (frames transparentes o de relleno), usa **«Saltar frames vacíos»**: marca en rojo los frames que no quieres y el motor los omite al exportar. Así una hoja con espacios irregulares no genera frames fantasma.
+If the sheet has gaps (transparent or fill frames), use **«Skip empty frames»**: mark the frames you don't want in red and the engine will skip them when exporting. Thus, a sheet with irregular spaces does not generate ghost frames.
 
-## 4. Animaciones
+## 4.Animations
 
-Cada sprite puede tener varias **animaciones**. Una animación es una secuencia de frames con un retardo.
+Each sprite can have multiple **animations**. An animation is a sequence of frames with a delay.
 
-| Campo | Descripción |
-| :--- | :--- |
-| **Nombre** | El identificador (WALK_DOWN, IDLE…). |
-| **Frames** | La lista de frames que componen la animación. |
-| **Retardo** | Cuántos vsyncs dura cada frame (6 ≈ 10 veces/sg). |
-| **Modo** | **Una vez** (once), **bucle** (loop) o **ping-pong** (ida y vuelta). |
+| Field | Description |
+| :--- | :--- || **Name** | The identifier (WALK_DOWN, IDLE…). || **Frames** | The list of frames that make up the animation. |
+| **Delay** | How many vsyncs each frame lasts (6 ≈ 10 times/sg). || **Mode** | **Once** (eleven), **loop** (loop) or **ping-pong** (round trip). |
 
-### Modos de ciclo
+### Cycle modes
 
-- **Una vez**: la animación se reproduce una sola vez y se queda en el último frame.
-- **Bucle**: al terminar vuelve al primer frame.
-- **Ping-pong**: va del primero al último y del último al primero (para caminar, aleteos…).
+- **Once**: the animation is played only once and remains in the last frame.
+- **Loop**: when finished returns to the first frame.
+- **Ping-pong**: goes from first to last and from last to first (for walking, flapping...).
 
-## 5. Inspector del sprite
+## 5. Sprite Inspector
 
 ![Inspector de sprite](assets/capturas/sprite-inspector.png)
 
-- **Lista de sprites** (izquierda): todas las hojas del proyecto.
-- **Previsualización**: el frame seleccionado, con la rejilla.
-- **Animaciones**: lista, añadir, eliminar, renombrar.
-- **Línea de tiempo**: los frames de la animación, con el onion skin (encaje con el frame anterior).
+- **List of sprites** (left): all the sheets in the project.
+- **Preview**: the selected frame, with the grid.
+- **Animations**: list, add, delete, rename.
+- **Timeline**: the frames of the animation, with the onion skin (fit with the previous frame).
 
 ## 6. Onion skin
 
-El **onion skin** dibuja el frame anterior como fantasma para encadenar animaciones a mano (cada fotograma continúa el anterior). Se activa con el botón correspondiente.
+The **onion skin** draws the previous frame as a ghost to chain animations by hand (each frame continues the previous one). It is activated with the corresponding button.
 
-## 7. Uso en el juego
+## 7. Use in the game
 
-- Un actor tiene un **spritesheet** y una **animación inicial**.
-- El script puede cambiar de animación y de frame:
-  - `gSelf->frame` — frame actual.
-  - `gSelf->animSpeed` — cuántos frames de reloj avanza por vsync (0/1 = cadencia exacta; 2+ = más rápido).
-- La animación corre en el motor (`advanceAllActors`), salvo que un diálogo/menú esté abierto (se congela).
+- An actor has a **spritesheet** and a **start animation**.
+- The script can change animation and frame:
+  - `gSelf->frame` — current frame.
+  - `gSelf->animSpeed` — how many clock frames are advanced by vsync (0/1 = exact cadence; 2+ = faster).
+- The animation runs in the engine (`advanceAllActors`), unless a dialog/menu is open (it freezes).
 
 ---
 
-**Anterior:** [02 — Mundo](02-mundo.md) · **Siguiente:** [04 — Imagen](04-imagen.md)
+**Previous:** [02 — World](02-mundo.md) · **Next:** [04 — Image](04-imagen.md)

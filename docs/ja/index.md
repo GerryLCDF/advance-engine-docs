@@ -1,25 +1,26 @@
-# AdvanceEngine — Documentación
+#AdvanceEngine — ドキュメント
 
-Documentación de la versión 1.0.0 de Advance Engine, el mejor motor para desarrollar juegos para GBA de la forma más simple posible y con resultados muy buenos. Sigue en progreso de mejora y puedes ver el proyecto aquí: [itch.io](https://gerardolcdf.itch.io/advanceengine).
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+Advance Engine のバージョン 1.0.0 のドキュメント。これは、GBA 用のゲームを可能な限り簡単な方法で開発し、非常に優れた結果を得るのに最適なエンジンです。まだ改善が進行中であり、プロジェクトは [itch.io](https://gerardolcdf.itch.io/advanceengine) でご覧いただけます。
 
 
 ---
 
-## Índice
+## インデックス
 
-| Sección | Contenido |
+|セクション |コンテンツ |
 | :--- | :--- |
-| [00 — Primeros pasos](00-inicio.md) | Arranque, instalación de devkitARM, crear/importar proyectos, personalizar el cartucho. |
-| [01 — Interfaz de la aplicación](01-interfaz.md) | Barra superior, menús, pestañas, consola, atajos de teclado. |
-| [02 — Módulo Mundo](02-mundo.md) | Lienzo, herramientas, menú radial, colisiones, transiciones, inspector de escena/actor. |
-| [03 — Módulo Sprite](03-sprite.md) | Importar hoja, dividir en frames, saltar vacíos, animaciones, modos de ciclo. |
-| [04 — Módulo Imagen](04-imagen.md) | Fondos, capas, parallax, fondos animados. |
-| [05 — Módulo Music](05-music.md) | Piano roll y tracker, canales, instrumentos, presets, BPM. |
-| [06 — Módulo Sound](06-sound.md) | SFX, importar, forma de onda, opciones. |
-| [07 — Módulo Diálogo](07-dialogo.md) | Diálogos, filas, idiomas, cajas de texto, hablante. |
-| [08 — Scripting](08-scripting.md) | Modos (Bloques / AdvanceCode / C), editor, recientes, inspector. |
-| [09 — Exportar y probar](09-exportar.md) | Emulador integrado, ROM GBA, web, escritorio (.exe / .AppImage). |
-| [10 — Programar en C para la GBA](10-programar-c-gba.md) | Referencia de hardware, memoria, API completa función por función. |
-| [11 — Manual completo](11-manual-completo.md) | Referencia completa y manual extendido. |
+| [00 — はじめに](00-inicio.md) |ブート、devkitARM のインストール、プロジェクトの作成/インポート、カートリッジのカスタマイズ。 |
+| [01 — アプリケーション インターフェイス](01-interfaz.md) |トップバー、メニュー、タブ、コンソール、キーボードショートカット。 |
+| [02 — ワールドモジュール](02-mundo.md) |キャンバス、ツール、ラジアル メニュー、コリジョン、トランジション、シーン インスペクター/アクター。 |
+| [03 — スプライトモジュール](03-sprite.md) |シートのインポート、フレームへの分割、ギャップ、アニメーション、サイクルモードのスキップ。 |
+| [04 — 画像モジュール](04-imagen.md) |背景、レイヤー、視差、アニメーション背景。 |
+| [05 — 音楽モジュール](05-music.md) |ピアノロールとトラッカー、チャンネル、インストゥルメント、プリセット、BPM。 |
+| [06 — サウンドモジュール](06-sound.md) | SFX、インポート、波形、オプション。 |
+| [07 — 対話モジュール](07-dialogo.md) |ダイアログ、行、言語、テキスト ボックス、スピーカー。 |
+| [08 — スクリプティング](08-scripting.md) |モード (Blocks / AdvanceCode / C)、エディター、最近、インスペクター。 |
+| [09 — エクスポートとテスト](09-exportar.md) |内蔵エミュレータ、GBA ROM、Web、デスクトップ (.exe / .AppImage)。 || [10 — GBA 用の C プログラミング](10-programar-c-gba.md) |ハードウェア リファレンス、メモリ、完全な API 機能を機能ごとに示します。 |
+| [11 — 完全なマニュアル](11-manual-completo.md) |完全なリファレンスおよび拡張マニュアル。 |
 
 ---

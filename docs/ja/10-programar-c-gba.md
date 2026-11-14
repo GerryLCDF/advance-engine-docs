@@ -1,171 +1,162 @@
-# 10 — Programar en C para la Game Boy Advance
+#10 — ゲームボーイアドバンス用のC言語でのプログラミング
 
-> **Aplica a:** el código **C Directo** que escribes en el módulo Sin embargo, se inserta *verbatim* en el `main.c` que genera AdvanceEngine antes del `main()`. Todo lo explicado aquí vale para ese código, y al mismo tiempo es una referencia completa del hardware y del template que produce el motor.
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **適用対象:** モジュールに記述した **Direct C** コード ただし、*verbatim* は、AdvanceEngine が生成する `main.c` の `main()` の前に挿入されます。ここで説明した内容はすべてそのコードに有効であり、同時にハードウェアとエンジンが生成するテンプレートの完全なリファレンスでもあります。
 >
-> **Prerrequisito:** contar con **devkitARM** instalado (ver [00 — Primeros pasos](00-inicio.md)). El pipeline genera `main.c` + `Makefile` y compila con `arm-none-eabi-gcc` + `libgba`.
+> **前提条件:** **devkitARM** がインストールされている必要があります ([00 — はじめに](00-inicio.md) を参照)。パイプラインは `main.c` + `Makefile` を生成し、`arm-none-eabi-gcc` + `libgba` でコンパイルします。
 
 ---
 
-## Índice
+## インデックス
 
-1. [Conceptos básicos del hardware GBA](#101-conceptos-básicos-del-hardware-gba)
-2. [Mapa de memoria](#102-mapa-de-memoria)
-3. [Registros de entrada/salida (I/O)](#103-registros-de-entradasalida-io)
-4. [Video: el motivo por el que el motor usa MODE 3](#104-video-el-motivo-por-el-que-el-motor-usa-mode-3)
-5. [Tiempo, scanlines y VBLANK (el presupuesto sagrado)](#105-tiempo-scanlines-y-vblank-el-presupuesto-sagrado)
-6. [Estructura del `main.c` generado](#106-estructura-del-mainc-generado)
-7. [Tipos y convenciones del código generado](#107-tipos-y-convenciones-del-código-generado)
-8. [Sistema de actores (las entidades del juego)](#108-sistema-de-actores-las-entidades-del-juego)
-9. [Entrada: leer los botones](#109-entrada-leer-los-botones)
-10. [Movimiento y colisiones](#1010-movimiento-y-colisiones) — incluye las primitivas `movePlatformer` / `moveTopDown`
-11. [Sonido: la APU del GBA](#1011-sonido-la-apu-del-gba)
-12. [Frames, vsyncs y animación](#1012-frames-vsyncs-y-animación)
-13. [El C Directo de tus scripts: contrato y API](#1013-el-c-directo-de-tus-scripts-contrato-y-api)
-14. [Ejemplos de scripts listos para copiar](#1014-ejemplos-de-scripts-listos-para-copiar)
-15. [Varias escenas en la ROM: `switchScene`, `near` y `gJp`](#1015-varias-escenas-en-la-rom-switchscene-near-y-gjp)
-16. [Optimización y reglas de oro](#1016-optimización-y-reglas-de-oro)
-17. [Depuración en la consola real vs. emuladores](#1017-depuración-en-la-consola-real-vs-emuladores)
-18. [Referencia rápida (cheat-sheet)](#1018-referencia-rápida-cheat-sheet)
-19. [Glosario](#1019-glosario)
+1. [GBA ハードウェアの基本](#101-gba-hardware-basics)
+2. [メモリマップ](#102-memory-map)
+3. [入力/出力 (I/O) レジスタ](#103-io-input-output-registers)
+4. [ビデオ: エンジンがモード 3 を使用する理由](#104-video-the-reason-why-the-engine-uses-mode-3)
+5. [時間、スキャンライン、および VBLANK (神聖な予算)](#105-time-scanlines-and-vblank-the-sacred-budget)
+6. [生成された`main.c`の構造](#106-生成されたmaincの構造)
+7. [生成コードの種類と規約](#107-生成コードの種類と規約)
+8. [アクターのシステム (ゲームの実体)](#108-system-of-actors-the-entities-of-the-game)
+9. [入力: ボタンを読む](#109-input-read-the-buttons)
+10. [移動と衝突](#1010-movement-and-collisions) — `movePlatformer` / `moveTopDown` プリミティブが含まれます
+11. [サウンド: GBA APU](#1011-sound-the-gba-apu)12. [フレーム、vsync、アニメーション](#1012-frames-vsyncs-and-animation)
+13. [スクリプトのダイレクト C: コントラクトと API](#1013-the-direct-c-of-your-scripts-contract-and-api)
+14. [すぐにコピーできるスクリプトの例](#1014-すぐにコピーできるスクリプトの例)
+15. [ROM 内のさまざまなシーン: `switchScene`、`near`、および `gJp`](#1015-various-scenes-in-the-rom-switchscene-near-y-gjp)
+16. [最適化と黄金律](#1016-optimization-and-golden-rules)
+17. [実際のコンソールでのデバッグとエミュレータ](#1017-debugging-in-the-real-console-vs-emulators)
+18. [クイックリファレンス (チートシート)](#1018-クイックリファレンス-チートシート)
+19. [用語解説](#1019-用語解説)
 
 ---
 
-## 10.1. Conceptos básicos del hardware GBA
+##10.1。 GBA ハードウェアの基本
 
-### El SoC y su CPU
+### SoC とその CPU
 
-La GBA es una consola portátil de Nintendo lanzada en 2001. Su corazón es un **ARM7TDMI**:
+GBA は、2001 年に発売された任天堂のポータブル コンソールです。その心臓部は **ARM7TDMI** です。
 
-| Propiedad | Valor |
+|プロパティ |値 |
 | :--- | :--- |
-| Arquitectura | ARM7TDMI (RISC de 32 bits) |
-| Modos de instrucción | **ARM** (32 bits, 4 bytes) y **THUMB** (16 bits, 2 bytes) |
-| Reloj de CPU | 16.78 MHz (misma velocidad del bus) |
-| Frecuencia de fotograma | ~59.73 fps (280.896 ciclos por frame) |
-| Rendimiento típico | ~16,8 MIPS (Thumb) / más con ARM |
-| Revisión | Numerosa; la mayoría de ROMs corren en cualquiera |
+|建築 | ARM7TDMI (32 ビット RISC) |
+|命令モード | **ARM** (32 ビット、4 バイト) および **THUMB** (16 ビット、2 バイト) |
+| CPUクロック | 16.78 MHz (同じバス速度) |
+|フレームレート | ~59.73 fps (フレームあたり 280,896 サイクル) |
+|代表的なパフォーマンス | ~16.8 MIPS (親指) / ARM の場合はそれ以上 |
+|レビュー |多数の;ほとんどの ROM はどちらかで動作します。
 
-La CPU tiene además un repertorio pequeño: registros R0-R15, CPSR/SPSR. No hay FPU: **todo punto flotante lo tienes que evitar** (ver [16](#1016-optimización-y-reglas-de-oro)).
+CPU には、レジスタ R0 ～ R15、CPSR/SPSR などの小さなレパートリーもあります。 FPU はありません。**すべての浮動小数点を避ける必要があります** ([16](#1016-optimization-and-golden-rules) を参照)。
 
-La placa se divide conceptualmente en:
+ボードは概念的に次のように分かれています。
 
-- **CPU (ARM7TDMI)**
-- **PPU de video** (modos 0-5, sin sprite hardware en MODE 3)
-- **APU de sonido** (4 canales: 2 pulse, 1 wave, 1 ruido)
-- **BIOS** (bloquea algunos servicios; no modificable)
+- **CPU (ARM7TDMI)**- **ビデオ PPU** (モード 0 ～ 5、モード 3 ではハードウェア スプライトなし)
+- **サウンド APU** (4 チャンネル: 2 パルス、1 波、1 ノイズ)
+- **BIOS** (一部のサービスをブロックします。変更できません)
 
-Para nosotros (render por software) la CPU **dibuja cada píxel ella misma**, escribiendo directamente en VRAM. De ahí nace el *presupuesto de VBLANK* (sección 5).
+私たち (ソフトウェア レンダリング) の場合、CPU は **各ピクセル自体を描画**し、VRAM に直接書き込みます。したがって、*VBLANK 予算* (セクション 5) が生まれます。
 
 ---
 
-## 10.2. Mapa de memoria
+##10.2。メモリマップ
 
-El GBA expone 32 MB de direcciones. Las regiones que nos importan:
+GBA は 32 MB のアドレスを公開します。私たちにとって重要な地域:
 
-| Región | Rango | Tamaño | Uso típico | Velocidad |
+|地域 |範囲 |サイズ |一般的な使用法 |スピード |
 | :--- | :--- | :--- | :--- | :--- |
-| **BIOS** | `0x00000000` | 16 KB | Sistemas del sistema (no copiar/leer) | 1 ciclo |
-| **EWRAM** | `0x02000000` | 256 KB | Datos grandes, buffers, tu `gActorBack` | 2 est. (lenta) |
-| **IWRAM** | `0x03000000` | 32 KB | Stack, variables calientes | 1 ciclo (rápida) |
-| **I/O** | `0x04000000` | 1 KB | Registros de video, sonido, entrada | — |
-| **Paleta** | `0x05000000` | 1 KB | Paleta 256×2 (no usado en MODE 3 directo) | — |
-| **VRAM** | `0x06000000` | 96 KB | Framebuffer / tiles / sprites | 1 est. |
-| **OAM** | `0x07000000` | 1 KB | Sprites hardware (no usados por el motor) | — |
-| **ROM (PAK)** | `0x08000000` | ≤ 32 MB | Código + datos constantes | 2-4 est. |
+| **BIOS** | `0x00000000` | 16KB |システム システム (コピー/読み取りを行わないでください) | 1サイクル |
+| **EWRAM** | `0x02000000` | 256KB |ビッグ データ、バッファー、`gActorBack` | 2 推定 (遅い) |
+| **IWRAM** | `0x03000000` | 32KB |スタック、ホット変数 | 1 サイクル (高速) |
+| **I/O** | `0x04000000` | 1KB |ビデオ、サウンド、入力レコード | — |
+| **パレット** | `0x05000000` | 1KB |パレット 256×2 (ダイレクト MODE 3 では使用されません) | — |
+| **VRAM** | `0x06000000` | 96KB |フレームバッファ/タイル/スプライト | 1 推定 |
+| **OAM** | `0x07000000` | 1KB |ハードウェア スプライト (エンジンでは使用されません) | — |
+| **ROM (PAK)** | `0x08000000` | ≤ 32MB |コード + 定数データ |推定2～4 |
 
-**Lecturas clave:**
+**主な読み取り値:**
 
-1. **VRAM en MODE 3** son 96 KB: el framebuffer de 240×160×2 bytes ocupa 76.800 B (75 KB). El píxel de la esquina `(x, y)` vive en `((u16*)0x06000000)[y*240 + x]`. El template lo hace con `u16* screen = (u16*)VRAM;` y `screen[pos]`.
-2. **EWRAM es lenta** (2 estados de espera). El motor mete ahí `gActorBack` porque 240×160 no cabe cómodo y es solo lectura por píxel durante el render.
-3. **IWRAM es lo más rápido** para variables; el compilador `-O2` ya coloca el stack ahí vía `gba.specs`. No declares arrays enormes locales: el stack es pequeño.
-4. **ROM es de solo lectura** y los datos `static const` quedan ahí. Cómodo para tablas grandes (frames de sprites, tabla de periodos, escenas).
+1. **モード 3** の VRAM は 96 KB: 240×160×2 バイトのフレームバッファは 76,800 B (75 KB) を占有します。隅のピクセル `(x, y)` は `((u16*)0x06000000)[y*240 + x]` にあります。テンプレートは、`u16* screen = (u16*)VRAM;` および `screen[pos]` を使用してこれを実行します。2. **EWRAM が遅い** (2 つの待機状態)。 240×160 は快適に適合せず、レンダリング中にピクセルごとにのみ読み取られるため、エンジンは `gActorBack` をそこに配置します。
+3. **IWRAM は変数に対して最も高速です**。 `-O2` コンパイラはすでに `gba.specs` 経由でスタックをそこに配置しています。巨大なローカル配列を宣言しないでください。スタックは小さいからです。
+4. **ROM は読み取り専用**で、`static const` データはそこに残ります。大きなテーブル (スプライト フレーム、期間テーブル、シーン) に便利です。
 
-> En un proyecto AdvanceEngine todo lo anterior ya está bien repartido por el template. Cuando *tú* escribas C Directo intenta respetar esta jerarquía: tablas en `const` (ROM), buffers grandes `static` (EWRAM), variables de trabajo locales (IWRAM).
+> AdvanceEngine プロジェクトでは、上記のすべてがすでにテンプレート全体に適切に分散されています。 Direct C を *書くときは、この階層を尊重するようにしてください: `const` 内のテーブル (ROM)、大きな `static` バッファー (EWRAM)、ローカル作業変数 (IWRAM)。
 
 ---
 
-## 10.3. Registros de entrada/salida (I/O)
+##10.3。入出力（I/O）レジスタ
 
-Los registros se direccionan como punteros con `volatile`. El `#include <gba.h>` de libgba ya define la mayoría; el template define los que necesita por seguridad con macros propias:
+レジスタは「volatile」を使用してポインタとしてアドレス指定されます。 libgba の `#include &lt;gba.h&gt;` はすでにそれらのほとんどを定義しています。このテンプレートは、セキュリティに必要なものを独自のマクロで定義します。
 
-| Registro | Dirección | Acceso | Qué es |
+|登録 |住所 |アクセス |それは何ですか |
 | :--- | :--- | :--- | :--- |
-| `REG_DISPCNT` | `0x04000000` | RW | Control de la pantalla (modo + layers) |
-| `REG_VCOUNT` | `0x04000006` | R | Scanline actual (0-227) |
-| `REG_KEYINPUT` | `0x04000130` | R | Estado de los botones (**0 = pulsado**) |
-| `REG_SND1SWEEP` | `0x04000060` | RW | Canal 1: barrido de frecuencia |
-| `REG_SND1CNT` | `0x04000062` | RW | Canal 1: duty + envolvente |
-| `REG_SND1FREQ` | `0x04000064` | RW | Canal 1: periodo + key on |
-| `REG_SND2CNT` | `0x04000068` | RW | Canal 2: duty + envolvente |
-| `REG_SND2FREQ` | `0x0400006C` | RW | Canal 2: periodo + key on |
-| `REG_SND3CNT_L` | `0x04000070` | RW | Canal 3 (wave): control |
-| `REG_SND3CNT_H` | `0x04000072` | RW | Canal 3 (wave): control alto |
-| `REG_SND3FREQ` | `0x04000074` | RW | Canal 3 (wave): periodo + key on |
-| `REG_SND4CNT` | `0x04000078` | RW | Canal 4 (ruido): envolvente |
-| `REG_SND4FREQ` | `0x0400007C` | RW | Canal 4 (ruido): ratio + key on |
-| `REG_SNDCTL` | `0x04000080` | RW | Control general (volúmenes, enable) |
-| `REG_SNDCNTH` | `0x04000082` | RW | Enable/atención del canal |
-| `REG_SNDCNTX` | `0x04000084` | RW | Volumen del canal |
-| `REG_SNDBIAS` | `0x04000088` | RW | Bias PWM (sesgo del DAC) |
-| Wave RAM | `0x04000090` | RW | 16 muestras de 4 bits del canal 3 |
+| `REG_DISPCNT` | `0x04000000` | ＲＷ |画面制御（モード＋レイヤー） |
+| `REG_VCOUNT` | `0x04000006` | R |現在の走査線 (0-227) |
+| `REG_KEYINPUT` | `0x04000130` | R |ボタンのステータス (**0 = 押された**) |
+| `REG_SND1SWEEP` | `0x04000060` | ＲＷ |チャンネル 1: 周波数スイープ |
+| `REG_SND1CNT` | `0x04000062` | ＲＷ |チャンネル 1: デューティ + サラウンド |
+| `REG_SND1FREQ` | `0x04000064` | ＲＷ |チャンネル 1: ピリオド + キーをオン || `REG_SND2CNT` | `0x04000068` | ＲＷ |チャンネル 2: デューティ + サラウンド |
+| `REG_SND2FREQ` | `0x0400006C` | ＲＷ |チャンネル 2: ピリオド + キーをオン |
+| `REG_SND3CNT_L` | `0x04000070` | ＲＷ |チャンネル 3 (波): コントロール |
+| `REG_SND3CNT_H` | `0x04000072` | ＲＷ |チャンネル 3 (波): ハイコントロール |
+| `REG_SND3FREQ` | `0x04000074` | ＲＷ |チャンネル 3 (ウェーブ): ピリオド + キーをオン |
+| `REG_SND4CNT` | `0x04000078` | ＲＷ |チャンネル 4 (ノイズ): サラウンド |
+| `REG_SND4FREQ` | `0x0400007C` | ＲＷ |チャンネル 4 (ノイズ): レシオ + キーオン |
+| `REG_SNDCTL` | `0x04000080` | ＲＷ |一般的なコントロール (ボリューム、イネーブル) |
+| `REG_SNDCNTH` | `0x04000082` | ＲＷ |アテンションを有効にする/チャネルする |
+| `REG_SNDCNTX` | `0x04000084` | ＲＷ |チャンネルボリューム |
+| `REG_SNDBIAS` | `0x04000088` | ＲＷ | PWM バイアス (DAC バイアス) |
+|ウェーブRAM | `0x04000090` | ＲＷ |チャンネル 3 の 16 個の 4 ビット サンプル |
 
-El template genera estas definiciones útiles en casi todos los main.c:
-
+テンプレートは、ほぼすべての main.c に次の便利な定義を生成します。
 ```c
 #define REG_SND1SWEEP *(vu16*)(0x04000060)
 #define REG_SND2CNT   *(vu16*)(0x04000068)
 // ... y así con todos los de sonido
 ```
-
-**Regla de oro de los registros:** acceder siempre a través de punteros `volatile`. Libgba los llama `REG_*/IO_*`; el template usa `REG_DISPCNT`, `REG_VCOUNT`, `REG_KEYINPUT`.
+**レジストリの黄金律:** 常に「volatile」ポインタを介してアクセスします。 Libgba はそれらを「REG_*/IO_*」と呼びます。テンプレートは `REG_DISPCNT`、`REG_VCOUNT`、`REG_KEYINPUT` を使用します。
 
 ---
 
-## 10.4. Video: el motivo por el que el motor usa MODE 3
+##10.4。ビデオ: エンジンが MODE 3 を使用する理由
 
-El GBA tiene 6 modos de video:
+GBA には 6 つのビデオ モードがあります。
 
-| Modo | Tipo | Pantalla |
+|モード |タイプ |画面 |
 | :--- | :--- | :--- |
-| 0 | Tiles 4 BG, todo por carácter | 4 planos |
-| 1 | Tiles + 1 rotación/escala | — |
-| 2 | Tiles rotación/escala | 2 BG |
-| **3** | **Bitmap 240×160, 16-bit por píxel** | **1 framebuffer** |
-| 4 | Bitmap 240×160, 8-bit + paleta | 1-2 framebuffers |
-| 5 | Bitmap 160×128, 16-bit | 1-2 framebuffers |
+| 0 |タイル 4 BG、すべてキャラクターごと | 4つのプラン |
+| 1 |タイル + 1 回転/スケール | — |
+| 2 |タイルの回転/スケール | 2 BG |
+| **3** | **ビットマップ 240×160、ピクセルあたり 16 ビット** | **1 フレームバッファ** |
+| 4 |ビットマップ 240×160、8 ビット + パレット | 1 ～ 2 フレームバッファ |
+| 5 |ビットマップ 160×128、16 ビット | 1 ～ 2 フレームバッファ |
 
-**AdvanceEngine usa MODE 3**: el más sencillo para un render por software. `main()` hace:
-
+**AdvanceEngine はモード 3** を使用します。ソフトウェア レンダリングでは最も単純です。 `main()` は次のことを行います。
 ```c
 REG_DISPCNT = MODE_3 | BG2_ENABLE;
 u16* screen = (u16*)VRAM;
 ```
+-
+ 各ピクセルは **RGB555 形式**の `u16` (2 バイト) です。
+- BG2_ENABLE (ビット 10 = 0x400) は、描画されるプレーンをアクティブにします。
+- ビットマップ モードにはハードウェア スプライトはありません。**エンジン アクターは CPU によって描画されます** (セクション 8 を参照)。
 
-- Cada píxel es un `u16` (2 bytes) en **formato RGB555**.
-- BG2_ENABLE (bit 10 = 0x400) activa el plano sobre el que se dibuja.
-- No hay sprites hardware en modo bitmap: **los actores del motor los dibuja la CPU** (ver sección 8).
-
-### El formato de píxel RGB555
-
+### RGB555 ピクセル形式
 ```
 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
  x  B  B  B  B  B G G G G G R R R R R
     x  ·          bits del color         ·
 ```
+-
+ 赤 (5 ビット)、緑 (5)、青 (5) = **チャンネルごとに 32 レベル** → 32,768 色が可能。
+- ビット 15 はモード 3 では使用されません (テンプレートは内部スプライト マーカー用に予約しています: **ビット 15 = 1 はアクターのフレーム内の透明ピクセルを意味します**)。
 
-- Rojo (5 bits), verde (5), azul (5) = **32 niveles por canal** → 32.768 colores posibles.
-- El bit 15 no se usa en MODE 3 (el template lo reserva para marcadores internos del sprite: **bit15 = 1 significa píxel transparente** en los frames de los actores).
-
-Para convertir un color CSS/RGB (0-255) al valor GBA usa la misma fórmula que el motor:
-
+CSS/RGB カラー (0 ～ 255) を GBA 値に変換するには、エンジンと同じ式を使用します。
 ```c
 #define RGB555(r, g, b) ((((r) >> 3) | (((g) >> 3) << 5) | (((b) >> 3) << 10)) & 0x7FFF)
 ```
+例: `RGB555(255, 0, 0)` → `0x7C00` (純粋な赤)、`RGB555(0,0,255)` → `0x001F` (純粋な青)、白 → `0x7FFF`。
 
-Ejemplo: `RGB555(255, 0, 0)` → `0x7C00` (rojo puro), `RGB555(0,0,255)` → `0x001F` (azul puro), blanco → `0x7FFF`.
-
-### Escribir un píxel / rellenar la pantalla
-
+### ピクセルを書き込む / 画面全体に表示する
 ```c
 // Un píxel
 screen[y * 240 + x] = RGB555(255, 255, 255);
@@ -174,51 +165,47 @@ screen[y * 240 + x] = RGB555(255, 255, 255);
 for (i = 0; i < PIXEL_COUNT; i++) screen[i] = color;
 // con PIXEL_COUNT = 240*160 = 38400
 ```
-
-> **No escribas VRAM fuera del VBLANK** si puedes evitarlo: verás artefactos ("tearing"). El motor dibuja la escena dentro de `waitVSync()`. Los scripts que muestran texto propio deberían hacer lo mismo.
+> **できれば、VRAM を VBLANK の外側に書き込まないでください**。ティアリングが発生します。エンジンは「waitVSync()」内にシーンを描画します。独自のテキストを表示するスクリプトでも同じことを行う必要があります。
 
 ---
 
-## 10.5. Tiempo, scanlines y VBLANK (el presupuesto sagrado)
+##10.5。時間、スキャンライン、VBLANK (神聖な予算)
 
-### Cronometraje real de la consola
+### 実際のコンソールのタイミング
 
-- El LCD dibuja **228 líneas por frame**: 160 visibles + 68 de blanking.
-- Cada línea dura **1232 ciclos** de CPU.
-- Frame total = 228 × 1232 = **280.896 ciclos** → **59,73 fps**.
-- El intervalo donde la pantalla no barre (VBLANK) = 68 × 1232 = **~83.800 ciclos**.
-
+- LCD は **1 フレームあたり 228 ライン** を描画します: 160 可視 + 68 ブランキング。
+- 各ラインは **1232 CPU サイクル**続きます。
+- 合計フレーム = 228 × 1232 = **280,896 サイクル** → **59.73 fps**。
+- 画面がスキャンされない間隔 (VBLANK) = 68 × 1232 = **~83,800 サイクル**。
 ```c
 static void waitVSync(void) {
   while (REG_VCOUNT >= SCREEN_H);   // esperar a que deje la zona visible
   while (REG_VCOUNT < SCREEN_H);    // y que entre en la zona de blanking
 }
 ```
+テンプレートは、ゲーム ループの各ターンで `waitVSync()` を呼び出します。 1 つの「waitVSync()」と次の「waitVSync()」の間で、**フレームを失うことなく最大 83,800 回の作業サイクルを実行できます**。
 
-El template llama `waitVSync()` en cada vuelta del bucle de juego. Entre un `waitVSync()` y el siguiente **puedes hacer ~83.800 ciclos de trabajo sin perder el frame**.
+### 予算ルール
 
-### La regla del presupuesto
+フレームが VBLANK に収まらないほど多くの作業を行う場合:
 
-Si tu frame hace más trabajo del que cabe en VBLANK:
+1. 次のフレームが食べられます。ゲーム ループは **約 30 fps** (またはそれ以上) に低下します。
+2. アニメーション (vsync で遅延) が遅くなります。
+3. 実際のコンソールでは、LCD が最後のアクターの領域をすでにキャプチャしている下部領域に *ちらつき* が表示されます。
 
-1. El frame siguiente se come; el game loop **baja a ~30 fps** (o peor).
-2. Las animaciones (retardadas en vsyncs) se ralentizan.
-3. En consola real verás *parpadeos* en la zona inferior donde el LCD ya pilló el rect del último actor.
+エンジンは、これが起こらないように最適化されています ([16](#1016-optimization-and-golden-rules) を参照)。
 
-El motor está optimizado para que esto no pase (ver [16](#1016-optimización-y-reglas-de-oro)):
+- アクターのレンダリングには、**不透明ピクセルあたり最大 15 サイクル** かかります (シングル パスで描画および消去)。
+- 経験則: ** フレームごとのカメラ内スプライトは最大 5,600 ピクセル** が緩く収まります。
+- オフカメラのアクターにはほとんどコストがかかりません (長方形クランプ → ピクセルあたりの作業は 0)。
 
-- El render de actores cuesta **~15 ciclos por píxel opaco** (dibujado y borrado en una sola pasada).
-- Regla práctica: **~5.600 px de sprite en cámara por frame** caben holgados.
-- Los actores fuera de cámara apenas cuestan (clamp del rect → 0 trabajo por píxel).
-
-**Tus scripts deben ser ligeros:** unas decenas de operaciones por actor por frame son irrelevantes; bucles anidados de miles de iteraciones dentro del VBLANK romperán el ritmo.
+**スクリプトは軽量である必要があります。** フレームごとにアクターごとに数十の操作は無関係です。 VBLANK 内で数千回の繰り返しをネストしたループがあると、リズムが崩れてしまいます。
 
 ---
 
-## 10.6. Estructura del `main.c` generado
+##10.6。生成された`main.c`の構造
 
-Un `main.c` de AdvanceEngine sigue este orden (parcial dependiendo del proyecto):
-
+AdvanceEngine の「main.c」は次の順序に従います (プロジェクトによって部分的に異なります)。
 ```
 1.  Encabezado (nombre, autor, fecha)
 2.  #include <gba.h> y <string.h>
@@ -235,9 +222,7 @@ Un `main.c` de AdvanceEngine sigue este orden (parcial dependiendo del proyecto)
 13. Scripts de usuario (tu C Directo) + userScriptsInit/Update
 14. int main() { init, splash, fill, sceneInit, sceneLoop }
 ```
-
-### `main()` visto por dentro
-
+### `main()` の内部を見る
 ```c
 int main() {
   REG_DISPCNT = MODE_3 | BG2_ENABLE;
@@ -250,9 +235,7 @@ int main() {
   // sceneLoop();   -> while(1) { waitVSync(); actorLoopBody(); }
 }
 ```
-
-### Funciones de la escena (te serán visibles desde tus scripts)
-
+### シーン関数 (スクリプトから表示されます)
 ```c
 // Fondo de la escena (framebuffer)
 const u16 sceneData[PIXEL_COUNT] = { ... };  // o SCENE_COLOR
@@ -269,47 +252,44 @@ static void advanceAllActors(void);   // animación automática de sprites
 static void updatePlayer(void);       // input + colisiones + empuje actor-actor
 static void drawAllActors(u16* screen); // orden z + píxeles
 ```
-
-> Tú no escribes `main()`. Tu código se inserta **un nivel por debajo**: un archivo válido que solo existe por sus funciones `script_init`/`script_update` (ver [13](#1013-el-c-directo-de-tus-scripts-contrato-y-api)).
+> main() とは書きません。コードは **1 レベル下**に挿入されます。このファイルは、`script_init`/`script_update` 関数のためにのみ存在する有効なファイルです ([13](#1013-the-direct-c-of-your-scripts-contract-and-api) を参照)。
 
 ---
 
-## 10.7. Tipos y convenciones del código generado
+##10.7。生成されるコードの種類と規則
 
-libgba define los tipos que usa el template (`#include <gba.h>`):
+libgba は、テンプレート (`#include &lt;gba.h&gt;`) で使用される型を定義します。
 
-| Tipo | Ancho | Volátil | Signo | Para qué |
+|タイプ |幅 |揮発性|サイン |何のために |
 | :--- | :--- | :--- | :--- | :--- |
-| `s8` `/` `s16` `/` `s32` | 8/16/32 | sí | con signo | matemática |
-| `u8` `/` `u16` `/` `u32` | 8/16/32 | no | sin | datos, colores, direcciones |
-| `vu8` `/` `vu16` `/` `vu32` | 8/16/32 | **sí** | sin | registros de hardware |
-| `int` | 32 | no | con | bucles y aritmética por defecto |
+| `s8` `/` `s16` `/` `s32` | 32/8/16 |はい |記号付き |数学 |
+| `u8` `/` `u16` `/` `u32` | 32/8/16 |そうではない | | なしデータ、色、アドレス |
+| `vu8` `/` `vu16` `/` `vu32` | 32/8/16 | **はい** | | なしハードウェアログ |
+| `int` | 32 |そうではない | |付きループとデフォルトの算術演算 |
 
-Convenciones del template que deberías respetar en tus scripts:
+スクリプト内で尊重する必要があるテンプレートの規則:
 
-- **Todo es 32 bits por defecto.** No uses `long` a lo loco: `int` cuesta igual y más simple.
-- Los colores y valores de registro son `u16`.
-- Las posiciones de actores son `s16` (rango ±32767; fuera de ahí te preguntarás por qué se rompen).
-- Las funciones estáticas del template pueden llamarse desde tus scripts porque están definidas **arriba** de la sección de scripts (mismo archivo, mismo scope). No necesitas prototipos.
-- Los símbolos `static` dentro de tus scripts (variables auxiliares) son perfectos porque tu bloque vive al nivel del archivo.
+- **デフォルトではすべて 32 ビットです。** `long` をむやみに使用しないでください。`int` のコストは同じで、より簡単です。
+- 登録色と値は`u16`です。
+- アクターの位置は「s16」です (範囲 ±32767。それを超えると、なぜ壊れるのか疑問に思うでしょう)。
+- テンプレートの静的関数はスクリプト セクションの **上** で定義されているため (同じファイル、同じスコープ)、スクリプトから呼び出すことができます。プロトタイプは必要ありません。
+- ブロックはファイル レベルで存在するため、スクリプト内の「静的」シンボル (補助変数) は完璧です。
 
-### Atributos de sección que verás en el código
-
+### コード内に表示されるセクション属性
 ```c
 static u16 gActorBack[240*160] __attribute__((section(".ewram"), aligned(4)));
 ```
+-
+ `section(".ewram")` → BSS ではなく EWRAM (256 KB) にバッファを配置します。 240×160×2 = 76,800 B は、スタックルート IWRAM には適合しません。
+- `aligned(4)` → 効率的なミッドワードアクセス。
 
-- `section(".ewram")` → coloca el buffer en EWRAM (256 KB) en vez de en el BSS. 240×160×2 = 76.800 B no cabe en IWRAM stack-rooted.
-- `aligned(4)` → acceso eficiente a mitad de palabra.
-
-Consejo: para tu propio buffer grande (p. ej. un mini-buffer de texto), aplica el mismo atributo; si lo declaras local te explota el stack (32 KB).
+ヒント: 独自の大きなバッファ (ミニテキスト バッファなど) には、同じ属性を適用します。ローカルに宣言すると、スタックが爆発します (32 KB)。
 
 ---
 
-## 10.8. Sistema de actores (las entidades del juego)
+##10.8。アクター システム (ゲーム エンティティ)
 
-### El struct `GBAActor`
-
+### `GBActor` 構造体
 ```c
 typedef struct {
   s16 x, y;         // posición top-left del sprite EN PANTALLA (relativa a cámara)
@@ -333,18 +313,14 @@ typedef struct {
   u8 animSpeed;                // paso por vsync del avance (0/1 = cadencia exacta, 2+ = más rápido)
 } GBAActor;
 ```
-
-`GBAFrame` es:
-
+「GBAフレーム」は次のとおりです。
 ```c
 typedef struct {
   const u16* img;  // píxeles RGB555; bit15=1 => transparente
   u16 w, h;
 } GBAFrame;
 ```
-
-### La lista global
-
+### グローバルリスト
 ```c
 #define ACTOR_COUNT  <n>        // 1..64
 #define PLAYER_INDEX 0          // el actor 0 es "el jugador"
@@ -354,29 +330,26 @@ typedef struct {
 
 static GBAActor gActors[ACTOR_COUNT];
 ```
+### 俳優のライフサイクル
 
-### Ciclo de vida de un actor
+1. **`initActors()`** (`sceneInit` 内): アクターを配置し、プール内の画像に `frames[]` と `delays[]` をフックし、`mode`、`hasCollider`、`cw/ch` を設定します。
+2. **`advanceAllActors()`** (フレームごと): `frameCount > 1` の場合、`timer` をインクリメントします。 `timer >= Delays[frame]` の場合、`mode` に従って `frame` を進めます。
+   - `モード 0` (*1 回*): `frameCount-1` まで進み、そのままになります。
+   - `モード 1` (*ループ*): `(frame+1) % FrameCount`。
+   - `モード 2` (*pingpong*): `dir` に従って交互に上昇/下降します。
+3. **`updatePlayer()`** (フレームごと、`gActors[PLAYER_INDEX].hasCollider == 1` の場合のみ): **プレイヤーにスクリプトが割り当てられている場合を除き** (この場合、スクリプトは `script_update` によって移動されます)、他のアクターをプッシュします。 (セクション9、10、および10.14を参照)。
+4. **`drawAllActors(screen)`** (各フレーム): `z` でソートし、`drawActorRect` を 1 つずつ描画します。
 
-1. **`initActors()`** (dentro de `sceneInit`): posiciona actores, engancha `frames[]` y `delays[]` a imágenes del pool, ajusta `mode`, `hasCollider`, `cw/ch`.
-2. **`advanceAllActors()`** (cada frame): si `frameCount > 1`, incrementa `timer`; cuando `timer >= delays[frame]` avanza el `frame` según el `mode`:
-   - `mode 0` (*once*): sube hasta `frameCount-1` y se queda.
-   - `mode 1` (*loop*): `(frame+1) % frameCount`.
-   - `mode 2` (*pingpong*): sube/baja alternando según `dir`.
-3. **`updatePlayer()`** (cada frame, solo si `gActors[PLAYER_INDEX].hasCollider == 1`): mueve al jugador con colisiones **a menos que el jugador tenga un script asignado** (en ese caso lo mueve tu `script_update`) y empuja a otros actores. (ver seccion 9, 10 y 10.14).
-4. **`drawAllActors(screen)`** (cada frame): ordena por `z` y dibuja `drawActorRect` uno a uno.
+### アニメーションのリズムと `animSpeed`
 
-### La cadencia de la animación y `animSpeed`
+`advanceAllActors()` は各アクターの `timer` を進め、`timer >= late[frame]` の場合に次の `frame` に移動します。つまり、次のようになります。
 
-`advanceAllActors()` hace avanzar el `timer` de cada actor y pasa al siguiente `frame` cuando `timer >= delays[frame]`. Es decir:
+- **ベース速度**: フレームごとの `delays[frame]` vsync (エクスポーターはスプライトの各フレームの継続時間からエディターで計算します)。 6 vsync → 10 fps アニメーションの遅延あり。
+- **`animSpeed`** (actor フィールド、`0/1` = 通常): vsync ごとに、`timer` は 1 ではなく `animSpeed` ティックだけ進みます。これはスクリプトによって記述され、それに触れるアクターにのみ影響します。- **自動加速はありません**: モーターは、移動する人の速度を上げません (ウォーカーも NPC も)。正確なケイデンス以外の速度はコードから取得されます。
 
-- **Velocidad base**: `delays[frame]` vsyncs por frame (el exportador lo calcula en el editor a partir de la duración de cada frame del sprite). Con `delays` de 6 vsyncs → 10 fps de animación.
-- **`animSpeed`** (campo del actor, `0/1` = normal): cada vsync el `timer` avanza `animSpeed` ticks en vez de 1. Lo escribe tu script y solo afecta al actor que lo toca.
-- **No hay aceleración automática**: el motor NO sube la velocidad de nadie por moverse (ni del que camina ni de los NPC). Toda velocidad distinta de la cadencia exacta sale de tu código.
+#### 歩くときだけ歩幅を早める
 
-#### Acelerar la zancada solo al caminar
-
-El uso típico es que la animación del que camina acompañe el desplazamiento. En `script_update` sube `animSpeed` mientras mueves con `gSelf` y lo devuelves a `1` al soltar:
-
+一般的な用途は、歩行者の動きに伴うアニメーションです。 `script_update` では、`gSelf` で移動中に `animSpeed` を上げ、解放時に `1` に戻します。
 ```c
 static void script_update(void) {
   u16 keys = ~REG_KEYINPUT & 0x3FF;
@@ -388,58 +361,50 @@ static void script_update(void) {
   }
 }
 ```
+これは、「animSpeed」をタップしたアクターのアニメーションのみを変更します。世界が動いても、シーンの残りの部分は正確なリズムで継続します。
 
-Solo cambia la animación del actor cuyo `animSpeed` tocas; el resto de la escena sigue con su cadencia exacta aunque el mundo se mueva.
-
-### To-codigo ejemplo: leer el actor del jugador
-
+### To コード例: プレーヤー アクターの読み取り
 ```c
 void script_update(void) {
   GBAActor* p = &gActors[PLAYER_INDEX];
   p->x += 1;            // mueves 1 px por frame (60 px/s)
 }
 ```
+**スクリプトからのアクター API ヒント:**
 
-**Consejos de la API de actores desde scripts:**
-
-- Cada vuelta de `script_update` ejecuta **después** de `advanceAllActors`/`updatePlayer` y **antes** de `drawAllActors`. O sea: lees estado ya animado y tus cambios se pintan ese mismo frame.
-- Para "saltar" a un frame concreto de la animación: `a->frame = k; a->timer = 0;`
-- Para usar otra animación (otro set de frames) necesitarías re-mapear `a->frames[i]`; en la versión actual de export el set está fijado en `initActors`. Puedes cambiar `a->frame` y `a->mode`, o compartir frames entre actores (el pool deduplica imágenes).
-- `z` controla quién tapa a quién. Cámbialo a voluntad (incluso cada frame) para efectos "clase de profundidad".
-- `vx`/`vy` son campos **libres**: úsalos para tu propia física (gravedad, obstáculos, NPCs).
+- `script_update` の各ラウンドは、`advanceAllActors`/`updatePlayer` の **後**、および `drawAllActors` の前**に実行されます。つまり、アニメーション化された状態を読み取ると、変更は同じフレーム内に描画されます。
+- アニメーションの特定のフレームに「ジャンプ」するには: `a->frame = k; a->タイマー = 0;`
+- 別のアニメーション (別のフレームのセット) を使用するには、`a->frames[i]` を再マップする必要があります。現在のバージョンのエクスポートでは、セットは「initActors」に設定されています。 `a->frame` と `a->mode` を変更したり、アクター間でフレームを共有したりできます (プールにより画像の重複が除去されます)。
+- `z` は誰が誰をカバーするかを制御します。 「深度クラス」効果については、任意に (フレームごとでも) 変更できます。
+- `vx`/`vy` は **無料** フィールドです。独自の物理 (重力、障害物、NPC) に使用してください。
 
 ---
 
-## 10.9. Entrada: leer los botones
+##10.9。入力: 読み取りボタン
 
-### La verdad sobre `REG_KEYINPUT`
+### `REG_KEYINPUT` の真実
 
-`REG_KEYINPUT` es un registro de 16 bits de solo lectura en `0x04000130`.
+`REG_KEYINPUT` は、`0x04000130` にある読み取り専用の 16 ビット レジスタです。
 
-**Bit = 0 significa botón PULSADO** (activo por nivel bajo). Bit = 1 significa suelto.
+**ビット = 0 はボタンが押されたことを意味します** (低レベルのためアクティブ)。ビット = 1 は緩んでいることを意味します。
 
-| Bit | Botón | Bit | Botón |
+|ビット |ボタン |ビット |ボタン |
 | :--- | :--- | :--- | :--- |
-| 0 | **A** | 5 | **←** (LEFT) |
-| 1 | **B** | 6 | **↑** (UP) |
-| 2 | **SELECT** | 7 | **↓** (DOWN) |
-| 3 | **START** | 8 | **R** |
-| 4 | **→** (RIGHT) | 9 | **L** |
+| 0 | **A** | 5 | **←** (左) |
+| 1 | **B** | 6 | **↑** (上) |
+| 2 | **選択** | 7 | ***↓** (下) |
+| 3 | **開始** | 8 | **R** |
+| 4 | **→** (右) | 9 | **L** |
 
-Los bits 10-15 están sin cablear (los ignoras, no los leas).
+ビット 10 ～ 15 は配線されていません (無視し、読み取らないでください)。> ⚠️ **実際の G​​BA マップ** (`b0=A, b1=B, b2=SELECT, b3=START, b4=RIGHT, b5=LEFT, b6=UP, b7=DOWN, b8=R, b9=L`) です。混同しないでください。逆のコンテキストでは、プレーヤーが後ろ向きに歩くことになります。非常によくあるバグになります。
 
-> ⚠️ Es el **mapa real del GBA** (`b0=A, b1=B, b2=SELECT, b3=START, b4=RIGHT, b5=LEFT, b6=UP, b7=DOWN, b8=R, b9=L`). No lo confundas: el comtexto inverso te dará un jugador que anda al revés. Será un bug muy habitual.
-
-### El patrón estándar para "botón pulsado"
-
+### 「ボタンが押された」の標準パターン
 ```c
 u16 keys = ~REG_KEYINPUT & 0x3FF;   // invertir bits + enmascarar a los 10 botones
 if (keys & (1 << 0)) { /* A pulsado */ }
 if (keys & (1 << 4)) { /* derecha */ }
 ```
-
-El template trae los botones ya enmascarados con constantes, para no contar shifts a mano:
-
+テンプレートには、手動でシフトをカウントしないように、ボタンがすでに定数でマスクされています。
 ```c
 #define KEY_RIGHT 0x010
 #define KEY_LEFT  0x020
@@ -451,13 +416,11 @@ El template trae los botones ya enmascarados con constantes, para no contar shif
 
 if (keys & KEY_RIGHT) { /* derecha */ }
 ```
+そして、`movePlayer()` は [`moveTopDown`](#move-primitives-ready-to-use) でプレーヤーを移動します。
 
-Y `movePlayer()` mueve al jugador con [`moveTopDown`](#primitivas-de-movimiento-listos-para-usar):
+### 「押したばかり」を検出 (エッジ: エッジ/立ち上がり)
 
-### Detectar "recién pulsado" (flancos: edge/rising)
-
-El D-pad "mantener" mueve cada frame. Para saltar o disparar solo **en el frame en que se presiona** guarda el estado anterior:
-
+十字キーを「押し続ける」と各フレームを移動します。 **押されたフレーム内のみ**にジャンプまたは射撃するには、前の状態を保存します。
 ```c
 static u16 prevKeys = 0;
 
@@ -470,25 +433,22 @@ void script_update(void) {
   if (justPressed & (1 << 0)) { /* acción de salto: se dispara UNA vez */ }
 }
 ```
+### 同時制御と優先制御
 
-### Controles en simultáneo y prioridad
-
-- `justPressed` es un conjunto de bits: puedes exigir **combinaciones**:
-
+- `justPressed` はビットのセットです: **組み合わせ**を要求できます:
 ```c
 if ((justPressed & (1 << 0)) && (justPressed & (1 << 1))) { /* A+B */ }
 ```
-
-- Decide tú la prioridad en el código: `if / else if` es más predecible que varias comprobaciones independientes que provoquen "picos".
+-
+ コード内で優先順位を決定します。「if / else if」は、「スパイク」を引き起こす複数の独立したチェックよりも予測可能です。
 
 ---
 
-## 10.10. Movimiento y colisiones
+##10.10。移動と衝突
 
-### Coordenadas y cámara
+### 座標とカメラ
 
-En el mundo del template, cada actor guarda su posición **en pantalla** (`x, y`), porque el motor está pensado para pantalla fija 240×160. `CAM_X/CAM_Y` suman un offset de mundo a la colisión:
-
+テンプレートの世界では、エンジンが 240×160 の固定画面用に設計されているため、各アクターは **画面上** の位置 (`x, y`) を保存します。 `CAM_X/CAM_Y` は衝突にワールド オフセットを追加します。
 ```c
 // Coordenadas del collider en el MUNDO:
 static inline void actorBox(const GBAActor* a, s16* bx, s16* by, s16* bw, s16* bh) {
@@ -498,13 +458,12 @@ static inline void actorBox(const GBAActor* a, s16* bx, s16* by, s16* bw, s16* b
   *by = a->y + CAM_Y + (a->h - *bh) / 2;
 }
 ```
+-
+ ワールドインスペクターでアクターに **コライダー** がある場合、テンプレートは `cw/ch` にそのサイズ (そうでない場合はスプライトのサイズ) を埋めます。コライダーはスプライトの**中心**に配置されます。
 
-- Si en el inspector de Mundo el actor tiene **collider**, el template rellena `cw/ch` con su tamaño (o el del sprite si no). El collider queda **centrado** sobre el sprite.
+### コリジョン マップとそのタイル タイプ
 
-### El mapa de colisiones y sus tipos de tile
-
-Si tu escena tiene mapa de colisiones (editado en el Módulo Mundo), el template emite:
-
+シーンにコリジョン マップ (ワールド モジュールで編集) がある場合、テンプレートは次のものを出力します。
 ```c
 #define COLLISION_COLS ...
 #define COLLISION_ROWS ...
@@ -513,19 +472,17 @@ Si tu escena tiene mapa de colisiones (editado en el Módulo Mundo), el template
 #define CAM_Y ...
 const u8 collisionMap[ROWS][COLS] = { ... };
 ```
+**マップ上のタイル値** (`solidTile` による):
 
-**Valores de tile en el mapa** (según `solidTile`):
-
-| Valor | Tipo | Bloquea |
+|値 |タイプ |ブロック |
 | :--- | :--- | :--- |
-| `0` | Vacío | nada |
-| `1` | Sólido | siempre |
-| `2` | One-way ↑ | solo al **caer** (dirY > 0) |
-| `3` | One-way ↓ | solo al **subir** (dirY < 0) |
-| `4` | One-way ← | solo yendo a la **derecha** (dirX > 0) |
-| `5` | One-way → | solo yendo a la **izquierda** (dirX < 0) |
-| `6` | Escalera | pasable (no bloquea) |
-
+| `0` |空 |何も |
+| `1` |固体 |いつも |
+| `2` |一方通行 ↑ | **落下** (Ydir > 0) の場合のみ |
+| `3` |一方通行↓ | **up** (dirY < 0) の場合のみ |
+| `4` |一方通行 ← | **右のみ** (Xdir > 0) |
+| `5` |一方通行 → | **左**にのみ進みます (Xdir < 0) |
+| `6` |階段 |可（ブロックしない） |
 ```c
 static inline u8 solidTile(u8 v, int dirX, int dirY) {
   if (v == 1) return 1;                      // sólido
@@ -536,10 +493,9 @@ static inline u8 solidTile(u8 v, int dirX, int dirY) {
   return 0;
 }
 ```
-
-### `rectHitsSolid` y `moveActorCollide`
-
-```c
+### `rectHitsSolid` と `moveActorCollide
+```
+`c
 // ¿El rectángulo de mundo (bx,by,bw,bh) toca algún tile sólido PARA la
 // dirección (dx,dy)?
 static inline int rectHitsSolid(s16 bx, s16 by, s16 bw, s16 bh, s16 dx, s16 dy);
@@ -548,11 +504,9 @@ static inline int rectHitsSolid(s16 bx, s16 by, s16 bw, s16 bh, s16 dx, s16 dy);
 // se mueve, comprueba, y si choca, revierte.
 static void moveActorCollide(GBAActor* a, s16 dx, s16 dy);
 ```
+`moveActorCollide` は最高のツールです。これを使用すると、壁の上をスライドできます (対角線上でスタックすることはありません)。 **小さな変位** (フレームあたり 2 ～ 4 ピクセル) で使用します。
 
-`moveActorCollide` es la mejor herramienta: permite deslizar por paredes (no se atasca en diagonales). Úsalo con **desplazamientos pequeños** (2-4 px por frame).
-
-### Empuje actor-actor
-
+### 俳優と俳優のプッシュ
 ```c
 static void updatePlayer(void) {
   GBAActor* p = &gActors[PLAYER_INDEX];
@@ -563,13 +517,11 @@ static void updatePlayer(void) {
   // menor intrusión (AABB)
 }
 ```
+つまり、プレイヤーは他のプレイヤーを**プッシュ**します(両方ともコライダーを持っている場合)。 NPC がそれを行わないように、彼に `hasCollider = 0` を持たせます (または、NPC だけが衝突しません)。 *全員* が互いにプッシュしたい場合は、スクリプト内でそのループを複製します。
 
-O sea: el jugador **empuja** a los demás (si ambos tienen collider). Para que un NPC no lo haga, déjale `hasCollider = 0` (o que solo él no colisione). Si quieres que *todos* se empujen entre sí, replica ese bucle en tu script.
+### 整数を使用した手動物理学 (浮動小数点を使用しない重力)
 
-### Física manual con enteros (gravedad sin float)
-
-Ejemplo de física "gravedad simple" para un NPC, usando `vx/vy` y un collider:
-
+`vx/vy` とコライダーを使用した、NPC の「単純な重力」物理の例:
 ```c
 void script_update(void) {
   GBAActor* e = &gActors[1];       // un "enemigo"
@@ -584,15 +536,13 @@ void script_update(void) {
   if (e->vx > 0) moveActorCollide(e, 1, 0); else moveActorCollide(e, -1, 0);
 }
 ```
+> 位置は整数であるため、「フレーム 2 乗あたり 1 ピクセル」の重力は 60 fps で正常に機能します。 2 の累乗でない場合は、`/=2` で重複すると主張しないでください ([16](#1016-optimization-and-golden-rules) を参照)。
 
-> Como las posiciones son enteros, la gravedad "1 px por frame al cuadrado" funciona fina a 60 fps. No clames duplicar con `/=2` si no es potencia de 2 (ver [16](#1016-optimización-y-reglas-de-oro)).
+### 動きのプリミティブ (すぐに使える)
 
-### Primitivas de movimiento (listos para usar)
+ゲームごとに物理を手動で記述するのは繰り返し作業なので、テンプレートには **すでに解決されている 2 つのプリミティブ**が付属しており、それらを呼び出すだけで済みます。これらはプレハブの「ベース」や「レベル」ではありません。レベルはすでにタイル マップであり、プラットフォーマーとトップダウン迷路の間で唯一異なるのは、何をプリミティブと呼ぶかだけです。
 
-Escribir la física a mano para cada juego es repetitivo, así que el template trae **dos primitivas ya resueltas** que solo tienes que llamar. No son "bases" ni "niveles" prefabricados: el nivel ya es tu mapa de tiles, y lo único que cambia entre un plataformas y un laberinto topdown es qué primitiva llamas.
-
-**Todo se ajusta con `#define`s**, así que el comportamiento se cambia en un sitio y afecta a todos tus scripts:
-
+**すべてが `#define`s** でラップされているため、動作は 1 つのサイトで変更され、すべてのスクリプトに影響します。
 ```c
 #define WALK_SPEED 2        // px/vsync horizontal máximo
 #define RUN_SPEED 3         // con R/L (shoulder)
@@ -605,54 +555,42 @@ Escribir la física a mano para cada juego es repetitivo, así que el template t
 #define JUMP_BUFFER 5       // vsyncs que un salto espera a que haya suelo
 #define JUMP_CUT_VEL -3     // salto corto: soltar A corta la subida
 ```
-
-#### `movePlatformer(actor, keys)` — plataformas
-
+#### `movePlatformer(actor, key)` — プラットフォーム
 ```c
 static void movePlatformer(GBAActor* a, u16 keys);
 ```
+重力 + ジャンプ「Orphan Knife より」。ジャンプを快適にする 3 つの補助を備えています。
 
-Gravedad + salto "de Orphan Knife", con las tres ayudas que hacen que un salto se sienta bien:
+- **コヨーテ時間**: プラットフォームから出たばかりの場合でも、「COYOTE_FRAMES」中にジャンプできます。エッジを離れた後、フレームの途中で A を押すとジャンプがカウントされます。
+- **ジャンプ バッファ**: 地面に触れる前に、「JUMP_BUFFER」が vsync するまで A を押すと、ジャンプが保存され、着地時にトリガーされます。 「押すのが遅かったのに飛ばなかった」という事態を避けましょう。
+- **可変ジャンプ**: 上昇中に A を放すと、速度が `JUMP_CUT_VEL` まで下がります。長押し = ハイジャンプ。ワンタッチ＝ショートジャンプ。
+- **一方通行**タイルは落下している場合にのみブロックするため、それらを通り抜けることができます。
 
-- **Coyote time**: si acabas de salir de una plataforma, aún puedes saltar durante `COYOTE_FRAMES`. Pulsa A medio frame después de abandonar el borde y el salto cuenta.
-- **Jump buffer**: si pulsas A hasta `JUMP_BUFFER` vsyncs *antes* de tocar suelo, el salto se guarda y se dispara al aterrizar. Evita el "pulsé tarde y no saltó".
-- **Salto variable**: soltar A mientras subes recorta la velocidad a `JUMP_CUT_VEL`. Mantenerlo pulsado = salto alto; un toque = salto corto.
-- Los tiles **one-way** solo bloquean si vienes cayendo, así que puedes subir atravesándolos.
-
-Tu script completo de plataformas es literalmente esto:
-
+完全なプラットフォーム スクリプトは文字通り次のとおりです。
 ```c
 void script_update(void) {
   u16 keys = ~REG_KEYINPUT & 0x3FF;
   movePlatformer(gSelf, keys);
 }
 ```
-
-#### `moveTopDown(actor, keys)` — laberinto / RPG / menús
-
+#### `moveTopDown(actor, key)` — 迷路 / RPG / メニュー
 ```c
 static void moveTopDown(GBAActor* a, u16 keys);
 ```
-
-Cuatro direcciones con aceleración y frenada, **sin gravedad**. Correr con `R`/`L`:
-
+**重力なし**で、加速とブレーキを備えた 4 方向。 `R`/`L` で実行します。
 ```c
 void script_update(void) {
   u16 keys = ~REG_KEYINPUT & 0x3FF;
   moveTopDown(gSelf, keys);
 }
 ```
+アクターがタイルに衝突した場合、その速度は 0 に設定されます (最大ロード速度で壁に「スタック」しないようにするため)。
 
-Si el actor choca contra un tile, esa velocidad se pone a 0 (para no quedarse "pegado" al muro con la velocidad máxima cargada).
-
-#### `onFloor(actor)` — ¿está en el suelo?
-
+#### `onFloor(actor)` — 床の上にありますか?
 ```c
 static int onFloor(GBAActor* a);
 ```
-
-Mira un tile por debajo del collider. Útil para tus propias decisiones (patrullas, enemigos que solo se mueven en suelo, animaciones de "en el aire"):
-
+コライダーの下のタイルを見てください。独自の決定に役立ちます (パトロール、地上のみで移動する敵、「空中」アニメーション):
 ```c
 void script_update(void) {
   GBAActor* e = &gActors[1];
@@ -661,37 +599,34 @@ void script_update(void) {
   }
 }
 ```
+> **それらの使用を強制するものはありません。** プリミティブがゲームに適合しない場合は、それを無視し、前のセクションで説明した `moveActorCollide` を使用して `gSelf` を手動で移動します。彼らはあなたに性別を押し付けるのではなく、物理学の90％を救うためにそこにあります。
 
-> **Nada te obliga a usarlas.** Si una primitiva no encaja con tu juego, ignórala y mueve `gSelf` a mano con `moveActorCollide` — la sección anterior. Están ahí para ahorrarte el 90% de la física, no para imponerte un género.
 
-
-### Teletransporte y limites
-
+### テレポートと制限
 ```c
 p->x = 100; p->y = 80;      // la posición se aplica ANTES del draw del frame
 // si reciclás a fuera de pantalla, recuerda drawActorRect hace clamp y lo ignora
 // (baja coste), pero volverá visible al read-regresar.
 ```
+--
+-
 
----
+##10.11。サウンド: GBA APU
 
-## 10.11. Sonido: la APU del GBA
+### APU の概要
 
-### La APU en resumen
+4 つの効果的な合成チャンネル (さらに、エンジンが使用しない PCM サンプルの DMA):
 
-4 canales efectivos de síntesis (más un DMA de muestras PCM que el motor no usa):
-
-| Canal | Nombre | Síntesis |
+|チャンネル |名前 |合成 |
 | :--- | :--- | :--- |
-| 1 | **Pulse 1** | onda cuadrada + barrido de frecuencia (sweep) |
-| 2 | **Pulse 2** | onda cuadrada (sin barrido) |
-| 3 | **Wave** | 16 muestras de 4 bits (wave RAM) |
-| 4 | **Noise** | ruido pseudoaleatorio |
+| 1 | **1 を押してください** |方形波 + 周波数掃引 (スイープ) |
+| 2 | **2 を押してください** |方形波 (掃引なし) |
+| 3 | **波** | 16 の 4 ビット サンプル (波形 RAM) |
+| 4 | **騒音** |擬似ランダムノイズ |
 
-### `noteOn()`: la función que toca una nota
+### `noteOn()`: ノートを再生する関数
 
-El template genera (para el editor de sonido del proyecto) una función `noteOn(int ch, const GBAInst* inst, u16 period)` y una tabla de periodos:
-
+このテンプレートは、(プロジェクトのサウンド エディター用に) 関数 `noteOn(int ch, const GBAInst* inst, u16 period)` と周期テーブルを生成します。
 ```c
 // De la frecuencia (Hz) al valor de registro:
 // period ≈ round(2048 - 131072 / freq)
@@ -707,9 +642,7 @@ typedef struct {
   u8 sweepDir;  // 0=down, 1=up
 } GBAInst;
 ```
-
-`noteOn` aplica:
-
+「noteOn」が適用されるのは次のとおりです。
 ```c
 static void noteOn(int ch, const GBAInst* inst, u16 period) {
   u16 dutyVal  = (inst->duty & 3);
@@ -720,22 +653,20 @@ static void noteOn(int ch, const GBAInst* inst, u16 period) {
   switch (ch) { ... /* escribe REG_SND1/2/3/4* */ }
 }
 ```
+### デューティ サイクル (方形波)
 
-### Duty cycles (onda cuadrada)
+「デューティ」フィールド (0 ～ 3) は、波形の高低比を制御します。
 
-El campo `duty` (0-3) controla la proporción alto/bajo de la onda:
-
-| duty | Onda | Sonoridad |
+|義務 |波 |ラウドネス |
 | :--- | :--- | :--- |
-| 0 | 12.5% | flauta fina, "tu-tu" |
-| 1 | 25% | timbre más nasal |
-| 2 | 50% | onda cuadrada clásica (melodías) |
-| 3 | 75% | timbre parecido al 25% invertido |
+| 0 | 12.5% |素晴らしいフルート、「トゥトゥ」 |
+| 1 | 25% |より多くの鼻の音色 |
+| 2 | 50% |クラシック方形波 (曲) |
+| 3 | 75% | 25% 反転に似た着信音 |
 
-### Reproducir un SFX desde un script
+### スクリプトから SFX を再生する
 
-Estrategia práctica: **roba un canal** mientras no toque música de fondo, o añade tu propio sonido si el proyecto no tiene song. Un mini-SFX de impacto para el canal 2:
-
+実践的な戦略: BGM が再生されない限り **チャンネルを盗み**、プロジェクトに曲がない場合は独自のサウンドを追加します。チャンネル 2 の衝撃的なミニ SFX:
 ```c
 // Un disparo corto en el canal 2 (pulse), una sola vez al pulsar A
 static u32 sfxTimer = 0;
@@ -760,11 +691,9 @@ void script_update(void) {
   }
 }
 ```
+> プロジェクトに BGM がある場合、チャンネル 1 ～ 4 はシーケンサーによって占有されます。クラッシュせずに独自の SFX を実現するには、その時点で曲のチャンネルを下げるか、**チャンネル 4 (ノイズ)** をパーカッション/ビートに再利用します。これは最も邪魔になりません。専用の SFX は将来のバージョンで予定されています。
 
-> Si el proyecto tiene música de fondo, los canales 1-4 los ocupará el secuenciador. Para un SFX propio sin chocar, podrías bajar un canal de la canción en ese instante o **reutilizar el canal 4 (ruido)** para percusión/golpes, que es de lo que menos se entromete. En versiones futuras se prevén SFX dedicados.
-
-### Wave RAM del canal 3
-
+### チャンネル 3 波形 RAM
 ```c
 static void initWaveRAM(void) {
   vu16* wave = (vu16*)0x04000090;
@@ -773,11 +702,10 @@ static void initWaveRAM(void) {
   for (i=0;i<8;i++) wave[i] = waveData[i];
 }
 ```
+16
+ 個の 4 ビット サンプル。テンプレートはそれらを `initSound()` にロードします。ここで独自の波形を定義することで、チャンネル 3 にさまざまな音色 (三角波やソフト四角形など) を作成できます。
 
-16 muestras de 4 bits, el template las carga en `initSound()`. Si defines tu propia forma de onda aquí podrás crear timbres distintos para el canal 3 (p. ej., una onda triangular o un cuado-suave).
-
-### Valores típicos de `initSound()`
-
+### 一般的な `initSound()` の値
 ```c
 REG_SNDBIAS = 0x200;      // sesgo correcto del DAC (136' ciclo)
 REG_SNDCNTX = 0x0080;     // volumen del sonido al 100% (canal master)
@@ -787,11 +715,9 @@ REG_SND3CNT_L = 0x0080;   // wave al 100%, sin output tweak
 REG_SND3CNT_H = 0x0001;
 initWaveRAM();
 ```
+### 歌とタイムループ
 
-### Canciones y el bucle de tiempo
-
-Si el proyecto tiene música, el template genera `SONG_BPM...`, `SONG_STEPS...`, las constantes de la canción y:
-
+プロジェクトに音楽がある場合、テンプレートは「SONG_BPM...」、「SONG_STEPS...」、曲の定数、および以下を生成します。
 ```c
 while (1) {
   waitVSync();
@@ -804,19 +730,18 @@ while (1) {
   advanceAllActors(); updatePlayer(); userScriptsUpdate(); drawAllActors(screen);
 }
 ```
-
-Con BPM=900 un paso coincide con un frame (60 pasos/s). Cambia el acumulador si quieres un tempo distinto, no el umbral.
+BPM
+=900 の場合、1 ステップは 1 フレームと一致します (60 ステップ/秒)。別のテンポが必要な場合は、スレッショルドではなくアキュムレータを変更します。
 
 ---
 
-## 10.12. Frames, vsyncs y animación
+##10.12。フレーム、vsync、アニメーション
 
-Todo el sistema de timing del motor se basa en **vsyncs = frames**:
+エンジン タイミング システム全体は **vsyncs = フレーム** に基づいています。
 
-- `waitVSync()` se llama una vez por vuelta del bucle → **1 frame = 1/60 s**.
-- `delays[i]` guarda cuántos vsyncs dura cada frame de la animación. En el inspector, el motor **convierte** milisegundos → vsyncs (`round(ms*60/1000)`).
-- Para una animación propia desde script, haz algo equivalente: un contador de frames y cambia `a->frame` cuando toque.
-
+- `waitVSync()` はループごとに 1 回呼び出されます。ループ → **1 フレーム = 1/60 秒**。
+- `delays[i]` は、アニメーションの各フレームが持続する vsync の数を保存します。インスペクターでは、エンジンはミリ秒→ vsync (`round(ms*60/1000)`) を **変換** します。
+- スクリプトからの独自のアニメーションの場合は、同等のことを実行します。フレーム カウンターを使用し、タッチしたときに `a->frame` を変更します。
 ```c
 // Parpadeo cada 30 frames (0,5 s)
 static u16 blink = 0;
@@ -826,20 +751,18 @@ void script_update(void) {
   else if (blink < 60) { a->frame = 1; if (blink >= 60) blink = 0; }
 }
 ```
-
-**Regla práctica:** nunca pongas retardos en milisegundos a mano; cuenta vsyncs (`u16 timer`). Un "delay(500)" bloqueante deja el juego congelado porque **no hay otro hilo**: tu script y el render comparten el mismo frame.
+**経験則:** 手動で遅延をミリ秒単位で設定しないでください。 vsync をカウントします (「u16 タイマー」)。 **他のスレッドが存在しない**ため、ブロッキング「delay(500)」によりゲームがフリーズしたままになります。スクリプトとレンダラーは同じフレームを共有します。
 
 ---
 
-## 10.13. El C Directo de tus scripts: contrato y API
+##10.13。スクリプトのダイレクト C: コントラクトと API
 
-### Cómo se inserta tu código
+### コードを挿入する方法
 
-Cuando exportas con un script en modo **C Directo** cuyo campo `cCode` no está vacío, `gba_export.ts`:
+`cCode` フィールドが空ではない **Direct C** モード スクリプト、`gba_export.ts` を使用してエクスポートする場合:
 
-1. Coloca tu código **verbatim** (tal cual, `\n` `\n`) dentro del `main.c`, en la sección `// ── Scripts de usuario (C Directo) ──` **antes** de `int main()`.
-2. Genera dos dispatchers:
-
+1. **逐語的** コード (そのまま、`\n` `\n`) を `main.c` 内のセクション `// ── ユーザー スクリプト (ダイレクト C) ──` **前** `int main()` に配置します。
+2. 2 つのディスパッチャーを生成します。
 ```c
 static void userScriptsInit(void) {
   script_init();          // si existe EXACTAMENTE 1 definición
@@ -849,11 +772,10 @@ static void userScriptsUpdate(void) {
   script_update();
 }
 ```
+3
+. `sceneInit()` 内で (`initActors()+drawAllActors` の後) `userScriptsInit()` を呼び出し、ゲーム ループの**各ターン**で `userScriptsInit()` を呼び出します (アクターあり、音楽あり、そしてアクターがいない場合も!)。これが、`script_update` が常に 60 fps で実行される理由です。
 
-3. Llama `userScriptsInit()` dentro de `sceneInit()` (tras `initActors()+drawAllActors`) y `userScriptsUpdate()` **en cada vuelta** del bucle de juego (con actores, con música y, si no hay actores, ¡también!). Por eso tu `script_update` corre siempre a 60 fps.
-
-### El contrato exacto
-
+### 正確な契約書
 ```c
 void script_init(void) {
   //  1 vez, al entrar en la escena (después de que los actores estén colocados).
@@ -862,32 +784,30 @@ void script_update(void) {
   //  cada frame del juego, justo antes del drawAllActors.
 }
 ```
+-
+ **どちらもオプションです。** `script_update` を定義しない場合、スクリプトはセットアップされるだけです。何も定義しない場合、エクスポートによってすでに警告が表示されます。
+- **それぞれの定義が 1 つだけ存在する必要があります**。複数 (または同じ機能を持つ複数のスクリプト) がある場合、エンジンはそれらのいずれも呼び出しず、エクスポート コンソールに警告が表示されます。このような `cCode` では、重複したシンボルを定義すると、コンパイラは重複したシンボルを返します。
+- 契約がよく理解されるように: **ブロック内またはパラメータとともに `void script_update(void)` を書かないでください**。これは、検出器が検出する正確な形状です (許容範囲内のスペースがあります)。
 
-- **Ambos son opcionales.** Si no defines `script_update`, tu script es solo setup. Si no defines ninguno, el export ya te avisa con un warning.
-- **Debe haber EXACTAMENTE 1 definición** de cada uno. Si hay varias (o varias scripts con la misma función), el motor no llama a ninguna y un warning lo indica en la consola de export. Con `cCode` así, el compilador dará símbolo duplicado si defines por duplicado.
-- Para que el contract se comprenda bien: **no escribas `void script_update(void)` dentro de bloques ni con parámetros**. Es la forma exacta que detecta el detector (con espacios tolerables).
+### スクリプト内で利用できるもの (完全な API)
 
-### Qué hay disponible dentro de tus scripts (API completa)
+ファイル内で既に定義されているすべてのもの (「静的」の場合は静的) にアクセスできます。
 
-Todo lo ya definido arriba en el archivo (estático si es `static`) es accesible:
+- `gActors[ACTOR_COUNT]`、`GBAActor`、`GBAFrame`、`PLAYER_INDEX`、`CAM_X/CAM_Y` (シングルシーン。マルチシーンでは `gCamX/gCamY` です。[10.15](#1015-various-scenes-in-rom-switchscene-near-y-gjp) を参照)、 「MAX_ACTOR_FRAMES」。
+- `moveActorCollide(a, dx, dy)`、`movePlayer(u16 キー、GBAActor* p)`、`updatePlayer()`、`actorBox()`、`rectsOverlap()`、`rectHitsSolid()` (マップの場合)、`solidTile()`、`advanceAllActors()`、 `initActors()`。
+- **プリミティブの移動:** `moveTopDown(a, key)`、`movePlatformer(a, key)`、`onFloor(a)`、`approach(&v, target, step)`。
+- **複数のシーン:** `switchScene(n)`、`near(a, b, dist)`、`gJp`、`gScene` ([10.15](#1015-multiple-scenes-in-the-rom-switchscene-near-y-gjp) を参照)。- ボタン: `KEY_A`、`KEY_B`、`KEY_UP`、`KEY_DOWN`、`KEY_LEFT`、`KEY_RIGHT`、`KEY_SHOULDER`。
+- `REG_KEYINPUT` (`0x04000130`)、正しいビットマップ ([9](#109-input-read-the-buttons) を参照)。
+- **ダイアログ:** `showDialogue(id)`、`nextDialogueRow()`、`hideDialogue()`、`gLang` ([10.13.1](#10131-dialogues-and-langages) を参照)。
+- **メニュー:** `menuOpen(count)`、`menuClose()`、`menuSetItem(i, text)`、`menuSetBox(x,y,w,h)`、`menuSetFont(f)`、`menuSetBoxSprite(db)`、`menuSelected()`、`menuVisible()`、`menuUpdate()` (を参照) [10.13.2](#10132-menus-markets-inventory-store))。
+- `SCREEN_W=240`、`SCREEN_H=160`、`PIXEL_COUNT=38400`、`screen` はシンボルとして**ではありません**。ペイントしたい場合は `(u16*)VRAM` を使用してください。
+- `REG_SND1..4*`、`noteOn()`、`GBAInst`、`gNotePeriods` (プロジェクトにサウンドがある場合)。
+- `waitVSync()`。
+- 条件を定義します: `ACTOR_COUNT`、`COLLISION_*` (マップがある場合)。
 
-- `gActors[ACTOR_COUNT]`, `GBAActor`, `GBAFrame`, `PLAYER_INDEX`, `CAM_X/CAM_Y` (single-scene; en multi-escena son `gCamX/gCamY`, ver [10.15](#1015-varias-escenas-en-la-rom-switchscene-near-y-gjp)), `MAX_ACTOR_FRAMES`.
-- `moveActorCollide(a, dx, dy)`, `movePlayer(u16 keys, GBAActor* p)`, `updatePlayer()`, `actorBox()`, `rectsOverlap()`, `rectHitsSolid()` (si hay mapa), `solidTile()`, `advanceAllActors()`, `initActors()`.
-- **Primitivas de movimiento:** `moveTopDown(a, keys)`, `movePlatformer(a, keys)`, `onFloor(a)`, `approach(&v, target, step)`.
-- **Múltiples escenas:** `switchScene(n)`, `near(a, b, dist)`, `gJp`, `gScene` (ver [10.15](#1015-varias-escenas-en-la-rom-switchscene-near-y-gjp)).
-- Botones: `KEY_A`, `KEY_B`, `KEY_UP`, `KEY_DOWN`, `KEY_LEFT`, `KEY_RIGHT`, `KEY_SHOULDER`.
-- `REG_KEYINPUT` (`0x04000130`), mapa de bits correcto (ver [9](#109-entrada-leer-los-botones)).
-- **Diálogos:** `showDialogue(id)`, `nextDialogueRow()`, `hideDialogue()`, `gLang` (ver [10.13.1](#10131-diálogos-e-idiomas)).
-- **Menús:** `menuOpen(count)`, `menuClose()`, `menuSetItem(i, text)`, `menuSetBox(x,y,w,h)`, `menuSetFont(f)`, `menuSetBoxSprite(db)`, `menuSelected()`, `menuVisible()`, `menuUpdate()` (ver [10.13.2](#10132-menús-mercados-inventarios-tiendas)).
-- `SCREEN_W=240`, `SCREEN_H=160`, `PIXEL_COUNT=38400`, `screen` **no** está como símbolo: usa `(u16*)VRAM` si quieres pintar.
-- `REG_SND1..4*`, `noteOn()`, `GBAInst`, `gNotePeriods` (si hay sonido en el proyecto).
-- `waitVSync()`.
-- Defines condicionales: `ACTOR_COUNT`, `COLLISION_*` (si hay mapa).
+### 10.13.1。対話と言語
 
-### 10.13.1. Diálogos e idiomas
-
-Si el proyecto tiene diálogos, el motor exporta estas funciones y la variable global:
-
+プロジェクトにダイアログがある場合、エンジンは次の関数とグローバル変数をエクスポートします。
 ```c
 void showDialogue(int id);            // muestra el diálogo `id` desde la fila 0
 void showDialogueRow(const char* key); // salta a una fila por su código o su ID
@@ -896,16 +816,15 @@ void hideDialogue(void);              // oculta el diálogo
 void dialogueUpdate(void);            // avanza solo al pulsar A (llámala cada frame)
 extern int gLang;                     // idioma activo: 0 = primera columna, 1 = segunda, …
 ```
-
-- `id` es el **orden del diálogo en el editor** (0, 1, 2…), no el ID de la fila.
-- `showDialogueRow(key)` busca la primera fila cuyo **campo Código** o cuyo **ID completo** coincida con `key` y la muestra. Si no encuentra ninguna, no hace nada.
-- El texto mostrado es `texto[fila][gLang]`. Cambia `gLang` antes de `showDialogue`/`showDialogueRow` para elegir el idioma (el índice sigue el orden de las columnas de la tabla de Diálogo).
-- **Caja por actor**: la caja se dibuja con la imagen, posición y tamaño que configuraste en el actor (Mundo → actor de texto → Dialog Box). Si el actor no tiene caja, se usa una por defecto.
-- **Fuente por fila**: cada fila usa la fuente elegida en la columna "Fuente" de la tabla de Diálogo.
-- **Hablante**: el campo "Nombre" de la fila se dibuja sobre la caja.
-- **Sonido por fila**: si la fila tiene un sonido asignado, suena al mostrarse.
-- `nextDialogueRow()` y `hideDialogue()` no hacen nada si el diálogo está oculto.
-
+-
+ `id` は、行の ID ではなく、**エディター内のダイアログの順序** (0、1、2...) です。
+- `showDialogueRow(key)` は、**コード フィールド** または **完全 ID** が `key` と一致する最初の行を検索し、表示します。何も見つからない場合は、何も行われません。
+- 表示されるテキストは `text[row][gLang]` です。言語を選択するには、`showDialogue`/`showDialogueRow` の前の `gLang` を変更します (インデックスは Dialogue テーブルの列の順序に従います)。
+- **アクター別のボックス**: ボックスは、アクターで設定した画像、位置、サイズで描画されます (ワールド → テキスト アクター → ダイアログ ボックス)。アクターにボックスがない場合は、デフォルトでボックスが使用されます。
+- **行ごとのフォント**: 各行は、ダイアログ テーブルの「フォント」列で選択されたフォントを使用します。
+- **スピーカー**: 行の「名前」フィールドがボックスの上に描画されます。
+- **行ごとのサウンド**: 行にサウンドが割り当てられている場合、表示時にそのサウンドが再生されます。
+- ダイアログが非表示の場合、`nextDialogueRow()` と `hideDialogue()` は何も行いません。
 ```c
 void script_update(void) {
   gLang = 1;                              // 0 = primer idioma, 1 = segundo
@@ -914,13 +833,11 @@ void script_update(void) {
   if (gJp & 2) hideDialogue();            // B: ocultar
 }
 ```
+行の完全な ID を使用することもできます: `showDialogueRow("新しいダイアログ 3-002-1")`。
 
-También puedes usar el ID completo de la fila: `showDialogueRow("Nuevo diálogo 3-002-1")`.
+### 10.13.2。メニュー（市場、在庫、店舗）
 
-### 10.13.2. Menús (mercados, inventarios, tiendas)
-
-Un menú genérico para scripts: el motor lo dibuja **encima de los actores** cada frame, con la caja del diálogo que elijas (o una caja cualquiera) y la fuente que pongas. Hasta 8 ítems.
-
+スクリプトの一般的なメニュー: エンジンは、選択したダイアログ ボックス (または任意のボックス) と配置したフォントを使用して、フレームごとに **アクターの上** にメニューを描画します。最大8項目まで。
 ```c
 void menuOpen(int count);            // abre el menú con `count` ítems (0..8)
 void menuClose(void);                // ciérralo
@@ -932,13 +849,12 @@ int  menuSelected(void);             // ítem resaltado (0..count-1)
 int  menuVisible(void);              // 1 si el menú está abierto
 void menuUpdate(void);               // mueve la selección con ARRIBA/ABAJO (auto)
 ```
+-
+ 選択範囲はエンジンによって移動されます (「menuUpdate」はフレームごとに単独で呼び出されます)。スクリプトは `menuSelected()` を読み取って、A/B をどうするかを決定するだけです。
+- メニューはゲームを**一時停止しません**。アクターはアニメーションを継続します。プレーヤーをフリーズしたい場合は、メニューが開いている間は動かさないでください。
+- ハイライトされた項目は、左側に「>」を付けて描画されます。
 
-- La selección la mueve el motor (`menuUpdate` se llama sola cada frame); tu script solo lee `menuSelected()` y decide qué hacer con A/B.
-- El menú **no pausa** el juego: los actores siguen animando. Si quieres congelar al player, no lo muevas mientras el menú esté abierto.
-- El ítem resaltado se dibuja con un `>` a la izquierda.
-
-Ejemplo (NPC que vende 3 objetos):
-
+例 (3 つのアイテムを販売する NPC):
 ```c
 static int state = 0;                // 0 = espera, 1 = diálogo, 2 = mercado
 static int gold = 100;
@@ -965,19 +881,16 @@ void script_update(void) {
   }
 }
 ```
+### 10.13.3。 SRAMに保存
 
-### 10.13.3. Guardado en SRAM
-
-El motor incluye un sistema de guardado en la SRAM de la cartucho (`0x0E000000`), con magic, versión y checksum (FNV-1a) para detectar partidas corruptas o de otra versión.
-
+このエンジンには、カートリッジの SRAM (「0x0E000000」) に保存システムが含まれており、破損したゲームや別のバージョンを検出するためのマジック、バージョン、チェックサム (FNV-1a) が含まれています。
 ```c
 int  aeSaveHasGame(void);              // 1 si hay partida guardada válida
 int  aeSaveWrite(const u8* data, u32 size); // 0 ok, -1 si no cabe (máx. 256 B)
 int  aeSaveRead(u8* data, u32 size);   // 0 ok, -1 si no hay partida
 void aeSaveClear(void);                // borra la partida
 ```
-
-Ejemplo:
+例：
 ```c
 u8 save[128];
 
@@ -992,36 +905,33 @@ if (aeSaveHasGame()) {
   gScene = save[0];
 }
 ```
+-
+ ブロックは最大 **256 バイト** (`AE_SAVE_MAX`);さらに必要な場合は、`main.c` の `define` を変更してください。
+- SRAM は、エミュレータ (mGBA はそれを `.sav` に保存します) とフラッシュカートでの実行間で保持されます。
+- **エミュレータの状態保存(別のもの)と混同しないでください**。
+- チェックサムが一致しない場合 (破損したゲームまたは他のバージョン)、`aeSaveHasGame()` は 0 を返し、「ゲームなし」として扱われます。
 
-- El bloque es de **256 bytes** máximo (`AE_SAVE_MAX`); si te hace falta más, cambia el `define` en el `main.c`.
-- La SRAM persiste entre ejecuciones en el emulador (mGBA la guarda en un `.sav`) y en flashcart.
-- **No confundir** con el save-state del emulador (que es aparte).
-- Si el checksum no coincide (partida corrupta o de otra versión), `aeSaveHasGame()` devuelve 0 y se trata como "sin partida".
+### コードの必須ルール
 
-### Reglas obligatorias de tu código
-
-| Regla | Por qué |
+|ルール |なぜ |
 | :--- | :--- |
-| **Sin `float`/`double`** | No hay FPU; el compilador simula con soft-float lentísimo. |
-| **Sin `malloc`/`free`** | No hay gestor de memoria; declara estáticos. |
-| **Sin `printf` a pantalla** | No hay consola. Para depurar, ver [17](#1017-depuración). |
-| **Sin bucles infinitos bloqueantes** | Congelan el render. Usa contadores por vsync. |
-| **No escribas VRAM fuera de VBLANK** | Tearing en consola real. |
-| **Código corto por frame** | Presupuesto VBLANK (~83.8K ciclos). |
-| **Sin I/O de archivos** | No existe. No hay filesystem. |
+| **「float」/「double」なし** | FPU はありません。コンパイラは非常に遅いソフトフロートでシミュレートします。 |
+| **「malloc」/「free」なし** |メモリマネージャーはありません。静的を宣言します。 |
+| **画面上に「printf」を表示しない** |コンソールはありません。デバッグするには、[17](#1017-debugging) を参照してください。 |
+| **ブロッキング無限ループなし** |レンダリングがフリーズします。 vsync ごとにカウンターを使用します。 |
+| **VBLANK の外側に VRAM を書き込まないでください** |実機の破れ。 |
+| **フレームごとのショートコード** | VBLANK バジェット (約 83.8K サイクル)。 |
+| **ファイル I/O がありません** |それは存在しません。ファイルシステムがありません。 |
 
 ---
 
-## 10.14. Ejemplos de scripts listos para copiar
+##10.14。すぐにコピーできるスクリプトの例
 
-### 1. Mover a un actor con el D-pad (con y sin colisiones)
+### 1. D-pad を使用してアクターを移動します (衝突の有無にかかわらず)**プレーヤー/アクター:** スクリプトは、**アクターに割り当てられている** (ワールド → インスペクター → スクリプト) 場合にのみ実行されます。エンジンは、問題のアクターを指すグローバル変数 `GBAActor* gSelf` を使用して、**割り当てられたアクターごとに 1 回**スクリプトを呼び出します。そのアクターを移動するには、`gSelf` を使用します (常にプレーヤーを移動する `gActors[PLAYER_INDEX]` ではありません)。プレイヤーに**スクリプトが割り当てられていない**場合、エンジンは「moveTopDown」を使用して方向パッドのみでプレイヤーを動かします（2 ピクセル/フレーム、タイル衝突あり）。別の速度が必要な場合は「ウォークスピード」を変更します。プレーヤーにスクリプトが割り当てられている場合、そのスクリプトは `script_update` によって移動されます (エンジンは干渉しません)。注意してください: 他のアクター (NPC、敵) からのスクリプトは、プレイヤーから制御を奪いません。
 
-**Jugador / actores:** un script SOLO se ejecuta si está **asignado a un actor** (Mundo → Inspector → Script). El motor llama al script **una vez por cada actor asignado**, con la variable global `GBAActor* gSelf` apuntando al actor en cuestión — usa `gSelf` para mover a ESE actor (no `gActors[PLAYER_INDEX]`, que siempre mueve al jugador). Si el jugador **no** tiene un script asignado, el motor lo mueve solo con el D-pad usando `moveTopDown` (2 px/frame, con colisiones de tiles) — cambia `WALK_SPEED` si quieres otra velocidad. Si el jugador **sí** tiene un script asignado, lo mueve tu `script_update` (y el motor no interfiere). Ojo: los scripts de OTROS actores (NPC, enemigos) no le quitan el control al jugador.
+> 近道: 単に動きたいだけなら、物理学を書かないでください。 `movePlatformer(gSelf, Keys)` は完全なプラットフォームを提供し、`moveTopDown(gSelf, Keys)` は迷路を提供します。どちらも衝突があります。 [10.10](#out-of-the-box-motion-primitives) を参照してください。
 
-> Atajo: si solo quieres moverte, no escribas la física. `movePlatformer(gSelf, keys)` te da plataformas completas y `moveTopDown(gSelf, keys)` un laberinto, ambos con colisiones. Ver [10.10](#primitivas-de-movimiento-listos-para-usar).
-
-El ejemplo sirve para **cualquier actor** (jugador o NPC) con mando. **Importante para que los tiles de colisión funcionen:** si mueves un actor `+= 2` a pelo, **ignora el mapa de colisiones** (no lo detecta → atraviesa o «se frena» por el empuje de otros actores). Para chocar con tiles usa `moveActorCollide()`:
-
+この例は、コントローラーを備えた **任意のアクター** (プレイヤーまたは NPC) で機能します。 **コリジョン タイルが機能するために重要:** アクタ「+= 2」をベアバックで動かすと、**コリジョン マップを無視します** (コリジョン マップが検出されない → 通過するか、他のアクタの押しにより「速度が低下」します)。タイルと衝突するには、`moveActorCollide()` を使用します。
 ```c
 // Mueve al actor asignado (gSelf) respetando el mapa de colisiones de la escena
 void script_update(void) {
@@ -1033,9 +943,7 @@ void script_update(void) {
   if (keys & (1 << 7)) moveActorCollide(p,  0,  2); // abajo
 }
 ```
-
-Si tu escena **no** tiene mapa de colisiones (o no quieres chocar), la versión directa:
-
+シーンにコリジョン マップがない場合 (またはクラッシュしたくない場合)、直接バージョンは次のようになります。
 ```c
 void script_update(void) {
   GBAActor* p = gSelf;
@@ -1046,11 +954,9 @@ void script_update(void) {
   if (keys & (1 << 7)) p->y += 2;   // abajo
 }
 ```
+> インスペクター内のアクター コライダーは、**actor-actor** プッシュ (`updatePlayer`) と `moveActorCollide` (中央に配置されたコライダー `cw/ch` を使用) にのみ介入します。タイルを尊重する移動の場合、「moveActorCollide」の呼び出しは必須です。
 
-> El collider del actor en el inspector solo interviene en el empuje **actor-actor** (`updatePlayer`) y en `moveActorCollide` (usa el collider centrado `cw/ch`). Para que un movimiento propio respete tiles, la llamada a `moveActorCollide` es obligatoria.
-
-### 2. Disparar SFX al pulsar A (una vez)
-
+### 2. A を押したときに SFX をトリガーします (1 回)
 ```c
 static u16 prevKeys = 0;
 static int shotHeld = 0;
@@ -1069,9 +975,7 @@ void script_update(void) {
   if (justPressed & (1 << 1)) playShot();   // A (bit1)
 }
 ```
-
-### 3. Enemigo que patrulla y se teletransporta al llegar al borde
-
+### 3. 巡回して端に到達するとテレポートする敵
 ```c
 void script_update(void) {
   GBAActor* e = &gActors[1];
@@ -1079,9 +983,7 @@ void script_update(void) {
   if (e->x > 230) e->x = -21;   // fuera de cámara por la izquierda
 }
 ```
-
-### 4. Cambiar la animación de un actor (frame/modo)
-
+### 4. アクターのアニメーション (フレーム/モード) を変更する
 ```c
 void script_update(void) {
   GBAActor* p = &gActors[PLAYER_INDEX];
@@ -1090,9 +992,7 @@ void script_update(void) {
   p->timer = 0;   // reinicia el contador para que no "salte" solo
 }
 ```
-
-### 5. Ice-física: inercia con entero (sin float)
-
+### 5. 氷の物理学: 整数による慣性 (浮動小数点数なし)
 ```c
 static s16 vx = 0;
 void script_update(void) {
@@ -1106,9 +1006,7 @@ void script_update(void) {
   p->x += vx;
 }
 ```
-
-### 6. Plataformas completas (gravedad, salto, coyote y buffer)
-
+### 6. 完全なプラットフォーム (重力、ジャンプ、コヨーテ、バッファー)
 ```c
 void script_update(void) {
   GBAActor* p = gSelf;
@@ -1116,11 +1014,9 @@ void script_update(void) {
   movePlatformer(p, keys);   // todo el trabajo, una línea
 }
 ```
+プリミティブが存在する前は、これは `vy += GRAVITY` の約 20 行で、`MAX_FALL` まで飽和し、手動で地面を検出し、`vy == 0` がジャンプするのを観察しました。これはもう必要ありません。`movePlatformer` がそれを実行し、コヨーテ時間、ジャンプ バッファー、および変数ジャンプも追加します。 [10.10](#movement-primitives-ready-to-use)の`#define`をタッチして動作を調整します。
 
-Antes de que existieran las primitivas esto era ~20 líneas de `vy += GRAVITY`, saturar a `MAX_FALL`, detectar suelo a mano y vigilar `vy == 0` para saltar. Ya no hace falta: `movePlatformer` lo hace y además añade coyote time, jump buffer y salto variable. Ajusta el comportamiento tocando los `#define` de [10.10](#primitivas-de-movimiento-listos-para-usar).
-
-Si tu actor es un NPC con gravedad pero control manual (por ejemplo, una pelota o un enemigo que cae), usa `onFloor` para saber si tocó suelo:
-
+アクターが重力はあるが手動で制御する NPC (ボールや落下する敵など) の場合は、`onFloor` を使用して地面に触れたかどうかを確認します。
 ```c
 static u8 prevFloor = 0;
 void script_update(void) {
@@ -1133,11 +1029,9 @@ void script_update(void) {
   prevFloor = suelo;
 }
 ```
+> `onFloor` はコライダーの下にある 1 つのタイルを落下方向に見るため、残りの物理演算と同様に一方向のタイルを尊重します。
 
-> `onFloor` mira un tile por debajo del collider en la dirección de caída, así que respeta los tiles one-way igual que el resto de la física.
-
-### 7. Contador de frames y condición cada N segundos
-
+### 7. N 秒ごとのフレームカウンターと条件
 ```c
 static u32 tick = 0;
 void script_update(void) {
@@ -1148,36 +1042,31 @@ void script_update(void) {
   }
 }
 ```
+--
+-
 
----
+##10.15。 ROM 内のさまざまなシーン: `switchScene`、`near`、`gJp`
 
-## 10.15. Varias escenas en la ROM: `switchScene`, `near` y `gJp`
+エクスポートでは、**すべてのプロジェクト シーン**が ROM に埋め込まれます。開始シーンは、スプラッシュが次のように定義したシーンです。ゲーム中のシーン変更はスクリプト呼び出しです。
 
-El export **embebe TODAS las escenas del proyecto** en la ROM. La escena de inicio es la que el splash tiene definida como siguiente; cambiar de escena en mitad del juego es una llamada de script.
+### シーンの番号の付け方
 
-### Cómo se numeran las escenas
+シーン インデックスは **エディタ内の順序** (ワールド シーンのリスト、上から下) です。シーン 0 が最初で、シーン `N-1` が最後です (N = 合計)。名前には依存しません。エディタの **接続** がエクスポートされます。これらは、シーンを変更するときに再生されるトランジションを定義します (下記を参照)。
 
-El índice de escena es el **orden en el editor** (la lista de escenas de Mundo, de arriba abajo): la escena 0 es la primera, la escena `N-1` la última (N = total). No depende del nombre. Las **conexiones** del editor sí se exportan: definen la transición que se reproduce al cambiar de escena (ver más abajo).
+- `gScene` — 現在のシーンのインデックス (読み取り)。
+- `switchScene(n)` — シーン `n` への切り替えを要求します。エンジンは、`gScene→n`** 接続の **入力トランジション (フェード、スナップショット、またはタイルセット ワイプ) を再生し、新しいシーン (画像、衝突、カメラ、アクターとそのスクリプト) をロードして表示します。接続が定義されていない場合は、デフォルトのフェード (~1 秒) を使用します。 「n」が範囲外の場合は何も行いません。
+- `switchScene(n, "name")` — 同じですが、**Name** フィールドが `"name"` である接続を選択します (同じ宛先に複数の接続がある場合に便利です)。名前が一致しない場合は、デフォルトのフェードが使用されます。 AdvanceCodeでも同じように書かれています。
 
-- `gScene` — índice de la escena actual (lectura).
-- `switchScene(n)` — pide cambiar a la escena `n`. El motor reproduce la **transición de entrada de la conexión `gScene→n`** (fade, instantánea o cortinilla de tileset), carga la escena nueva (imagen, colisión, cámara, actores y sus scripts) y la revela. Si no hay conexión definida usa el fade por defecto (~1 s). Si `n` está fuera de rango no hace nada.
-- `switchScene(n, "nombre")` — igual, pero elige la conexión cuyo campo **Nombre** sea `"nombre"` (útil si hay varias conexiones al mismo destino). Si el nombre no coincide con ninguna, se usa el fade por defecto. En AdvanceCode se escribe igual.
-
-### Transición por conexión
-
-En Mundo, cada **conexión** entre escenas tiene una transición de **Entrada** (la que se ve al llegar a la escena destino) de tipo *instantánea*, *fade* o *cortinilla* (tileset animado + degradado). El export la compila a una pareja `runToBlack_CTi` / `runToScene_CTi` y `switchScene` la localiza por `(origen, destino)`:
-
+### 接続の遷移World では、シーン間の各 **接続** には、*スナップショット*、*フェード*、または *ワイプ* (アニメーション化されたタイルセット + グラデーション) タイプの **入力** トランジション (目的のシーンに到着したときに表示されるトランジション) があります。エクスポートはそれを `runToBlack_CTi` / `runToScene_CTi` ペアにコンパイルし、 `switchScene` が `(source, destination)` によってそれを見つけます。
 ```c
 switchScene(1);            // primera conexión gScene→1
 switchScene(1, "puerta");  // la conexión llamada "puerta"
 ```
+その下には、テーブル `gTransFrom/gTransTo/gTransName/gTransKind/gTransFrames/gTransCover/gTransReveal` と `findTransition(from, to, name)` があります。接続がカーテンとして構成されているが、有効なタイルセットがない場合、接続はフェードに降格され、エクスポート ログに報告されます。
 
-Por debajo hay una tabla `gTransFrom/gTransTo/gTransName/gTransKind/gTransFrames/gTransCover/gTransReveal` y `findTransition(from, to, name)`. Si una conexión se configuró como cortinilla pero no tiene tileset válido, se degrada a fade y se avisa en el log de exportación.
+### 近接性: `near(a, b, dist)`
 
-### Proximidad: `near(a, b, dist)`
-
-Devuelve `1` si la caja de `dist` px alrededor del **centro** de `b` toca al actor `a` (`|centroX_a − centroX_b| ≤ dist` y lo mismo en Y). Pensada para «hablar» / «usar» pegado a un personaje:
-
+`b` の **center** の周囲の `dist` px ボックスがアクター `a` に接触する場合、`1` を返します (`|centerX_a − centerX_b| ≤ dist`、Y でも同様)。キャラクターに付随して「話す」/「使用する」ことを目的としています。
 ```c
 void script_update(void) {
   // pegado al jugador + pulsas A → cambio a la escena 1
@@ -1186,49 +1075,46 @@ void script_update(void) {
   }
 }
 ```
+「dist」は画面ピクセルです。 20 ≈ プレイヤーの体の半分。ゲームの規模に合わせて調整してください。
 
-`dist` son píxeles de pantalla; 20 ≈ medio cuerpo del jugador. Ajusta a la escala de tu juego.
+### キー側面: `gJp`
 
-### Flanco de teclas: `gJp`
+`REG_KEYINPUT` は、**今**キーが押されたかどうかを示します。 `gJp` (今押された) には **このフレームで押されたビットのみ** (立ち上がりエッジ) が含まれます。 「REG_KEYINPUT」と同じビット (0 = 押された)。以前の状態を手動で保存することは避けてください。「if (gJp & KEY_A)」は、キーを押したままにしても、押すごとに 1 回だけ実行されます。
 
-`REG_KEYINPUT` dice si una tecla está pulsada **ahora**; `gJp` (just-pressed) tiene **solo los bits que se pulsaron ESTE frame** (flanco de subida). Mismos bits que `REG_KEYINPUT` (0 = pulsado). Evita guardar a mano el estado anterior: `if (gJp & KEY_A)` se ejecuta una sola vez por pulsación, aunque mantengas la tecla.
+> シーンの切り替え時にモーターがエッジをリセットし、切り替えの原因となったボタンが滑らないようにします。
 
-> El motor resetea el flanco al cambiar de escena para que no se cuele el botón que provocó el cambio.
+### シーンが変わると何が変わるのか
 
-### Qué cambia al pasar de escena
-
-- **Imagen, colisión y cámara** son por escena: `gColMap`/`gColCols`/`gColRows`/`gColTile` y `gCamX`/`gCamY` se actualizan al cargar (ya no son macros `CAM_X`/`CAM_Y` en multi-escena; úsalos como variables).
-- **Actores**: cada escena configura las **suyas** en `gActors[0..count-1]`. `ACTOR_COUNT` es el máximo entre todas las escenas; los huecos sobrantes quedan a 0 (`frameCount == 0`) y no se dibujan ni colisionan.
-- **Scripts**: el script asignado a un actor se llama con `gSelf` apuntando a ESE actor (índice de su escena). Ponerle un script a un actor nuevo de otra escena = cambiar de escena al momento.
-- **Jugador**: `PLAYER_INDEX` siempre es `0`, así que en cada escena el actor en la posición 0 es el «jugador» de esa escena (los scripts lo mueven; si su actor no tiene collider, `updatePlayer` no hace nada).
-- **Música**: por ahora solo suena la canción de la **escena de inicio**; música por escena queda pendiente.
-- `sceneData` en el código generado es SIEMPRE la escena de inicio (tras el splash); las demás van `sceneData_1 … sceneData_{N-1}` (no las referencies con índices fijos: son nombres generados).
+- **画像、衝突、カメラ** はシーンごとです。`gColMap`/`gColCols`/`gColRows`/`gColTile` および `gCamX`/`gCamY` は読み込み時に更新されます (マルチシーンでは `CAM_X`/`CAM_Y` マクロではなくなりました。変数として使用します)。
+- **アクター**: 各シーンは `gActors[0..count-1]` に **その**を設定します。 `ACTOR_COUNT` はすべてのシーンの最大値です。残りのスペースは 0 (`frameCount == 0`) に設定され、描画または衝突されません。
+- **スクリプト**: アクターに割り当てられたスクリプトは、そのアクター (そのシーン インデックス) を指す `gSelf` で呼び出されます。別の現場から新しい俳優に台本を当てはめる＝瞬時に場面を変える。
+- **プレイヤー**: `PLAYER_INDEX` は常に `0` であるため、各シーンで位置 0 のアクターがそのシーンの「プレイヤー」になります (スクリプトによって移動されます。アクターにコライダーがない場合、`updatePlayer` は何も行いません)。- **音楽**: 現時点では**開始シーン**の曲のみが再生されます。シーンごとの音楽は保留中です。
+- 生成されたコードの `sceneData` は常に開始シーン (スプラッシュの後) です。他のものは `sceneData_1 … sceneData_{N-1}` になります (固定インデックスを持つ参照ではなく、生成された名前です)。
 
 ---
 
-## 10.16. Optimización y reglas de oro
+##10.16。最適化と黄金律
 
-### Lo más importante: no romper el presupuesto del frame
+### 最も重要なこと: フレームの予算を超えないこと
 
-- **~83.800 ciclos** de VBLANK.
-- Render de sprites: **~15 ciclos/píxel opaco** (borrado por deltas del rect anterior + pintado con transparencia por «skip»).
-- Límite holgado: **~5.600 px de sprite en cámara**. Un actor de 21×31 (651 px) cuesta ~10 K ciclos; tres así ~30 K, queda margen.
-- Fuera de cámara el coste es ~0 (el `drawActorRect` clampa y devuelve).
+- VBLANK の **~83,800 サイクル**。
+- スプライト レンダリング: **~15 サイクル/不透明ピクセル** (前の四角形の差分によって削除 + 「スキップ」によって透明でペイント)。
+- 緩やかな制限: ** カメラ内のスプライトの最大 5,600 ピクセル**。 21x31 (651px) アクターのコストは最大 10,000 サイクルです。このようなものが 3 つあり、約 30 K、まだ余裕があります。
+- カメラ外ではコストは ~0 です (`drawActorRect` はクランプして戻ります)。
 
-### Reglas de coste de CPU (ARM7TDMI)
+### CPU コスト ルール (ARM7TDMI)
 
-| Operación | Coste relativo | Consejo |
+|操作 |相対コスト |評議会 |
 | :--- | :--- | :--- |
-| Suma/producto `int` | 1 | Tu pan de cada día |
-| `>>` / `<<` | 1 | Usa potencias de 2 para dividir/multiplicar |
-| `%` (módulo) | muy alto | Evita `% n`; si `n` es potencia de 2, usa `& (n-1)` |
-| División `/` | muy alto | Evita dividir por constantes no-potencia de 2 |
-| `float` | catastrófico | Prohibido |
-| Acceso a EWRAM | lento | Tablas grandes en `const` (ROM), buffer en EWRAM |
-| `memcpy` de 76 KB | lento | El motor ya evita copiar la escena entera |
+|和/積 `int` | 1 |あなたの毎日の糧 |
+| `>>` / `<<` | 1 | 2 の累乗を使用して除算/乗算を行う |
+| `%` (モジュール) |非常に高い | `%n` は避けてください。 `n` が 2 の累乗の場合、`& (n-1)` を使用します。
+| `/` 除算 |非常に高い | 2 のべき乗以外の定数による除算は避けてください。
+| `フロート` |壊滅的な |禁止 |
+| EWRAMアクセス |遅い |大きなテーブルは `const` (ROM) に、バッファは EWRAM にあります。
+| 76KB `memcpy` |遅い |エンジンはシーン全体のコピーを回避するようになりました。
 
-Ejemplos:
-
+例:
 ```c
 // mal (cada frame):
 // int idx = p->frame % 13;
@@ -1238,35 +1124,33 @@ int idx = p->frame & 15;       // asumiendo frameCount = 16 o potencia de 2
 // mal: vx /= 10;   → mejor:
 vx -= vx / 8;                  // o vx >>= 3 si no necesitas precisión
 ```
+### 推奨される独自の最適化
 
-### Optimizaciones propias recomendadas
+- 小さな `static inline` 関数を宣言します (関数を展開するように `-O2` コンパイラーに指示します)。
+- テーブルを「const」にします。テーブルは ROM 内に存在し、EWRAM や IWRAM を汚しません。
+- 内部ループ内の `volatile` ポインターではなく、ローカル バッファーを使用して `u16*` として VRAM にアクセスします (テンプレートはすでにこれを行っています)。
+- 独自のグローバル変数を 50 個宣言するのではなく、アクターの空きフィールド (`vx`、`vy`、`timer`、`dir`) を再利用します。
+- 独自のもの (ミニバー、事前計算されたテキスト) をペイントする場合は、同じ VBLANK 内で数ピクセルでペイントしてください。
 
-- Declara funciones pequeñas `static inline` (el indica al compilador `-O2` que las expanda).
-- Haz `const` las tablas: vivirán en ROM y no ensucian EWRAM ni IWRAM.
-- Accede a VRAM como `u16*` con buffer local, no con punteros `volatile` en el bucle interior (el template ya lo hace).
-- Reusa los campos libres del actor (`vx`, `vy`, `timer`, `dir`) antes que declarar 50 variables globales tuyas.
-- Si pintas algo propio (mini-barra, texto precomputed), hazlo dentro del mismo VBLANK y con pocos píxeles.
+### 実際のコンソールでは悪く見えるが、gbajs では悪く見えないケース
 
-### Casos que se ven mal en consola real pero no en gbajs
-
-- Tear/parpadeo en la zona baja de la pantalla → sobrepaso de VBLANK.
-- Juego a mitad de FPS → el frame entero hace más trabajo de lo que cabe.
-- La solución de ambos es reducir trabajo por frame (actores visibles, píxeles propios, scripts ligeros), no parchear.
+- 画面下部のティア/フリッカー → VBLANK オーバーライド。
+- 半分の FPS でプレイしている → フレーム全体が必要以上に仕事をしています。
+- 両方の解決策は、パッチではなく、フレームごとの作業 (表示されるアクター、独自のピクセル、軽量のスクリプト) を減らすことです。
 
 ---
 
-## 10.17. Depuración en la consola real vs. emuladores
+##10.17。実際のコンソールとエミュレータでのデバッグ
 
-| Entorno | Qué detecta | Qué oculta |
+|環境 |何を検出するのか |何が隠されているのか |
 | :--- | :--- | :--- |
-| **Emulador integrado (gbajs)** | Lógica, colisiones, transiciones | Timing intraframe (copia VRAM al final de frame) |
-| **mGBA** | Timing VBLANK, precisa | — (muy fiel) |
-| **Flashcart / GBA real** | Todo lo real | — |
+| **内蔵エミュレータ (gbajs)** |ロジック、衝突、遷移 |イントラフレーム タイミング (フレーム終了時の VRAM コピー) |
+| **mGBA** | VBLANK タイミング、正確 | — (とても忠実です) |
+| **フラッシュカート / 本物の GBA** |すべてが本物 | — |
 
-### Técnicas de depuración sin `printf`
+### `printf` を使用しないデバッグ手法
 
-1. **Pausa por botón:** traba el juego y avanza frame a frame.
-
+1. **ボタンで一時停止:** ゲームをロックし、フレームごとに進めます。
 ```c
 static u8 paused = 0;
 static u16 kprev = 0;
@@ -1278,59 +1162,57 @@ void script_update(void) {
   // ... resto de la lógica
 }
 ```
+2
+. **スプライト内の可視状態:** 状態 (安価な状態タグ) に従ってアクターのフレームを変更します。
+3. **センチネルの点滅:** 画面上のピクセル (`screen[y*240+x]`) の色を切り替えて、ループをカウントしたり、通過しなかったパスを検出したりします。
+4. **`gActors` のカウンター:** デバッグ値を `p->vx` に書き込み、フレームステップを使用してエミュレータ ロガーでそれを確認します。
 
-2. **Estados visibles en el sprite:** cambia el `frame` del actor según un estado (etiqueta barata de estado).
-3. **Parpadeo centinela:** alterna el color de un píxel en pantalla (`screen[y*240+x]`) para contar loops o detectar caminos no tomados.
-4. **Contadores en `gActors`:** escribe en `p->vx` un valor de depuración y míralo en los loggers del emulador con frame-step.
+### エクスポートコンソール
 
-### La consola de export
-
-Los avisos del export (`[WARN]`, `[OK]`) los verás en el panel inferior del editor al **EXPORTAR** o al compilar con **PLAY**. Presta atención a:
-- Scripts sin `script_update()`.
-- `script_init/update` duplicados (símbolos repetidos).
-- Actores > 64 (se truncan).
-- Transiciones largas (recuerda ajustar velocidad).
+**EXPORT** または **PLAY** でコンパイルするときに、エディターの下部パネルにエクスポート警告 (`[WARN]`、`[OK]`) が表示されます。以下の点に注意してください。
+- `script_update()` を使用しないスクリプト。
+- `script_init/update` を複製します (シンボルの繰り返し)。
+- アクター > 64 (切り捨てられます)。
+- 長いトランジション (速度を調整することを忘れないでください)。
 
 ---
 
-## 10.18. Referencia rápida (cheat-sheet)
+##10.18。クイックリファレンス (チートシート)
 
-### Constantes y símbolos del template
+### テンプレートの定数とシンボル
 
-| Símbolo | Valor | Nota |
+|記号 |値 |注 |
 | :--- | :--- | :--- |
-| `SCREEN_W`, `SCREEN_H` | 240, 160 | píxeles |
-| `PIXEL_COUNT` | 38400 | 240×160 |
-| `VRAM` | `0x06000000` | `screen = (u16*)VRAM` |
-| `ACTOR_COUNT` | 1-64 | segun actores exportados |
-| `PLAYER_INDEX` | 0 | el actor 0 |
-| `WALK_SPEED` / `RUN_SPEED` | 2 / 3 | px/vsync (shoulder = correr) |
-| `ACCEL` / `FRICTION` | 1 / 1 | aceleración y frenada |
-| `GRAVITY` / `MAX_FALL` | 1 / 5 | px/vsync² y velocidad terminal |
-| `JUMP_VEL` / `JUMP_CUT_VEL` | -11 / -3 | impulso y corte del salto |
-| `COYOTE_FRAMES` / `JUMP_BUFFER` | 5 / 5 | margen tras el borde / antes de aterrizar |
-| `MAX_ACTOR_FRAMES` | 32 | frames por actor |
-| `CAM_X`, `CAM_Y` | 0 por defecto | offset de mundo (single-scene); en multi-escena `gCamX`/`gCamY` |
-| `gScene` / `gSceneTarget` | — | escena actual / escena pedida (multi-escena) |
-| `gJp` | — | flanco de teclas: bits pulsados ESTE frame |
-| `gActorBack[]` | EWRAM | fondo de actores |
-| `gActors[]` | — | lista global |
+| `SCREEN_W`、`SCREEN_H` | 240、160 |ピクセル |
+| `ピクセル_カウント` | 38400 | 240×160 |
+| `VRAM` | `0x06000000` | `スクリーン = (u16*)VRAM` |
+| `ACTOR_COUNT` | 1-64 |エクスポートされたアクターによると |
+| `PLAYER_INDEX` | 0 |俳優 0 |
+| `歩く速度` / `走る速度` | 23 | px/vsync (肩 = 実行) |
+| `アクセル` / `フリクション` | 1 / 1 |加速と制動 |
+| `GRAVITY` / `MAX_FALL` | 1 / 5 | px/vsync² と端末速度 |
+| `ジャンプ_ベル` / `ジャンプ_カット_ベル` | -11 / -3 |ジャンプブーストとカット |
+| `コヨーテ_フレーム` / `ジャンプ_バッファ` | 5/5 |エッジ後ろのマージン / 着地前 |
+| `MAX_ACTOR_FRAMES` | 32 |アクター別のフレーム || `CAM_X`、`CAM_Y` |デフォルトでは 0 |ワールド オフセット (単一シーン);マルチシーン `gCamX`/`gCamY` で |
+| `gScene` / `gSceneTarget` | — |現在のシーン / 要求されたシーン (マルチシーン) |
+| `gJP` | — |キーエッジ: このフレームで押されたビット数 |
+| `gActorBack[]` | EWRAM |俳優の背景 | 写真
+| `gActors[]` | — |グローバルリスト |
 
-### Registros
+### レコード
 
-| Registro | Dir | Leer/Uso |
+|登録 |監督 |読む/使う |
 | :--- | :--- | :--- |
 | `REG_DISPCNT` | `0x04000000` | `MODE_3 \\| BG2_ENABLE` |
-| `REG_VCOUNT` | `0x04000006` | scanline actual |
-| `REG_KEYINPUT` | `0x04000130` | botones (0=pulsado) |
-| `REG_SND1SWEEP/CNT/FREQ` | `0x60/62/64` | canal 1 |
-| `REG_SND2CNT/FREQ` | `0x68/6C` | canal 2 |
-| `REG_SND3CNT_L/H, FREQ` | `0x70/72/74` | canal 3 wave |
-| `REG_SND4CNT/FREQ` | `0x78/7C` | canal 4 ruido |
-| `REG_SNDCTL/CNTH/CNTX/BIAS` | `0x80/82/84/88` | master |
+| `REG_VCOUNT` | `0x04000006` |現在の走査線 |
+| `REG_KEYINPUT` | `0x04000130` |ボタン (0=押された) |
+| `REG_SND1SWEEP/CNT/FREQ` | `0x60/62/64` |チャンネル1 |
+| `REG_SND2CNT/FREQ` | `0x68/6C` |チャンネル2 |
+| `REG_SND3CNT_L/H、FREQ` | `0x70/72/74` |チャンネル3波 |
+| `REG_SND4CNT/FREQ` | `0x78/7C` |チャンネル 4 のノイズ |
+| `REG_SNDCTL/CNTH/CNTX/BIAS` | `0x80/82/84/88` |マスター |
 
-### Mapa de bits de `REG_KEYINPUT`
-
+### `REG_KEYINPUT` ビットマップ
 ```
 bit 0 A · bit 1 B · bit 2 SELECT · bit 3 START
 bit 4 RIGHT · bit 5 LEFT · bit 6 UP · bit 7 DOWN
@@ -1341,64 +1223,62 @@ bit 8 R · bit 9 L   —  bit = 0 → PULSADO
 u16 keys = ~REG_KEYINPUT & 0x3FF;          // con 1 = pulsado
 u16 jp   = keys & ~prevKeys; prevKeys = keys; // flanco
 ```
+### 便利な機能
 
-### Funciones útiles
-
-| Función | Resultado |
+|機能 |結果 |
 | :--- | :--- |
-| `waitVSync()` | espera al VBLANK |
-| `actorBox(a,&bx,&by,&bw,&bh)` | collider en coords mundo |
-| `rectHitsSolid(bx,by,bw,bh,dx,dy)` | ¿choca con tiles? |
-| `moveActorCollide(a,dx,dy)` | mueve con colision, por ejes |
-| `gSelf->animSpeed` | paso/vsync de la animación (2 = doble, ver [10.8](#108-sistema-de-actores-las-entidades-del-juego)) |
-| `movePlayer(keys,p)` | D-pad del jugador |
-| `updatePlayer()` | input + push actor-actor |
-| `showDialogue(id)` | muestra el diálogo `id` desde la fila 0 (ver [10.13.1](#10131-diálogos-e-idiomas)) |
-| `showDialogueRow(key)` | salta a una fila por su código o ID |
-| `nextDialogueRow()` | avanza a la siguiente fila |
-| `dialogueUpdate()` | avanza solo al pulsar A (llamar cada frame) |
-| `aeSaveHasGame()` | ¿hay partida guardada válida? |
-| `aeSaveWrite(data, size)` | guarda en SRAM (0 ok, -1 si no cabe) |
-| `aeSaveRead(data, size)` | carga de SRAM (0 ok, -1 sin partida) |
-| `aeSaveClear()` | borra la partida |
-| `hideDialogue()` | oculta el diálogo |
-| `gLang = n` | elige el idioma (0 = primera columna, 1 = segunda…) |
-| `initActors()` / `advanceAllActors()` | animación automática |
-| `drawAllActors(screen)` | z-sort + dibujado |
-| `near(a,b,dist)` | ¿±`dist` px entre centros? (proximidad) |
-| `switchScene(n[, "nombre"])` | cambia de escena con la transición de la conexión (multi-escena) |
-| `noteOn(ch,&inst,period)` | dispara una nota/SFX |
+| `waitVSync()` | VBLANK を待ちます |
+| `actorBox(a,&bx,&by,&bw,&bh)` |世界座標のコライダー |
+| `rectHitsSolid(bx,by,bw,bh,dx,dy)` |タイルと衝突しませんか？ |
+| `moveActorCollide(a,dx,dy)` |衝突しながら、軸ごとに移動します。
+| `gSelf->animSpeed` |アニメーション ステップ/vsync (2 = double、[10.8](#108-actor-system-game-entities) を参照) |
+| `movePlayer(keys,p)` |プレイヤーの十字キー |
+| `updatePlayer()` |入力 + プッシュ アクター-アクター |
+| `showDialogue(id)` |行 0 からダイアログ `id` を表示 ([10.13.1](#10131-dialogs-and-langages) を参照) |
+| `showDialogueRow(key)` |コードまたは ID によって行にジャンプします。
+| `nextDialogueRow()` |次の行に進みます |
+| `dialogueUpdate()` | A を押したときのみ進みます (各フレームを呼び出します) |
+| `aeSaveHasGame()` |有効な保存されたゲームはありますか? |
+| `aeSaveWrite(データ, サイズ)` | SRAM に保存 (0 はOK、適合しない場合は -1) |
+| `aeSaveRead(データ, サイズ)` | SRAM ロード (0 正常、-1 開始なし) |
+| `aeSaveClear()` |ゲームを削除する |
+| `hideDialogue()` |ダイアログを非表示にする |
+| `gLang = n` |言語を選択します (0 = 最初の列、1 = 2 番目…) |
+| `initActors()` / `advanceAllActors()` |自動アニメーション |
+| `drawAllActors(画面)` | Z ソート + 描画 |
+| `near(a,b,dist)` |中心間の±`dist` ピクセル? (近接) |
+| `switchScene(n[, "name"])` |接続トランジションでシーンを切り替える（マルチシーン） |
+| `noteOn(ch,&inst,ピリオド)` |ノートを撮る/SFX |
 
-### Fórmulas
+### 数式
 
-| Fórmula | Uso |
-| :--- | :--- |
-| `RGB555(r,g,b) = ((r>>3)|((g>>3)<<5)|((b>>3)<<10)) & 0x7FFF` | color de píxel |
-| `period = round(2048 − 131072/freq)` | nota → registro de periodo |
-| `6.7 MHz → 280.896 ciclos/frame → 59,73 fps` | timing base |
-| `píxeles de sprite en cámara ≤ ~5.600` | presupuesto VBLANK |
+|式 |使い方 || :--- | :--- |
+| `RGB555(r,g,b) = ((r>>3)|((g>>3)<<5)|((b>>3)<<10)) & 0x7FFF` |ピクセルカラー |
+| `周期 = ラウンド(2048 − 131072/周波数)` |ノート→時代記録 |
+| `6.7 MHz → 280,896 サイクル/フレーム → 59.73 fps` |基本タイミング |
+| `カメラ内のスプライト ピクセル ≤ ~5,600` | VBLANKの予算 |
 
 ---
 
-## 10.19. Glosario
+##10.19。用語集
 
-- **AABB** — caja alineada a los ejes; el rect de colisión del actor.
-- **APU** — Audio Processing Unit (la parte de sonido del GBA).
-- **BG2_ENABLE** — bit que activa el bitmap de MODE 3.
-- **EWRAM** — External Work RAM, 256 KB, lenta.
-- **IWRAM** — Internal Work RAM, 32 KB, rápida (stack).
-- **Key-on** — bit que "enciende" la nota del canal (en `REG_*FREQ`, bit 14 del valor que escribe `noteOn`).
-- **MODE 3** — modo bitmap 240×160 con píxeles RGB555.
-- **OAM** — Objeto Attribute Memory: tabla de sprites hardware (no usada por el motor).
-- **PPU** — unidad de pintado de píxeles.
-- **RGB555** — 15 bits de color directo (5 por canal).
-- **Scanline / VCOUNT** — línea horizontal actual del LCD; `REG_VCOUNT` la lee.
-- **VBLANK** — periodo vertical blanking (68 líneas): momento seguro para pintar.
-- **Vsync** — "vertical sync": la espera de `waitVSync()`. 1 frame.
-- **z-sort** — ordenar actores por `z` para decidir quién tapa a quién.
-- **Wave RAM** — banco de 16 muestras de 4 bits del canal 3.
-- **Thumb / ARM** — los dos repertorios de instrucciones del ARM7TDMI.
+- **AABB** — 車軸が整列したボックス。アクターの衝突四角形。
+- **APU** — オーディオ処理ユニット (GBA のサウンド部分)。
+- **BG2_ENABLE** — MODE 3 ビットマップをアクティブにするビット。
+- **EWRAM** — 外部ワーク RAM、256 KB、遅い。
+- **IWRAM** — 内部ワーク RAM、32 KB、高速 (スタック)。
+- **Key-on** — チャンネルノートを「オン」にするビット (`REG_*FREQ` の、`noteOn` を書き込む値のビット 14)。
+- **モード 3** — RGB555 ピクセルの 240×160 ビットマップ モード。
+- **OAM** — 属性メモリ オブジェクト: ハードウェア スプライト テーブル (エンジンでは使用されません)。
+- **PPU** — ピクセル ペイント ユニット。
+- **RGB555** — 15 ビットのスポット カラー (チャンネルごとに 5 ビット)。
+- **走査線 / VCOUNT** — 現在の LCD 水平ライン。 `REG_VCOUNT` がそれを読み取ります。
+- **VBLANK** — 垂直ブランキング期間 (68 ライン): 安全にペイントできる時間です。
+- **Vsync** — 「垂直同期」: `waitVSync()` を待ちます。 1フレーム。
+- **z-sort** — 俳優を「z」で並べ替えて、誰が誰をカバーするかを決定します。
+- **Wave RAM** — チャンネル 3 からの 16 個の 4 ビット サンプルのバンク。
+- **Thumb / ARM** — ARM7TDMI の 2 つの命令セット。
 
 ---
 
-**Anterior:** [09 — Exportar y probar](09-exportar.md) · **Volver al [índice](README.md)**
+**前:** [09 — エクスポートとテスト](09-exportar.md) · **[インデックス](README.md)に戻る**

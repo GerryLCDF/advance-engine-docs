@@ -1,36 +1,41 @@
-# 07 — Módulo Diálogo (Conversaciones y textos)
+#07 — 対話モジュール (会話とテキスト)
+
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
 ![Módulo Diálogo](assets/capturas/tab-dialogo.png)
 
-El editor **Diálogo** permite crear conversaciones con ramificación, páginas de texto y el vínculo con los NPCs y actores interactivos del mundo. Cada diálogo se organiza en **páginas** y puede tener **opciones** que derivan en otras páginas.
+**Dialogue** エディターを使用すると、分岐する会話、テキストのページ、および世界中の NPC やインタラクティブ アクターへのリンクを作成できます。
 
-## 1. Jerarquía lateral
+## 1. 横方向の取り組み
 
-En el árbol lateral se listan los **diálogos** del proyecto. Al seleccionar uno, el inspector permite configurar sus propiedades.
+プロジェクトの **ダイアログ**がサイドツリーにリストされます。いずれかを選択すると、インスペクターでそのプロパティを構成できるようになります。
 
-Cada diálogo muestra una pequeña previsualización de su primera página de texto y, si está vinculado a una escena, el nombre de esa escena.
+各名前には、テキストの最初のページの小さなプレビューが表示され、シーンにリンクされている場合はそのシーンのが表示されます。
 
-## 2. Inspector de diálogo
+## 2. ダイアログインスペクタ
 
-### Propiedades del diálogo
-- **Nombre:** identificador del diálogo.
-- **Escena:** escena del módulo **Mundo** a la que está vinculado (o “(sin vínculo)”).
+### ダイアログのプロパティ
+- **名前:** ダイアログ識別子。
+- **Scene:** リンクされている (または「(リンクされていない)」) **World** モジュールのシーン。
 
-### Páginas
-Cada página contiene:
-- **Texto:** contenido de la página (área de texto multilínea). El previsualizador de la jerarquía muestra el principio.
-- **Opciones:** respuestas que el jugador puede elegir; cada opción apunta a otra página y permite ramificar la conversación.
+### ページ
+各ページには次の内容が含まれます。
+- **テキスト:** ページのコンテンツ(複数行のテキスト領域)。
+- **オプション:**プレイヤーが選択できる応答。各オプションは別のページを向いており、会話を分岐させることができます。
 
-## 3. Flujo de trabajo típico
+## 3. 一般的なワークフロー
 
-1. Crea un diálogo y asígnale un nombre.
-2. Vincula la **Escena** donde aparecerá el NPC.
-3. Escribe el **Texto** de la primera página.
-4. Añade **Opciones** para ramificar hacia otras páginas (un enlace a tantas opciones por página como respuestas quieras).
-5. En el módulo **Mundo**, selecciona el actor que hablará y asígnale el diálogo en el bloque **Script / Diálogo**.
+1. ダイアログを作成し、名前を付けます。
+2. NPCが登場する**シーン**をリンクします。
+3. 最初のページの **テキスト** を書き込みます。
+4. **オプション**を追加して他のページに分岐します(回答が必要な数のページごとのオプションへのリンク)。
 
-![CAPTURA: diálogo abierto con sus páginas y opciones → `assets/dialogo-editor.png`]
+![SHAPTURE: ページとオプションを含むダイアログを開く → `assets/dialogo-editor.png`]
 
 ---
 
-**Anterior:** [06 — Módulo Sound](06-sound.md) · **Siguiente:** [08 — Scripting](08-scripting.md)
+**前:** [06 — サウンド モジュール](06-sound.md) · **次:** [08 — スクリプト](08-scripting.md)

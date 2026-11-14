@@ -1,88 +1,84 @@
-# 00 — Primeros pasos
+#00 — Getting started
 
-## 0.1. Primer arranque
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
 
-Al abrir la aplicación por primera vez, se comprueban las herramientas necesarias para compilar ROMs de Game Boy Advance. Si **devkitARM** no está instalado, aparece una ventana informándote y dándote dos opciones:
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
 
-- **Instalar devkitPro** automáticamente (en Linux puede pedir tu contraseña del sistema).
-- **Descargarlo manualmente**, siguiendo la guía oficial de devkitPro, e instalarlo tú mismo.
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+## 0.1. First boot
+
+When you open the application for the first time, it checks the tools needed to build Game Boy Advance ROMs. If **devkitARM** is not installed, a window appears informing you and giving you two options:
+
+- **Install devkitPro** automatically (on Linux it may ask for your system password).
+- **Download it manually**, following the official devkitPro guide, and install it yourself.
 
 ![Ventana de estado del entorno sin devkitARM](assets/launcher-devkitarm.png)
 
-> Puedes seguir editando tu proyecto aunque falten herramientas; la compilación de la ROM requerirá que estén instaladas.
+> You can continue editing your project even if tools are missing; building the ROM will require them to be installed.
 
-## 0.2. Pantalla inicial (Proyectos recientes)
+## 0.2. Home Screen (Recent Projects)
 
-Una vez tienes devkitARM instalado, la aplicación te lleva a la pantalla de **proyectos recientes**, donde se muestran hasta los **3 proyectos abiertos más recientemente**.
+Once you have devkitARM installed, the application takes you to the **recent projects** screen, where up to the **3 most recently opened projects** are displayed.
 
 ![Proyectos recientes](assets/launcher-recientes.png)
 
-Cada tarjeta muestra el cartucho del proyecto y su nombre. Debajo de cada uno, el engranaje (⚙️) permite **editar el proyecto** (cambiar el cartucho, la portada o el nombre). Pulsar sobre el cartucho lo abre en el editor.
+Each card shows the project cartridge and its name. Below each one, the gear (⚙️) allows you to **edit the project** (change the cartridge, cover or name). Clicking on the cartridge opens it in the editor.
 
-## 0.3. Barra superior y opciones
+## 0.3. Top bar and options
 
-En la parte superior se encuentra la navegación principal:
+At the top is the main navigation:
 
 ![Barra superior](assets/launcher-barra-superior.png)
 
-- **Documentación:** acceso a esta documentación.
-- **Créditos:** pantalla de reconocimientos del proyecto.
-- **Opciones:** menú de configuración de la aplicación.
+- **Documentation:** access to this documentation.
+- **Credits:** project acknowledgments screen.- **Options:** application configuration menu.![Menú de opciones](assets/launcher-opciones.png)> **Note:** in the current version, the **Appearance** (visual theme) option is the only one operational. **Language** and **Scale** are marked “coming soon”.
 
-![Menú de opciones](assets/launcher-opciones.png)
+## 0.4. All projects
 
-> **Nota:** en la versión actual, la opción **Aspecto** (tema visual) es la única operativa. **Idioma** y **Escala** están marcadas como “próximamente”.
-
-## 0.4. Todos los proyectos
-
-El botón **Todos los proyectos** abre la lista completa de proyectos creados e importados, para acceder a cualquiera de ellos sin depender de la pantalla de recientes.
+The **All Projects** button opens the complete list of created and imported projects, to access any of them without depending on the recent screen.
 
 ![Botón todos los proyectos](assets/launcher-boton-todos.png)
 
 ![Lista de todos los proyectos](assets/launcher-lista-proyectos.png)
 
-## 0.5. Crear un proyecto
+## 0.5. Create a project
 
-En la pestaña **Crear** se configura un nuevo proyecto:
+In the **Create** tab a new project is configured:
 
-- **Nombre:** identificador del proyecto.
-- **Ruta:** carpeta donde se guardará (usa el botón `...` para elegirla en el explorador).
-- **Plantillas:** una de las plantillas base (Clásico, Color plano, Transparente).
-- **Modificar cartucho:** personalizar el cartucho del proyecto.
+- **Name:** project identifier.
+- **Path:** folder where it will be saved (use the `...` button to choose it in the explorer).
+- **Templates:** one of the base templates (Classic, Flat Color, Transparent).
+- **Modify cartridge:** customize the project cartridge.
 
 ![Pestaña crear](assets/launcher-crear.png)
 
-Pulsa **Crear** para generar el proyecto y entrar directamente al editor.
+Press **Create** to generate the project and directly enter the editor.
 
-## 0.6. Importar un proyecto
+## 0.6. Import to project
 
-En la pestaña **Importar** se puede vincular un proyecto ya creado anteriormente:
+In the **Import** tab you can link to a previously created project:
 
-- Elige la **ruta** de la carpeta del proyecto existente.
-- Ajusta el **nombre** si quieres.
-- Puedes **modificar el cartucho** igual que al crear.
+- Choose the **path** of the existing project folder.
+- Adjust the **name** if you want.
+- You can **modify the cartridge** the same as when creating.
 
-Esto te permite continuar trabajando en un proyecto sin necesidad de crearlo desde cero.
+This allows you to continue working on a project without having to create it from scratch.
 
-## 0.7. Personalización del cartucho
+## 0.7. Cartridge customization
 
-El botón **Modificar cartucho** (engranaje) abre la pantalla de personalización:
-
-![Panel del cartucho](assets/launcher-cartucho-panel.png)
-
-- **Tipo de cartucho:** *Color plano* o *Color transparente*.
-- **Color:** uno de los 9 colores fijos (gris, blanco, rojo, verde, azul, morado, café, amarillo, negro) o un color personalizado con selector.
+The **Modify Cartridge** (gear) button opens the customization screen:![Panel del cartucho](assets/launcher-cartucho-panel.png)- **Cartridge type:** *Flat color* or *Transparent color*.- **Color:** one of the 9 fixed colors (gray, white, red, green, blue, purple, brown, yellow, black) or a custom color with selector.
 
 ![Selección del tipo y color de cartucho](assets/launcher-cartucho-seleccion.png)
 
-También puedes añadir una **portada (calcomanía)** personalizada:
+You can also add a custom **cover (decal)**:
 
 ![Requisitos de la portada](assets/launcher-calcomania-requisitos.png)
 
-> **Requisito:** usa exactamente **480×270 px** para mejores resultados.
+> **Requirement:** use exactly **480×270 px** for best results.
 
 ![Cartucho con portada aplicada](assets/launcher-cartucho-final.png)
 
 ---
 
-**Siguiente:** [01 — Interfaz de la aplicación](01-interfaz.md)
+**Next:** [01 — Application interface](01-interfaz.md)

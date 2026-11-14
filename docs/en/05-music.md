@@ -1,88 +1,82 @@
-# 05 — Módulo Music (Chiptune Tracker & Sequencer)
+#05 — Music Module (Chiptune Tracker & Sequencer)
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
 
 ![Módulo Music](assets/capturas/tab-music.png)
 
-El editor **Music** es una herramienta integrada de composición y secuenciación chiptune, orientada al hardware de audio PSG (*Programmable Sound Generator*) clásico retro. Permite crear temas musicales con dos interfaces intercambiables: un **Piano Roll** gráfico y una vista tradicional de **Tracker**.
+The **Music** editor is an integrated chiptune composition and sequencing tool, aimed at classic retro PSG (*Programmable Sound Generator*) audio hardware. It allows you to create musical themes with two interchangeable interfaces: a graphical **Piano Roll** and a traditional **Tracker** view.
 
-## 1. Jerarquía lateral y canales
+## 1. Lateral hierarchy and channels
 
-### 1.1. Lista de canciones (`SONGS`)
-- Permite crear (+), renombrar y gestionar las canciones del proyecto.
-- Muestra el nombre del tema activo y su velocidad en BPM.
+### 1.1. List of songs (`SONGS`)
+- Allows you to create (+), rename and manage the songs in the project.
+- Shows the name of the active track and its speed in BPM.
 
-### 1.2. Canales de hardware (`CHANNELS`)
-El sistema emula la arquitectura de sonido PSG de 4 canales:
+### 1.2. Hardware channels (`CHANNELS`)
+The system emulates the 4-channel PSG sound architecture:
 
-- **Pulse 1:** canal de pulso u onda cuadrada con soporte de barrido de frecuencia (*sweep*). Ideal para melodías principales.
-- **Pulse 2:** segundo canal de pulso. Para contramelodías, armonías o acompañamiento.
-- **Wave:** canal de onda personalizada programable por tabla de muestras. Predominante para líneas de bajo.
-- **Noise:** generador de ruido pseudoaleatorio blanco/percusivo. Para efectos rítmicos (batería, platillos, golpes).
+- **Pulse 1:** pulse or square wave channel with frequency sweep support (*sweep*). Ideal for main melodies.
+- **Press 2:** second press channel. For countermelodies, harmonies or accompaniment.
+- **Wave:** custom wave channel programmable by sample table. Predominant for bass lines.
+- **Noise:** white/percussive pseudo-random noise generator. For rhythmic effects (drums, cymbals, hits).
 
-> **Controles rápidos por canal:**
-> - **Visibilidad (ojo):** muestra u oculta las notas de ese canal en el lienzo.
-> - **S (Solo):** silencia todos los demás canales.
-> - **M (Mute):** enmudece el canal activo.
+> **Quick controls per channel:**
+> - **Visibility (eye):** shows or hides the notes for that channel on the canvas.
+> - **S (Solo):** mutes all other channels.> - **M (Mute):** mutes the active channel.
 
-### 1.3. Biblioteca de instrumentos (`INSTRUMENTS`)
-Catálogo de timbres sonoros agrupados por tipo de síntesis:
+### 1.3. Instrument Library (`INSTRUMENTS`)Catalog of sound timbres grouped by type of synthesis:- **DUTY:** instruments based on pulse duty cycle (12.5%, 25%, 50%, 75%).
+- **WAVE:** predefined waveforms for table synthesis.
+- **NOISE:** percussion presets and sound effects (White Noise, Snare, Hi-Hat, Metallic, Gritty 7-bit...).
+- **SURDO / Customized:** own banks; allows you to create instruments by assigning color, name and physical properties of the oscillator.
 
-- **DUTY:** instrumentos basados en ciclo de trabajo de pulsos (12.5%, 25%, 50%, 75%).
-- **WAVE:** formas de onda predefinidas para síntesis por tabla.
-- **NOISE:** presets de percusión y efectos sonoros (White Noise, Snare, Hi-Hat, Metallic, Gritty 7-bit…).
-- **SURDO / Personalizados:** bancos propios; permite crear instrumentos asignando color, nombre y propiedades físicas del oscilador.
+## 2. Editing modes and workspace
 
-## 2. Modos de edición y espacio de trabajo
+The interface has two switchable composition modes (top right switch):
 
-La interfaz tiene dos modos de composición intercambiables (conmutador superior derecho):
+- **PNO (Piano Roll):** visual representation with keyboard of chromatic frequencies on the vertical axis and time on the horizontal.
+- **TRK (Tracker):** vertical step sequencer view; each column is a channel (Pulse 1, Pulse 2, Wave, Noise) and displays the note next to the assigned instrument.
 
-- **PNO (Piano Roll):** representación visual con teclado de frecuencias cromáticas en el eje vertical y tiempo en el horizontal.
-- **TRK (Tracker):** vista secuenciador vertical por pasos; cada columna es un canal (Pulse 1, Pulse 2, Wave, Noise) y muestra la nota junto al instrumento asignado.
+### Top editing bar controls
+- **Save (💾):** stores the changes to the audio file.
+- **Play (▶) / Pause / Stop (⏹):** transport of the active song or pattern.
+- **Pen:** draw notes or triggers on the canvas.
+- **Selection / Cursor:** drag, move and relocate existing notes.
+- **Rubber:** deletes individual notes.
+- **Steps selector:** length of the active measure/pattern (8, 16, 32 or 64 steps).
+- **Instrument quick selector (Inst):** preset that will be applied when painting.
+- **Active channel:** indicator and selector of the channel to which it is written.- **Zoom / Scale (-, 2x, +):** visual scale of the cells.## 3. Pattern Sequencing (`PATTERNS`)The compositional structure of the theme is managed in the lower bar:
 
-### Controles de la barra superior de edición
-- **Guardar (💾):** almacena los cambios en el archivo de audio.
-- **Reproducir (▶) / Pausa / Stop (⏹):** transporte de la canción o patrón activo.
-- **Lápiz:** dibuja notas o disparadores en el lienzo.
-- **Selección / Cursor:** arrastra, mueve y reubica notas existentes.
-- **Goma:** elimina notas individuales.
-- **Selector de pasos (Steps):** longitud del compás/patrón activo (8, 16, 32 o 64 pasos).
-- **Selector rápido de instrumento (Inst):** preset que se aplicará al pintar.
-- **Canal activo:** indicador y selector del canal en el que se escribe.
-- **Zoom / Escala (-, 2x, +):** escala visual de las celdas.
+- **Pattern line:** chains sequential musical blocks (e.g. `1: E35_`, `2: …`).
+- Each pattern stores the combination of notes from all four channels for a defined number of steps.
+- During playback, patterns play in sequential order along the timeline.
+- **Lower Channel Quick Panel (CH):** shows the status of each oscillator with access to Mute (M) and Solo (S).
 
-## 3. Secuenciación de patrones (`PATTERNS`)
+![SHAPTURE: PNO (piano roll) view with notes → `assets/music-pianoroll.png`]
+![SHAPTURE: TRK (tracker) view with all four channels → `assets/music-tracker.png`]
 
-En la barra inferior se gestiona la estructura compositiva del tema:
+## 4. Inspector panel
 
-- **Línea de patrones:** encadena bloques musicales secuenciales (p. ej. `1: E35_`, `2: …`).
-- Cada patrón almacena la combinación de notas de los cuatro canales para una cantidad definida de pasos.
-- Durante la reproducción, los patrones se ejecutan en orden secuencial a lo largo de la línea temporal.
-- **Panel rápido de canales inferior (CH):** muestra el estado de cada oscilador con accesos a Mute (M) y Solo (S).
+The options in the right side panel adapt to the selected item:
 
-![CAPTURA: vista PNO (piano roll) con notas → `assets/music-pianoroll.png`]
-![CAPTURA: vista TRK (tracker) con los cuatro canales → `assets/music-tracker.png`]
+### 4.1. Song properties (global selection)
+- **Name:** descriptive title of the track.
+- **Artist:** authorship or composer credits.
+- **Tempo:** knob control and numerical value that defines the BPM and overall speed of the sequence.
 
-## 4. Panel inspector
+### 4.2. Instrument/frequency properties (note or preset)
+- **Name and color identifier:** visual label to distinguish notes and instruments.
+- **LENGTH (Duration):** time of decay or sustain of the note.
+- **INITIAL VOL (Initial Volume):** attack gain when triggering the note.
+- **CHANGE (Surround):** gradient of progressive increase or decrease in volume.- **Test octaves (C3…C8):** prior listening to the instrument in different octaves.- **Oscilloscope viewer:** waveform generated in real time.- **Duty Cycle:** percentage of the square wave cycle (12.5%, 25%, 50%, 75%).
+- **Sweep Shift & Hz:** Dynamic pitch shifting (sweep frequency in fractions such as 1/128 Hz), ideal for rise, fall or vibrato.
 
-Las opciones del panel lateral derecho se adaptan al elemento seleccionado:
-
-### 4.1. Propiedades de la canción (selección global)
-- **Nombre:** título descriptivo de la pista.
-- **Artista:** créditos de autoría o compositor.
-- **Tempo:** control de perilla y valor numérico que define los BPM y la velocidad global de la secuencia.
-
-### 4.2. Propiedades de instrumento / frecuencia (nota o preset)
-- **Nombre e identificador de color:** etiqueta visual para distinguir notas e instrumentos.
-- **LENGTH (Duración):** tiempo de decaimiento o sostenimiento de la nota.
-- **VOL INICIAL (Volumen inicial):** ganancia del ataque al disparar la nota.
-- **CHANGE (Envolvente):** gradiente de subida o bajada progresiva de volumen.
-- **Octavas de prueba (C3…C8):** escucha previa del instrumento en distintas octavas.
-- **Visor osciloscopio:** forma de onda generada en tiempo real.
-- **Duty Cycle:** porcentaje del ciclo de onda cuadrada (12.5%, 25%, 50%, 75%).
-- **Sweep Shift & Hz:** desplazamiento dinámico de tono (frecuencia de barrido en fracciones como 1/128 Hz), ideal para subida, caída o vibrato.
-
-### 4.3. Propiedades de canal
-- Información técnica del oscilador seleccionado: nombre (`Pulse 1`, `Pulse 2`, `Wave`, `Noise`), **volumen general** y **pan/panning** (izquierda / centro / derecha).
+### 4.3. Channel properties
+- Technical information of the selected oscillator: name (`Pulse 1`, `Pulse 2`, `Wave`, `Noise`), **general volume** and **pan/panning** (left / center / right).
 
 ---
 
-**Anterior:** [04 — Módulo Imagen](04-imagen.md) · **Siguiente:** [06 — Módulo Sound](06-sound.md)
+**Previous:** [04 — Image Module](04-imagen.md) · **Next:** [06 — Sound Module](06-sound.md)

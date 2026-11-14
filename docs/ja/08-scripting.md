@@ -1,31 +1,36 @@
-# 08 — Scripting
+#08 - スクリプト作成
+
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
 ![Módulo Scripting](assets/capturas/tab-scripting.png)
 
-> **Estado:** AdvanceCode y C funcionales; Bloques próximamente.
+> **ステータス:** AdvanceCode と C は機能します。ブロックはもうすぐ登場します。
 
-El módulo **Scripting** es el entorno dedicado a la lógica del juego: comportamiento de actores, eventos globales y mecánicas.
+**スクリプト**モジュールは、アクターの動作、グローバルイベント、メカニクスなどのゲームロジック専用の環境です。
 
-## 8.1. Modos de script
+##8.1。スクリプトモード
 
-Cada script elige un modo con el selector `[Bloques] [AdvanceCode] [C]` del título:
+各スクリプトは、タイトルの `[Blocks][AdvanceCode][C]` セレクターを使用してモードを選択します。
 
-| Modo | Estado |
+|モード |状態 |
 | :--- | :--- |
-| **Bloques** | Visual, próximamente |
-| **AdvanceCode** | **Funcional**: se transpila a C y se inserta en la ROM |
-| **C** | **Funcional**: se inserta *verbatim* en la ROM |
+| **ブロック** | ビジュアル、近日公開 |
+| ** アドバンスコード** | **機能**: Cにトランスパイルされ、ROMに挿入されます。
+| **C** | **機能**: *逐語*がROMに挿入されます。
 
-El código de cada modo se guarda por separado, así que puedes empezar en AdvanceCode y bajar a C sin perder nada. Al cambiar de modo se te pide confirmación.
+各モードのコードは個別に保存されるため、AdvanceCodeから開始して何も考えずにまで進むことができます。モードを変更するときは、確認を求められます。
 
-## 8.2. AdvanceCode (funcional)
+##8.2。 AdvanceCode (機能)
 
-Lenguaje propio de **nivel medio** que transpila **1:1 a C** (sin recolector de basura ni `malloc`), pensado para el ARM7TDMI de la GBA. Elimina el puntos y coma (`;`) al final de línea — el transpilador los coloca en el C — y usa llaves `{}` para los bloques.
+GBAのARM7TDMI用に設計された、**1:1をC**(ガジベーコレクターや`malloc`なし)Cに構成され、ブロックには中括弧`{}`を使用します。
 
-### Lógica y contrato
+### ロジックと契約
 
-La unidad es `logic <Nombre> for <Entidad>`. Sus bloques `on start` / `on update` son **el contrato del motor**:
-
+単位は「ロジック &lt;Name&gt; for &lt;Entity&gt;」です。 `on start` / `on update` ブロックは **エンジン コントラクト**です。
 ```advancecode
 logic Puerta for Hero {
   mutable abierta: bool = false
@@ -41,63 +46,59 @@ logic Puerta for Hero {
   }
 }
 ```
+-
+ `on update` → `void script_update(void)`: **毎フレーム** (60 fps) を実行します。
+- `on start` → `void script_init(void)`: シーンを無視したら**1回**実行されます。
+-偶然の場合も、`this` は **指定が割り当てられるアクター** (C では `gSelf`) です。
 
-- `on update` → `void script_update(void)`: se ejecuta **cada frame** (60 fps).
-- `on start` → `void script_init(void)`: se ejecuta **una vez** al entrar en la escena.
-- Dentro de ambos, `this` es **el actor al que está asignado el script** (en C, `gSelf`).
+###
 
-### Variables y datos
-
-| AdvanceCode | C generado |
+| アドバンスコード | Cで生成された |
 | :--- | :--- |
-| `mutable vida: s16 = 3` | `static s16 vida = 3;` (RAM) |
-| `static LIMITE: u16 = 240` | `static const u16 LIMITE = 240;` (ROM) |
-| `entity Item { valor: u8  activo: bool }` | `typedef struct { u8 valor; u8 activo; } Item;` |
+| `なんだかんだ人生: s16 = 3` | `static s16 life = 3;` (RAM) |
+| `静のLIMIT: u16 = 240` | `static const u16 LIMIT = 240;` (ROM) |
+| `entity項目 { 値: u8 active: bool }` | `typedef struct { u8 値; u8 アクティブ。項目;` |
 
-Tipos: `u8/s8`, `u16/s16`, `u32/s32`, `bool` (→ `u8`), `fixed` (→ `s16`, punto fijo a mano).
+タイプ: `u8/s8`、`u16/s16`、`u32/s32`、`bool` (→ `u8`)、`fixed` (→ `s16`、ハンド固定小数点)。
 
-### Funciones
-
+＃＃＃ 特徴
 ```advancecode
 function doblar(mutable this, x: u16) -> u16 {
   return x * 2
 }
 ```
+エンティティ接頭辞 (`Hero_doblar`) 'mutable this' / 'this' がアクターポイントに割り当てられます。本文内「this.field」→「this->field」。
 
-Transpila a una función plana con prefijo de entidad (`Hero_doblar`). En los parámetros, `mutable this` / `this` se mapean al puntero del actor; dentro del cuerpo `this.campo` → `this->campo`.
+### フロー制御
 
-### Control de flujo
-
-| Sintaxis | C generado |
+|構文 | Cで生成された |
 | :--- | :--- |
-| `if cond { } else if cond { } else { }` | `if (cond) { } else if (cond) { } else { }` (paréntesis opcionales) |
+| `if cond { } else if cond { } else { }` | `if (cond) { } else if (cond) { } else { }` (括弧は省略可能) |
 | `while cond { }` | `while (cond) { }` |
 | `for i in 0..10 { }` | `for (i = 0; i <= 10; i++) { }` |
-| `for mutable i: u8 = 10, i > 0, i -= 2 { }` | `for (u8 i = 10; i > 0; i -= 2) { }` |
+| `大丈夫 i の場合: u8 = 10、i > 0、i -= 2 { }` | `for (u8 i = 10; i > 0; i -= 2) { }` |
 
-Operadores: `&&`, `||`, `!`, aritméticos y comparaciones clásicas.
+演算子: `&&`、`||`、`!`、算術比較および従来の比較。
 
-### Entrada (input)
+### 入力
 
-| AdvanceCode | Significado |
+| アドバンスコード | 意味 |
 | :--- | :--- |
-| `input.is_pressed(BUTTON_A)` | ¿está pulsado **ahora**? |
-| `input.is_released(BUTTON_A)` | ¿está **sin pulsar** ahora? |
-| `input.pressed(BUTTON_A)` | **flanco**: se pulsó justo **este frame** (una sola vez) |
-| `keys` | atajo: máscara de teclas pulsadas (`~REG_KEYINPUT & 0x3FF`) |
+| `input.is_pressed(BUTTON_A)` | **今**押されていますか? |
+| | `input.is_release(BUTTON_A)` |今は**押されていません**ですか？
+| `input.pressed(BUTTON_A)` | **側面**: **このフレーム**が押されました (1 回のみ) |
+| `キー` |ショートカット: 押されたキーマスク (`~REG_KEYINPUT & 0x3FF`) |
 
-Botones: `BUTTON_A/B/SELECT/START/RIGHT/LEFT/UP/DOWN/R/L`.
+ボタン: `BUTTON_A/B/SELECT/START/RIGHT/LEFT/UP/DOWN/R/L`。
 
-### Áreas y escenas
+### エリアとシーン
 
-- `actor_in_area(otro)` → `1` si ese **otro** actor está dentro del **área del que ejecuta** el script (`this`). `otro` es el **índice** del actor (p.ej. `PLAYER_INDEX` o `1`).
-- `actor_entered(otro)` / `actor_exit(otro)` → `1` **solo el frame** en que el otro actor entra/sale del área de `this` (flanco).
-- `switchScene(n)`, `near(a, b, dist)`, `gJp`, `gScene`: la API multi-escena (ver [8.8](#88-cambiar-de-escena-desde-un-script)).
+- `actor_in_area(other)` → `1` は、その **other** アクターがスクリプトを実行している ** エリア (`this`) 内にある場合です。 `other` はアクターの **インデックス** です (例: `PLAYER_INDEX` または `1`)。
+- `actor_entered(other)` / `actor_exit(other)` → `1` **他のアクターが `this` 領域 (エッジ) に入るフレームのみ**。 - `switchScene(n)`、`near(a, b, dist)`、`gJp`、`gScene`: マルチシーン API ([8.8](#88-switch-scene-from-a-script) を参照）。
 
-### Todo lo demás es C
+### それ以外はすべて C
 
-Cualquier llamada que no sea del lenguaje (la API del motor, `REG_KEYINPUT`, `gActors`, …) se transpila **verbatim**. Eso permite usar directamente las primitivas de movimiento:
-
+非言語呼び出し (エンジン API、`REG_KEYINPUT`、`gActors` など) はすべて **逐語**トランスパイルされます。これにより、プリミティブを直接使用できるようになります。
 ```advancecode
 logic Hero for Hero {
   on update {
@@ -105,35 +106,32 @@ logic Hero for Hero {
   }
 }
 ```
+**経験則:** 認識されないものは、インスペクター ([スクリプト] タブ → GBA エクスポート) にリストされる **トランスパイル エラー** を生成し、スクリプトは **ROM に入りません**。ジャンクコードはありません。
 
-**Regla de oro:** lo que no se reconoce emite un **error de transpilación** que se lista en el inspector (pestaña Scripting → Exportación GBA) y el script **no entra a la ROM**. Nada de código basura.
+##8.3。 C（機能的）
 
-## 8.3. C (funcional)
-
-Cada script en modo **C** con código escrito se inserta *verbatim* en el `main.c` generado antes de `main()`. El contrato:
-
+コードが記述された各 **C** モードスクリプトは、`main()` の前に生成された `main.c` に*そのまま*挿入されます。
 ```c
 void script_init(void)   // se llama UNA vez al entrar en la escena
 void script_update(void) // se llama CADA frame del juego (60 fps)
 ```
+-
+ 各関数の定義は **正確に 1 つ**である必要があります(重複するとシンボルが見られ、外部コンソールで警告が表示されます)。
+- 利用可能なAPI: `gActors[]`、`PLAYER_INDEX`、`moveActorCollide()`、`movePlayer()`、`REG_KEYINPUT` (実際のビット: 0=A 1=B 2=SELEC 3=START 4=RD 5=LEFT 6=UP 7=DOWN 8=R 9=L、**0 =押された**)、SFX用の `noteOn()`、およびマルチシーン用** `switchScene()`、`near()`、`gJp`、`gScene`** ([8.8](#88-switching-scene-from-a-script) を参照)。
+- プラットフォーム ルール: 整数 (`u8/s16/int`) のみ、`float`、`malloc`、`printf` は禁止されています。
 
-- Debe haber **exactamente 1 definición** de cada función (los duplicados dan símbolo repetido y saltan avisos en la consola de export).
-- API disponible: `gActors[]`, `PLAYER_INDEX`, `moveActorCollide()`, `movePlayer()`, `REG_KEYINPUT` (bits reales: 0=A 1=B 2=SELEC 3=START 4=RD 5=LEFT 6=UP 7=DOWN 8=R 9=L, **0 = pulsado**), `noteOn()` para SFX, y para multi-escena **`switchScene()`, `near()`, `gJp` y `gScene`** (ver [8.8](#88-cambiar-de-escena-desde-un-script)).
-- Reglas de la plataforma: solo enteros (`u8/s16/int`), sin `float`, sin `malloc`, sin `printf`.
+##8.4。スクリプトをアクターに割り当てます (必須)
 
-## 8.4. Asignar el script a un actor (obligatorio)
+**最も 1 にコンパイルされます**。誰も使用しない場合、エクスポートはそれを無視し、コンソールに通知します。
 
-Un script **solo se compila en la ROM si está asignado a al menos un actor**. Si nadie lo usa, el export lo omite y avisa por consola.
+これは、次の２つの同等の方法で割り当てられます。
 
-Se asigna de dos formas equivalentes:
+- **[スクリプト] タブ** → スクリプトを選択 → インスペクター → **アクター**セクション→ 最初のドロップダウンメニューで **シーン**を選択し、2番目のドロップダウンメニューで **アクター**を選択します。 アクターはあります([*割り当て済み*]リストに表示されます。削除されます✕を使用します)。
+- **ワールドタブ** → アクターを選択 → インスペクター → **スクリプト** フィールド。
 
-- **Pestaña Scripting** → selecciona el script → inspector → sección **Actores** → elige la **escena** en el primer desplegable y el **actor** en el segundo. El actor queda asignado (aparece en la lista *Asignados*, con ✕ para quitarlo).
-- **Pestaña Mundo** → selecciona el actor → inspector → campo **Script**.
+各アクターは 1 つのスクリプトのみをサポートします(別のスクリプトでチェックすると再割り当てされます)除場合、すべてのアクター決定が自動的にクリアされます。
 
-Cada actor admite un solo script (marcarlo en otro script lo reasigna). Al eliminar un script, la asignación se limpia sola en todos los actores.
-
-Con `this` (AdvanceCode) o `gSelf` (C) el script apunta al actor que lo está ejecutando, así que un mismo script sirve para varios actores:
-
+「this」 (AdvanceCode) または「gSelf」 (C) を使用すると、スクリプトはそれを実行しているアクターを探すため、同じスクリプトが複数のアクターで機能します。
 ```c
 void script_update(void) {
   GBAActor* p = gSelf;   // el actor al que está asignado ESTE script
@@ -141,32 +139,29 @@ void script_update(void) {
   if (keys & (1 << 4)) moveActorCollide(p, 2, 0);
 }
 ```
+##8.5。 エクスポート注意ー
 
-## 8.5. Indicador de exportación
+[]
 
-La pestaña Scripting muestra en el título y en el inspector en qué estado está el script:
-
-| Estado | Significado |
+|状態 |意味 |
 | :--- | :--- |
-| **Se exporta** | Tiene código, está asignado a ≥1 actor y define `on update`/`script_update()`. Entra en la ROM. |
-| **Sin asignar** | Tiene código pero ningún actor lo usa → **no se exporta**. |
-| **Falta script_update** | Está asignado, pero sin `on update`/`script_update()` el motor no ejecutará nada. |
-| **Errores** | (solo AdvanceCode) la transpilación falló; se listan los errores en el inspector y el script no entra a la ROM. |
-| **Vacío** | No hay código escrito. |
-| **Próximamente** | Modo Bloques (aún no genera código). |
+| **公開されます** update」/「script_update()」を定義します。ROMを入力してください。
+| **未割り当て** | **公開されません**。
+| **script_update はありません** | 割り当てられていますが、「on update」/「script_update()」が必要ありません、エンジンは何も実行しません。
+| **エラー** | (AdvanceCodeのみ)ROMは入っておりません。
+| **空** |書かれたコードはありません。
+| **近日公開予定** |ブロックモード (コードはまだ生成されません)。
 
-## 8.6. Ayudas del editor
+##8.6。エディターのヘルプ
 
-- **Insertar**: botones con los fragmentos más usados (contrato `on start`/`on update`, variables, `si/si no`, topdown/plataformas, `actor_in_area`, `actor_entered`…). El catálogo cambia según el modo (AdvanceCode o C).
-- **Atajos**: `Tab` indenta (o desindenta con `Shift+Tab`) la línea o el bloque seleccionado, `Enter` conserva la indentación y añade un nivel tras `{`, y `Ctrl+/` comenta o descomenta la línea.
-- **Auto-cierre**: al escribir `{`, `(` o `[` se inserta su pareja; al escribir el cierre con la pareja justo al lado, solo avanza el cursor.
-- **Balance**: la barra superior avisa si quedan llaves o paréntesis sin cerrar (ignora comentarios y cadenas).
-- **Minimapa**: la columna de la derecha muestra una barrita por línea (el ancho es la longitud de la línea y el color el de su sintaxis, para ver de un vistazo dónde están los comentarios). El rectángulo claro marca la zona que estás viendo: haz clic o arrástralo para desplazarte, y la línea que toques queda en el centro. Si el archivo es más largo que el panel, las líneas se comprimen para que quepan todas. Se enciende y apaga con el botón **minimapa** de la barra.
+- **挿入**:最も使用される区画を含むボタン (契約 `on start`/`on update`、変数、`yes/else`、topdown/platforms、`actor_in_area` 、`actor_entered`...)。カタログはモード(AdvanceCodeまたはC)に応じて変わります。
+- **ショートカット**: `Tab` は選択した行またはブロックをインデントします (または `Shift+Tab` でインデントを解除します)。 `Enter` はインデントを維持して `{` の後にレベルを追加します。 `Ctrl+/` は行をコメント化またはコメント解除します。
+- **自動終了**: `{`、`(`、または`[`を入力すると、そのパートナーが入力されます。パートナーのすぐ隣に終了文字を入力すると、そのまま進むだけです。
+- **バランス**: 中国語 (コメントと文字列は無視されます)。 - **ミニマップ**: 権利の列には1行につき1つのバーが表示されます(幅は行長さ、色はその構文であり、コメントがどこにあるかが一目でわかります)。 明るい四角形は、表示している領域をマークします。
 
-### Movimiento: no escribas la física a mano
+### 動き: 物理学を手書きしないでください
 
-El template trae dos primitivas listas. Si tu actor se mueve con el D-pad, esto es todo tu script:
-
+十字キーで動く場合、これがスクリプト全体になります。
 ```c
 void script_update(void) {
   u16 keys = ~REG_KEYINPUT & 0x3FF;
@@ -175,15 +170,14 @@ void script_update(void) {
   // moveTopDown(gSelf, keys);    // laberinto / RPG / menús, sin gravedad
 }
 ```
+AdvanceCode
+ではさらに短く、「moveTopDown(this,keys)」となります。
 
-En AdvanceCode es aún más corto: `moveTopDown(this, keys)`.
+どちらも衝突タイルを尊重しており、`#define` (`WALK_SPEED`、`JUMP_VEL`、`GRAVITY`...)で調整され、何も強制されません。適合しない場合は、`gSelf`を手で移動してください。詳細は[10.10](10-programar-c-gba.md#ready-to-use-motion-primitives)を参照。
 
-Ambas respetan los tiles de colisión, se ajustan con `#define` (`WALK_SPEED`, `JUMP_VEL`, `GRAVITY`…) y no te obligan a nada: si no encajan, mueve `gSelf` a mano. Detalle en [10.10](10-programar-c-gba.md#primitivas-de-movimiento-listos-para-usar).
+### アニメーション速度 (`animSpeed`)
 
-### Velocidad de la animación (`animSpeed`)
-
-Las animaciones corren **siempre a su cadencia exacta** (los `delays` que pusiste en el sprite): el motor no acelera nada automáticamente al caminar. Si quieres que la zancada del que camina avance más rápido mientras se mueve, súbele el campo `animSpeed` a **ese actor** solo mientras lo estés moviendo:
-
+アニメーションは **常に正確なリズム** (スプライトに設定した「遅延」)で実行されます。歩行中にモーターが自動的に加速することはありません。歩行者の移動中に歩幅を速くしたい場合は、移動している間だけ**そのアクター**の `animSpeed` フィールドを上げます。
 ```c
 void script_update(void) {
   u16 keys = ~REG_KEYINPUT & 0x3FF;
@@ -195,21 +189,19 @@ void script_update(void) {
   }
 }
 ```
+`animSpeed` はフィードの vsync ステップ (`0/1` = 通常、`2` = double、…) NPC は通常のリズムを続けます。詳細については、[10.8](10-programar-c-gba.md#the-pace-of-animation-and-animspeed) を参照してください。
 
-`animSpeed` es el paso por vsync del avance (`0/1` = normal, `2` = doble, …) y solo afecta al actor que lo tocas; los NPC quietos siguen con su cadencia normal. Más detalle en [10.8](10-programar-c-gba.md#la-cadencia-de-la-animación-y-animspeed).
+##8.7。エリア (アクター領域)
 
-## 8.7. Áreas (regiones del actor)
+**エリア**は、コリジョンボックスと同様に、**アクター**のプロパティです。これは、どこに接続されて**一緒に移動する**四角形(幅/高さ/オフセット)です。これは、俳優自身の適切なエリアを検出するために使用されます。
 
-El **área** es una propiedad del **actor**, igual que su caja de colisión: un rectángulo (Ancho / Alto / Offset) que va pegado a él y **se mueve con él**. Sirve para detección de zonas desde el script del propio actor: «¿el jugador está dentro de mi área?».
+翻訳:
 
-Cómo definirla:
+1. **ワールド** タブ → アクターを選択 → インスペクター → **エリア** セクション。
+2. スイッチをアクティブにして、**エリア幅 / エリア高さ / オフセット X / オフセット Y** (勝手にスプライトサイズ) を調整します。
+3.
 
-1. Pestaña **Mundo** → selecciona el actor → inspector → sección **Área**.
-2. Activa el interruptor y ajusta **Ancho área / Alto área / Offset X / Offset Y** (por defecto, el tamaño del sprite).
-3. El rectángulo azul se dibuja sobre la tarjeta del actor para que veas su alcance.
-
-Desde el script (AdvanceCode), el área consultada es **la del actor que ejecuta** (`this`); el argumento es el **índice del otro** actor:
-
+スクリプト (AdvanceCode) から参照される領域は **実行するアクターの領域** (`this`) です。引数は**他のアクターのインデックス**です。
 ```advancecode
 logic Puerta for Trigger {
   on update {
@@ -223,15 +215,14 @@ logic Puerta for Trigger {
   }
 }
 ```
+C
+ では、フックは `actorInArea(gSelf, &gActors[PLAYER_INDEX])`、`actorEnteredArea(...)`、`actorExitedArea(...)`、`actorOutArea(...)` です。最大 **32 アクター**がサポートされます(連絡先はアクターごとにビットマスクとして保存されます)。
 
-En C los hooks son `actorInArea(gSelf, &gActors[PLAYER_INDEX])`, `actorEnteredArea(...)`, `actorExitedArea(...)`, `actorOutArea(...)`. Se admiten hasta **32 actores** (el contacto se guarda como bitmask por actor).
+##8.8。スクリプトからシーンを変更する
 
-## 8.8. Cambiar de escena desde un script
+ここで、**nはエディター内の手順** (シーン 0 はワールドリストの最初であり、最後は `N-1`) です。
 
-El export **embebe todas las escenas del proyecto** en la ROM. Para saltar de una a otra usa `switchScene(n)`, donde **n es el orden en el editor** (la escena 0 es la primera de la lista de Mundo, la última es `N-1`).
-
-Lo típico: un NPC con su script hace de puerta. Interactúa y cambias de escena:
-
+説明:
 ```c
 void script_update(void) {
   // pegados + pulsas A → escena 1 (segunda de la lista)
@@ -240,9 +231,7 @@ void script_update(void) {
   }
 }
 ```
-
-En AdvanceCode:
-
+アドバンスコードでは:
 ```advancecode
 logic Puerta for NPC {
   on update {
@@ -252,27 +241,26 @@ logic Puerta for NPC {
   }
 }
 ```
+-
+ `actor_in_area(PLAYER_INDEX)`: プレイヤーが **NPC 自身のエリア**内にいる場合は `1`。
+- `gJp`: キーエッジ — **このフレームのみ** 押されたビット(`REG_KEYINPUT`と同じビット)。ボタンのアクションが毎回ではなく1回だけ行われるようにします。
+- `gScene`: 現在のシーン (読み取り)。
+- 'near(a, b, dist)': C の `actor_in_area` を使用します。
 
-- `actor_in_area(PLAYER_INDEX)`: `1` si el jugador está dentro del **área del propio NPC** (la que dibujas en el inspector del actor; ver [8.7](#87-áreas-regiones-del-actor)).
-- `gJp`: flanco de teclas — bits pulsados **solo este frame** (mismos bits que `REG_KEYINPUT`). Para que una acción de botón ocurra una vez, no todo el rato.
-- `gScene`: la escena actual (lectura).
-- `near(a, b, dist)`: solo disponible en C; ACod no admite la `&` unaria, así que para proximidad usa `actor_in_area`.
+### トランジションアニメーションを名前で選択します
 
-### Elegir la animación de transición por nombre
-
-La conexión origen→destino de cada escena puede tener su propia **transición de entrada** ([Mundo → inspector de la conexión](02-mundo.md)). Al hacer `switchScene(n)` el motor usa la de la conexión `gScene→n`; si quieres desambiguar (varias conexiones al mismo destino), pásale el **nombre** de la conexión como 2º argumento:
-
+各シーンのソース→宛先先先接続には、独自の **入力トランジション** ([ワールド→接続インスペクター](02-mundo.md)) を含めることができます。 `switchScene(n)` (同じ宛先先への複数の接続) を明確にしたい場合は、接続の **名前** を 2 番目の引数として渡します。
 ```c
 switchScene(1);            // primera conexión hacia la escena 1
 switchScene(1, "puerta");  // la conexión llamada "puerta"
 ```
+AdvanceCode
+ でも同じように記述されます (`switchScene(1, "door")`)。一致接続がない場合は、とりあえずのフェードが使用されます。名前は、接続インスペクターの**名前**フィールドで編集されます。
 
-En AdvanceCode se escribe igual (`switchScene(1, "puerta")`). Si no hay conexión coincidente se usa el fade por defecto. El nombre se edita en el campo **Nombre** del inspector de la conexión; si lo dejas vacío se usa el nombre del tileset/gradiente elegido.
+変更するとき、エンジンは設定されたトランジション (フェード/ワイプ/タイルセット) を再生し、新しいシーンの画像/コリジョン/カメラ/アクター(その領域と仕様を含む)をロードして、シーンの公開を終了します。 各シーンでは独自の俳優が使用されます。 スクリプト「ドア」を持つ新しいシーンの俳優が反応します。 10](10-programar-c-gba.md#1015-various-scenes-in-the-rom-switchscene-near-y-gjp)。
 
-Al cambiar, el motor reproduce la transición configurada (fade/cortinilla/tileset), carga imagen/colisión/cámara/actores (con sus áreas y scripts) de la escena nueva y termina de revelarla. Cada escena usa sus propios actores: el que en la escena nueva tiene el script «puerta» es el que reacciona. Detalle completo (incluido cómo se numeran y la música): [10.15 en 10](10-programar-c-gba.md#1015-varias-escenas-en-la-rom-switchscene-near-y-gjp).
-
-> 📖 **Para aprender a fondo, lee [10 — Programar en C para la GBA](10-programar-c-gba.md)**: hardware, mapa de memoria, MODE 3, actores, colisiones, sonido, ejemplos completos de scripts y cheat-sheet final.
+> 📖 **さらに詳しく学ぶには、[10 — GBA 用 C でのプログラミング](10-programar-c-gba.md)**をお読みください: ハードウェア、メモリマップ、モード3。
 
 ---
 
-**Anterior:** [07 — Módulo Diálogo](07-dialogo.md) · **Siguiente:** [09 — Exportar y probar](09-exportar.md)
+**前:** [07 — ダイアログ モジュール](07-dialogo.md) · **次:** [09 — エクスポートとテスト](09-exportar.md)

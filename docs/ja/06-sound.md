@@ -1,44 +1,48 @@
-# 06 — Módulo Sound (Efectos de sonido)
+#06 — サウンドモジュール (効果音)
+
+> **注:** この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
+
+> **注:**この翻訳には誤りが含まれる可能性があります。元のドキュメントはスペイン語で書かれています。
 
 ![Módulo Sound](assets/capturas/tab-sound.png)
 
-El editor **Sound** permite gestionar los efectos de sonido (SFX) del proyecto, reproducirlos para previsualizarlos en tiempo real y configurar cómo se sintetizan para el hardware de audio del GBA.
+**サウンド** エディタを使用すると、プロジェクトのサウンド エフェクト (SFX) を管理し、中断プレビュー用に再生し、GBA のオーディオハードウェア用に合成する方法を設定できます。
 
-## 1. Lista de sonidos (`SOUNDS`)
+## 1. サウンドのリスト (`SOUNDS`)
 
-En la jerarquía lateral izquierda se listan todos los efectos del proyecto:
+本気の交渉には、プロジェクトのすべての効果がリストされています。
 
-- **Crear (+):** añade un nuevo sonido rellenado con un preset por defecto.
-- Cada elemento muestra su **nombre**, su archivo de origen (si tiene) o su duración en segundos (si es sintetizado), e el icono de su tipo (`Pulse`, `Wave` o `Noise`).
+- **作成(+):** は、とりあえずのプリセットで埋め込まれた新しいサウンドを追加します。
+- 各要素には、**名前**、ソースファイル (存在する場合) またはその継続時間 (秒単位) (合成された場合)、およびそのタイプのアイコン (`Pulse`、`Wave`、または `Noise`) が表示されます。
 
-## 2. Inspector de sonido
+##2.音響検査員
 
-### 2.1. Ajustes
+＃＃＃２．１．設定
 
-- **Nombre:** identificador del efecto.
-- **Uso:** **SFX** (efecto puntual) o **Música** (tema de fondo). Determina cómo se integra en el editor y en la exportación.
-- **Archivo:** permite cargar un **WAV/MP3** mediante `+ Cargar WAV/MP3` (botón con borde discontinuo), o desvincularlo (✕) para volver a la síntesis.
-- **Volumen:** nivel del master en porcentaje (0-100%).
-- **Pitch:** afinación relativa, en semitonos (-12 a +12).
-- **Speed:** velocidad de reproducción (0.25x a 4x).
-- **Delay:** retardo inicial del disparo (0-2 s).
-- **Ataque (Attack):** tiempo de subida del volumen (0-1 s).
-- **Release:** tiempo de caída del volumen (0-2 s).
-- **Forma de onda:** previsualización en canvas del audio (sintetizado o importado) con controles de reproducción.
+- **名前:** エフェクトの識別子。
+- **使用方法:** **SFX** (スポットエフェクト) または **音楽** (背景テーマ)。エディタおよびエクスポートにどのように統合されるか決定します。
+- **ファイル:** では、「+Load WAV/MP3」(破線のボタン) を使用して **WAV/MP3** をロードするか、リンクを解除して (✕) 合成に戻ることができます。
+- **音量:** パーセンテージでのマスターレベル (0 ～ 100%)。
+- **ピッチ:** 相対チューニング (半音単位) (-12 ～ +12)。
+- **速度:** 再生速度 (0.25倍から4倍)。
+- **遅延:** 初期トリガー遅延 (0 ～ 2 秒)。
+- **攻撃:** 音量上昇時間(0～1秒)。
+- **リリース:** 音量低下時間 (0 ～ 2 秒)。
+- **波形:** 再生コントロールを使用したオーディオ (合成またはインポート) のキャンバスプレビュー。
 
-### 2.2. Exportación GBA
+＃＃＃２．２． GBAエクドチップに変換する方法を設定します。
 
-Configura cómo el efecto se traduce al chip de sonido:
+- **チャンネルタイプ:** **パルス**、**波形**、または**ノイズ** (再生するPSGオシレーターを定義します)。
+- **周波数/ノート:** エフェクトのベーストーン。
 
-- **Tipo de canal:** **Pulse**, **Wave** o **Noise** (define el oscilador PSG que lo reproducirá).
-- **Frecuencia / Nota:** tono base del efecto.
+![SHOOT: SFXリストと波形を備えたサウンドエディター → `assets/sound-editor.png`]
 
-![CAPTURA: editor de sonido con la lista de SFX y la forma de onda → `assets/sound-editor.png`]
+## 3. アクターとの統合
 
-## 3. Integración con los actores
-
-Una vez creado, el sonido queda disponible en el inspector de cualquier actor del módulo **Mundo**, en el bloque **Audio > Sonido**, para que se dispare ante eventos de colisión, disparadores o acciones del jugador.
+サウンドは作成されると、**World** モジュールの **Audio > Sound** ブロック内の任意のアクターのインスペクターで使用できるようになり、衝突イベント、トリガー、またはプレイヤーのアクションによってトリガーされるようになります。
 
 ---
 
-**Anterior:** [05 — Módulo Music](05-music.md) · **Siguiente:** [07 — Módulo Diálogo](07-dialogo.md)
+**前:** [05 — 音楽モジュール](05-music.md) · **次:** [07 — 対話モジュール](07-dialogo.md)

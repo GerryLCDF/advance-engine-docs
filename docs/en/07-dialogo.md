@@ -1,36 +1,39 @@
-# 07 — Módulo Diálogo (Conversaciones y textos)
+#07 — Dialogue Module (Conversations and texts)
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
 
 ![Módulo Diálogo](assets/capturas/tab-dialogo.png)
 
-El editor **Diálogo** permite crear conversaciones con ramificación, páginas de texto y el vínculo con los NPCs y actores interactivos del mundo. Cada diálogo se organiza en **páginas** y puede tener **opciones** que derivan en otras páginas.
+The **Dialogue** editor allows you to create branching conversations, pages of text, and linking to NPCs and interactive actors in the world. Each dialog is organized into **pages** and can have **options** that lead to other pages.
 
-## 1. Jerarquía lateral
+## 1. Lateral hierarchy
 
-En el árbol lateral se listan los **diálogos** del proyecto. Al seleccionar uno, el inspector permite configurar sus propiedades.
+The **dialogs** of the project are listed in the side tree. When you select one, the inspector allows you to configure its properties.
 
-Cada diálogo muestra una pequeña previsualización de su primera página de texto y, si está vinculado a una escena, el nombre de esa escena.
+Each dialogue shows a small preview of its first page of text and, if linked to a scene, the name of that scene.
 
-## 2. Inspector de diálogo
+## 2. Dialog inspector
 
-### Propiedades del diálogo
-- **Nombre:** identificador del diálogo.
-- **Escena:** escena del módulo **Mundo** a la que está vinculado (o “(sin vínculo)”).
+### Dialog properties
+- **Name:** dialog identifier.
+- **Scene:** scene of the **World** module to which it is linked (or “(unlinked)”).
 
-### Páginas
-Cada página contiene:
-- **Texto:** contenido de la página (área de texto multilínea). El previsualizador de la jerarquía muestra el principio.
-- **Opciones:** respuestas que el jugador puede elegir; cada opción apunta a otra página y permite ramificar la conversación.
+### Pages
+Each page contains:
+- **Text:** page content (multi-line text area). The hierarchy preview shows the beginning.
+- **Options:** responses that the player can choose; each option points to another page and allows the conversation to branch.
 
-## 3. Flujo de trabajo típico
+## 3. Typical workflow
 
-1. Crea un diálogo y asígnale un nombre.
-2. Vincula la **Escena** donde aparecerá el NPC.
-3. Escribe el **Texto** de la primera página.
-4. Añade **Opciones** para ramificar hacia otras páginas (un enlace a tantas opciones por página como respuestas quieras).
-5. En el módulo **Mundo**, selecciona el actor que hablará y asígnale el diálogo en el bloque **Script / Diálogo**.
+1. Create a dialog and give it a name.
+2. Link the **Scene** where the NPC will appear.3. Write the **Text** of the first page.4. Add **Options** to branch to other pages (a link to as many options per page as you want answers).5. In the **World** module, select the actor who will speak and assign the dialogue to him in the **Script / Dialogue** block.
 
-![CAPTURA: diálogo abierto con sus páginas y opciones → `assets/dialogo-editor.png`]
+![SHAPTURE: open dialog with its pages and options → `assets/dialogo-editor.png`]
 
 ---
 
-**Anterior:** [06 — Módulo Sound](06-sound.md) · **Siguiente:** [08 — Scripting](08-scripting.md)
+**Previous:** [06 — Sound Module](06-sound.md) · **Next:** [08 — Scripting](08-scripting.md)

@@ -1,171 +1,155 @@
-# 10 — Programar en C para la Game Boy Advance
+#10 — Programming in C for the Game Boy Advance
 
-> **Aplica a:** el código **C Directo** que escribes en el módulo Sin embargo, se inserta *verbatim* en el `main.c` que genera AdvanceEngine antes del `main()`. Todo lo explicado aquí vale para ese código, y al mismo tiempo es una referencia completa del hardware y del template que produce el motor.
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Note:** This translation may contain errors, as the original documentation was written in Spanish.
+
+> **Applies to:** the **Direct C** code you write in the module However, *verbatim* is inserted into the `main.c` that AdvanceEngine generates before the `main()`. Everything explained here is valid for that code, and at the same time it is a complete reference of the hardware and the template that the engine produces.
 >
-> **Prerrequisito:** contar con **devkitARM** instalado (ver [00 — Primeros pasos](00-inicio.md)). El pipeline genera `main.c` + `Makefile` y compila con `arm-none-eabi-gcc` + `libgba`.
+> **Prerequisite:** have **devkitARM** installed (see [00 — Getting started](00-inicio.md)). The pipeline generates `main.c` + `Makefile` and compiles with `arm-none-eabi-gcc` + `libgba`.
 
 ---
 
-## Índice
+##Index
 
-1. [Conceptos básicos del hardware GBA](#101-conceptos-básicos-del-hardware-gba)
-2. [Mapa de memoria](#102-mapa-de-memoria)
-3. [Registros de entrada/salida (I/O)](#103-registros-de-entradasalida-io)
-4. [Video: el motivo por el que el motor usa MODE 3](#104-video-el-motivo-por-el-que-el-motor-usa-mode-3)
-5. [Tiempo, scanlines y VBLANK (el presupuesto sagrado)](#105-tiempo-scanlines-y-vblank-el-presupuesto-sagrado)
-6. [Estructura del `main.c` generado](#106-estructura-del-mainc-generado)
-7. [Tipos y convenciones del código generado](#107-tipos-y-convenciones-del-código-generado)
-8. [Sistema de actores (las entidades del juego)](#108-sistema-de-actores-las-entidades-del-juego)
-9. [Entrada: leer los botones](#109-entrada-leer-los-botones)
-10. [Movimiento y colisiones](#1010-movimiento-y-colisiones) — incluye las primitivas `movePlatformer` / `moveTopDown`
-11. [Sonido: la APU del GBA](#1011-sonido-la-apu-del-gba)
-12. [Frames, vsyncs y animación](#1012-frames-vsyncs-y-animación)
-13. [El C Directo de tus scripts: contrato y API](#1013-el-c-directo-de-tus-scripts-contrato-y-api)
-14. [Ejemplos de scripts listos para copiar](#1014-ejemplos-de-scripts-listos-para-copiar)
-15. [Varias escenas en la ROM: `switchScene`, `near` y `gJp`](#1015-varias-escenas-en-la-rom-switchscene-near-y-gjp)
-16. [Optimización y reglas de oro](#1016-optimización-y-reglas-de-oro)
-17. [Depuración en la consola real vs. emuladores](#1017-depuración-en-la-consola-real-vs-emuladores)
-18. [Referencia rápida (cheat-sheet)](#1018-referencia-rápida-cheat-sheet)
-19. [Glosario](#1019-glosario)
+1. [GBA Hardware Basics](#101-gba-hardware-basics)
+2. [Memory Map](#102-memory-map)
+3. [Input/Output (I/O) Registers](#103-io-input-output-registers)
+4. [Video: the reason why the engine uses MODE 3](#104-video-the-reason-why-the-engine-uses-mode-3)
+5. [Time, scanlines and VBLANK (the sacred budget)](#105-time-scanlines-and-vblank-the-sacred-budget)
+6. [Structure of the generated `main.c`](#106-structure-of-the-generated-mainc)
+7. [Types and conventions of generated code](#107-types-and-conventions-of-generated-code)
+8. [System of actors (the entities of the game)](#108-system-of-actors-the-entities-of-the-game)
+9. [Input: read the buttons](#109-input-read-the-buttons)10. [Movement and collisions](#1010-movement-and-collisions) — includes the `movePlatformer` / `moveTopDown` primitives11. [Sound: the GBA APU](#1011-sound-the-gba-apu)12. [Frames, vsyncs and animation](#1012-frames-vsyncs-and-animation)
+13. [The Direct C of your scripts: contract and API](#1013-the-direct-c-of-your-scripts-contract-and-api)
+14. [Examples of ready-to-copy scripts](#1014-examples-of-ready-to-copy scripts)
+15. [Various scenes in the ROM: `switchScene`, `near` and `gJp`](#1015-various-scenes-in-the-rom-switchscene-near-y-gjp)
+16. [Optimization and golden rules](#1016-optimization-and-golden-rules)
+17. [Debugging in the real console vs. emulators](#1017-debugging-in-the-real-console-vs-emulators)
+18. [Quick Reference (cheat-sheet)](#1018-quick-reference-cheat-sheet)
+19. [Glossary](#1019-glossary)
 
 ---
 
-## 10.1. Conceptos básicos del hardware GBA
+## 10.1. GBA Hardware Basics
 
-### El SoC y su CPU
+### The SoC and its CPU
 
-La GBA es una consola portátil de Nintendo lanzada en 2001. Su corazón es un **ARM7TDMI**:
+The GBA is a portable console from Nintendo released in 2001. Its heart is an **ARM7TDMI**:
 
-| Propiedad | Valor |
+| Property | Value |
 | :--- | :--- |
-| Arquitectura | ARM7TDMI (RISC de 32 bits) |
-| Modos de instrucción | **ARM** (32 bits, 4 bytes) y **THUMB** (16 bits, 2 bytes) |
-| Reloj de CPU | 16.78 MHz (misma velocidad del bus) |
-| Frecuencia de fotograma | ~59.73 fps (280.896 ciclos por frame) |
-| Rendimiento típico | ~16,8 MIPS (Thumb) / más con ARM |
-| Revisión | Numerosa; la mayoría de ROMs corren en cualquiera |
+| Architecture | ARM7TDMI (32-bit RISC) |
+| Instruction modes | **ARM** (32 bits, 4 bytes) and **THUMB** (16 bits, 2 bytes) |
+| CPU clock | 16.78 MHz (same bus speed) |
+| Frame Rate | ~59.73 fps (280,896 cycles per frame) |
+| Typical performance | ~16.8 MIPS (Thumb) / more with ARM |
+| Review | numerous; most ROMs run on either |The CPU also has a small repertoire: registers R0-R15, CPSR/SPSR. There is no FPU: **you have to avoid all floating points** (see [16](#1016-optimization-and-golden-rules)).
 
-La CPU tiene además un repertorio pequeño: registros R0-R15, CPSR/SPSR. No hay FPU: **todo punto flotante lo tienes que evitar** (ver [16](#1016-optimización-y-reglas-de-oro)).
+The board is conceptually divided into:- **CPU (ARM7TDMI)**- **Video PPU** (modes 0-5, not hardware sprite in MODE 3)
+- **Sound APU** (4 channels: 2 pulse, 1 wave, 1 noise)
+- **BIOS** (blocks some services; cannot be modified)
 
-La placa se divide conceptualmente en:
-
-- **CPU (ARM7TDMI)**
-- **PPU de video** (modos 0-5, sin sprite hardware en MODE 3)
-- **APU de sonido** (4 canales: 2 pulse, 1 wave, 1 ruido)
-- **BIOS** (bloquea algunos servicios; no modificable)
-
-Para nosotros (render por software) la CPU **dibuja cada píxel ella misma**, escribiendo directamente en VRAM. De ahí nace el *presupuesto de VBLANK* (sección 5).
+For us (software rendering) the CPU **draws each pixel itself**, writing directly to VRAM. Hence the *VBLANK budget* (section 5) is born.
 
 ---
 
-## 10.2. Mapa de memoria
+## 10.2. memory map
 
-El GBA expone 32 MB de direcciones. Las regiones que nos importan:
+The GBA exposes 32 MB of addresses. The regions that matter to us:
 
-| Región | Rango | Tamaño | Uso típico | Velocidad |
+| Region | Range | Size | Typical use | Speed ​​|
 | :--- | :--- | :--- | :--- | :--- |
-| **BIOS** | `0x00000000` | 16 KB | Sistemas del sistema (no copiar/leer) | 1 ciclo |
-| **EWRAM** | `0x02000000` | 256 KB | Datos grandes, buffers, tu `gActorBack` | 2 est. (lenta) |
-| **IWRAM** | `0x03000000` | 32 KB | Stack, variables calientes | 1 ciclo (rápida) |
-| **I/O** | `0x04000000` | 1 KB | Registros de video, sonido, entrada | — |
-| **Paleta** | `0x05000000` | 1 KB | Paleta 256×2 (no usado en MODE 3 directo) | — |
-| **VRAM** | `0x06000000` | 96 KB | Framebuffer / tiles / sprites | 1 est. |
-| **OAM** | `0x07000000` | 1 KB | Sprites hardware (no usados por el motor) | — |
-| **ROM (PAK)** | `0x08000000` | ≤ 32 MB | Código + datos constantes | 2-4 est. |
+| **BIOS** | `0x00000000` | 16KB | System Systems (do not copy/read) | 1 cycle |
+| **EWRAM** | `0x02000000` | 256KB | Big data, buffers, your `gActorBack` | 2 est. (slow) |
+| **IWRAM** | `0x03000000` | 32KB | Stack, hot variables | 1 cycle (fast) |
+| **I/O** | `0x04000000` | 1KB | Video, sound, input records | — |
+| **Palette** | `0x05000000` | 1KB | Palette 256×2 (not used in direct MODE 3) | — |
+| **VRAM** | `0x06000000` | 96KB | Framebuffer / tiles / sprites | 1 est. |
+| **OAM** | `0x07000000` | 1KB | Hardware sprites (not used by the engine) | — |
+| **ROM (PAK)** | `0x08000000` | ≤ 32MB | Code + constant data | 2-4 est. |**Key readings:**1. **VRAM in MODE 3** is 96 KB: the 240×160×2 byte framebuffer occupies 76,800 B (75 KB). The corner pixel `(x, y)` lives at `((u16*)0x06000000)[y*240 + x]`. The template does it with `u16* screen = (u16*)VRAM;` and `screen[pos]`.2. **EWRAM is slow** (2 wait states). The engine puts `gActorBack` there because 240×160 does not fit comfortably and it is only read per pixel during rendering.
+3. **IWRAM is the fastest** for variables; the `-O2` compiler already places the stack there via `gba.specs`. Don't declare huge local arrays: the stack is small.
+4. **ROM is read-only** and the `static const` data remains there. Convenient for large tables (sprite frames, period table, scenes).
 
-**Lecturas clave:**
-
-1. **VRAM en MODE 3** son 96 KB: el framebuffer de 240×160×2 bytes ocupa 76.800 B (75 KB). El píxel de la esquina `(x, y)` vive en `((u16*)0x06000000)[y*240 + x]`. El template lo hace con `u16* screen = (u16*)VRAM;` y `screen[pos]`.
-2. **EWRAM es lenta** (2 estados de espera). El motor mete ahí `gActorBack` porque 240×160 no cabe cómodo y es solo lectura por píxel durante el render.
-3. **IWRAM es lo más rápido** para variables; el compilador `-O2` ya coloca el stack ahí vía `gba.specs`. No declares arrays enormes locales: el stack es pequeño.
-4. **ROM es de solo lectura** y los datos `static const` quedan ahí. Cómodo para tablas grandes (frames de sprites, tabla de periodos, escenas).
-
-> En un proyecto AdvanceEngine todo lo anterior ya está bien repartido por el template. Cuando *tú* escribas C Directo intenta respetar esta jerarquía: tablas en `const` (ROM), buffers grandes `static` (EWRAM), variables de trabajo locales (IWRAM).
+> In an AdvanceEngine project, all of the above is already well distributed throughout the template. When *you* write Direct C try to respect this hierarchy: tables in `const` (ROM), large `static` buffers (EWRAM), local work variables (IWRAM).
 
 ---
 
-## 10.3. Registros de entrada/salida (I/O)
+## 10.3. Input/output (I/O) registers
 
-Los registros se direccionan como punteros con `volatile`. El `#include <gba.h>` de libgba ya define la mayoría; el template define los que necesita por seguridad con macros propias:
+Registers are addressed as pointers with `volatile`. libgba's `#include &lt;gba.h&gt;` already defines most of them; The template defines the ones it needs for security with its own macros:
 
-| Registro | Dirección | Acceso | Qué es |
+| Registration | Address | Access | What is it |
 | :--- | :--- | :--- | :--- |
-| `REG_DISPCNT` | `0x04000000` | RW | Control de la pantalla (modo + layers) |
-| `REG_VCOUNT` | `0x04000006` | R | Scanline actual (0-227) |
-| `REG_KEYINPUT` | `0x04000130` | R | Estado de los botones (**0 = pulsado**) |
-| `REG_SND1SWEEP` | `0x04000060` | RW | Canal 1: barrido de frecuencia |
-| `REG_SND1CNT` | `0x04000062` | RW | Canal 1: duty + envolvente |
-| `REG_SND1FREQ` | `0x04000064` | RW | Canal 1: periodo + key on |
-| `REG_SND2CNT` | `0x04000068` | RW | Canal 2: duty + envolvente |
-| `REG_SND2FREQ` | `0x0400006C` | RW | Canal 2: periodo + key on |
-| `REG_SND3CNT_L` | `0x04000070` | RW | Canal 3 (wave): control |
-| `REG_SND3CNT_H` | `0x04000072` | RW | Canal 3 (wave): control alto |
-| `REG_SND3FREQ` | `0x04000074` | RW | Canal 3 (wave): periodo + key on |
-| `REG_SND4CNT` | `0x04000078` | RW | Canal 4 (ruido): envolvente |
-| `REG_SND4FREQ` | `0x0400007C` | RW | Canal 4 (ruido): ratio + key on |
-| `REG_SNDCTL` | `0x04000080` | RW | Control general (volúmenes, enable) |
-| `REG_SNDCNTH` | `0x04000082` | RW | Enable/atención del canal |
-| `REG_SNDCNTX` | `0x04000084` | RW | Volumen del canal |
-| `REG_SNDBIAS` | `0x04000088` | RW | Bias PWM (sesgo del DAC) |
-| Wave RAM | `0x04000090` | RW | 16 muestras de 4 bits del canal 3 |
+| `REG_DISPCNT` | `0x04000000` | RW | Screen control (mode + layers) |
+| `REG_VCOUNT` | `0x04000006` | R | Current Scanline (0-227) || `REG_KEYINPUT` | `0x04000130` | R | Button status (**0 = pressed**) || `REG_SND1SWEEP` | `0x04000060` | RW | Channel 1: frequency sweep |
+| `REG_SND1CNT` | `0x04000062` | RW | Channel 1: duty + surround |
+| `REG_SND1FREQ` | `0x04000064` | RW | Channel 1: period + key on || `REG_SND2CNT` | `0x04000068` | RW | Channel 2: duty + surround |
+| `REG_SND2FREQ` | `0x0400006C` | RW | Channel 2: period + key on |
+| `REG_SND3CNT_L` | `0x04000070` | RW | Channel 3 (wave): control |
+| `REG_SND3CNT_H` | `0x04000072` | RW | Channel 3 (wave): high control |
+| `REG_SND3FREQ` | `0x04000074` | RW | Channel 3 (wave): period + key on |
+| `REG_SND4CNT` | `0x04000078` | RW | Channel 4 (noise): surround |
+| `REG_SND4FREQ` | `0x0400007C` | RW | Channel 4 (noise): ratio + key on |
+| `REG_SNDCTL` | `0x04000080` | RW | General control (volumes, enable) |
+| `REG_SNDCNTH` | `0x04000082` | RW | Enable/channel attention |
+| `REG_SNDCNTX` | `0x04000084` | RW | Channel volume |
+| `REG_SNDBIAS` | `0x04000088` | RW | PWM Bias (DAC Bias) |
+| Wave RAM | `0x04000090` | RW | 16 4-bit samples of channel 3 |
 
-El template genera estas definiciones útiles en casi todos los main.c:
-
+The template generates these useful definitions in almost every main.c:
 ```c
 #define REG_SND1SWEEP *(vu16*)(0x04000060)
 #define REG_SND2CNT   *(vu16*)(0x04000068)
 // ... y así con todos los de sonido
 ```
-
-**Regla de oro de los registros:** acceder siempre a través de punteros `volatile`. Libgba los llama `REG_*/IO_*`; el template usa `REG_DISPCNT`, `REG_VCOUNT`, `REG_KEYINPUT`.
+**Golden rule of registries:** always access through `volatile` pointers. Libgba calls them `REG_*/IO_*`; the template uses `REG_DISPCNT`, `REG_VCOUNT`, `REG_KEYINPUT`.
 
 ---
 
-## 10.4. Video: el motivo por el que el motor usa MODE 3
+## 10.4. Video: the reason why the engine uses MODE 3
 
-El GBA tiene 6 modos de video:
+The GBA has 6 video modes:
 
-| Modo | Tipo | Pantalla |
+| Mode | Type | Screen |
 | :--- | :--- | :--- |
-| 0 | Tiles 4 BG, todo por carácter | 4 planos |
-| 1 | Tiles + 1 rotación/escala | — |
-| 2 | Tiles rotación/escala | 2 BG |
-| **3** | **Bitmap 240×160, 16-bit por píxel** | **1 framebuffer** |
-| 4 | Bitmap 240×160, 8-bit + paleta | 1-2 framebuffers |
+| 0 | Tiles 4 BG, all per character | 4 plans |
+| 1 | Tiles + 1 rotation/scale | — |
+| 2 | Rotation/scale tiles | 2 BG |
+| **3** | **Bitmap 240×160, 16-bit per pixel** | **1 framebuffer** |
+| 4 | Bitmap 240×160, 8-bit + palette | 1-2 framebuffers |
 | 5 | Bitmap 160×128, 16-bit | 1-2 framebuffers |
 
-**AdvanceEngine usa MODE 3**: el más sencillo para un render por software. `main()` hace:
-
+**AdvanceEngine uses MODE 3**: the simplest for software rendering. `main()` does:
 ```c
 REG_DISPCNT = MODE_3 | BG2_ENABLE;
 u16* screen = (u16*)VRAM;
 ```
+-
+ Each pixel is a `u16` (2 bytes) in **RGB555 format**.
+- BG2_ENABLE (bit 10 = 0x400) activates the plane on which it is drawn.
+- There are no hardware sprites in bitmap mode: **the engine actors are drawn by the CPU** (see section 8).
 
-- Cada píxel es un `u16` (2 bytes) en **formato RGB555**.
-- BG2_ENABLE (bit 10 = 0x400) activa el plano sobre el que se dibuja.
-- No hay sprites hardware en modo bitmap: **los actores del motor los dibuja la CPU** (ver sección 8).
-
-### El formato de píxel RGB555
-
+### RGB555 pixel format
 ```
 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
  x  B  B  B  B  B G G G G G R R R R R
     x  ·          bits del color         ·
 ```
+-
+ Red (5 bits), green (5), blue (5) = **32 levels per channel** → 32,768 possible colors.
+- Bit 15 is not used in MODE 3 (the template reserves it for internal sprite markers: **bit15 = 1 means transparent pixel** in the actors' frames).
 
-- Rojo (5 bits), verde (5), azul (5) = **32 niveles por canal** → 32.768 colores posibles.
-- El bit 15 no se usa en MODE 3 (el template lo reserva para marcadores internos del sprite: **bit15 = 1 significa píxel transparente** en los frames de los actores).
-
-Para convertir un color CSS/RGB (0-255) al valor GBA usa la misma fórmula que el motor:
-
+To convert a CSS/RGB color (0-255) to the GBA value use the same formula as the engine:
 ```c
 #define RGB555(r, g, b) ((((r) >> 3) | (((g) >> 3) << 5) | (((b) >> 3) << 10)) & 0x7FFF)
 ```
+Example
+: `RGB555(255, 0, 0)` → `0x7C00` (pure red), `RGB555(0,0,255)` → `0x001F` (pure blue), white → `0x7FFF`.
 
-Ejemplo: `RGB555(255, 0, 0)` → `0x7C00` (rojo puro), `RGB555(0,0,255)` → `0x001F` (azul puro), blanco → `0x7FFF`.
-
-### Escribir un píxel / rellenar la pantalla
-
+### Write a pixel / fill the screen
 ```c
 // Un píxel
 screen[y * 240 + x] = RGB555(255, 255, 255);
@@ -174,51 +158,48 @@ screen[y * 240 + x] = RGB555(255, 255, 255);
 for (i = 0; i < PIXEL_COUNT; i++) screen[i] = color;
 // con PIXEL_COUNT = 240*160 = 38400
 ```
-
-> **No escribas VRAM fuera del VBLANK** si puedes evitarlo: verás artefactos ("tearing"). El motor dibuja la escena dentro de `waitVSync()`. Los scripts que muestran texto propio deberían hacer lo mismo.
+> **Don't write VRAM outside of VBLANK** if you can avoid it: you will see tearing. The engine draws the scene inside `waitVSync()`. Scripts that display your own text should do the same.
 
 ---
 
-## 10.5. Tiempo, scanlines y VBLANK (el presupuesto sagrado)
+## 10.5. Time, scanlines and VBLANK (the sacred budget)
 
-### Cronometraje real de la consola
+### Current console timing
 
-- El LCD dibuja **228 líneas por frame**: 160 visibles + 68 de blanking.
-- Cada línea dura **1232 ciclos** de CPU.
-- Frame total = 228 × 1232 = **280.896 ciclos** → **59,73 fps**.
-- El intervalo donde la pantalla no barre (VBLANK) = 68 × 1232 = **~83.800 ciclos**.
-
+- The LCD draws **228 lines per frame**: 160 visible + 68 blanking.
+- Each line lasts **1232 CPU cycles**.
+- Total frame = 228 × 1232 = **280,896 cycles** → **59.73 fps**.
+- The interval where the screen does not scan (VBLANK) = 68 × 1232 = **~83,800 cycles**.
 ```c
 static void waitVSync(void) {
   while (REG_VCOUNT >= SCREEN_H);   // esperar a que deje la zona visible
   while (REG_VCOUNT < SCREEN_H);    // y que entre en la zona de blanking
 }
 ```
+The
+ template calls `waitVSync()` on each turn of the game loop. Between one `waitVSync()` and the next **you can do ~83,800 work cycles without losing the frame**.
 
-El template llama `waitVSync()` en cada vuelta del bucle de juego. Entre un `waitVSync()` y el siguiente **puedes hacer ~83.800 ciclos de trabajo sin perder el frame**.
+### The budget rule
 
-### La regla del presupuesto
+If your frame does more work than can fit in VBLANK:
 
-Si tu frame hace más trabajo del que cabe en VBLANK:
+1. The next frame is eaten; the game loop **drops to ~30 fps** (or worse).
+2. Animations (delayed in vsyncs) slow down.
+3. On the real console you will see *flickers* in the lower area where the LCD has already captured the rect of the last actor.
 
-1. El frame siguiente se come; el game loop **baja a ~30 fps** (o peor).
-2. Las animaciones (retardadas en vsyncs) se ralentizan.
-3. En consola real verás *parpadeos* en la zona inferior donde el LCD ya pilló el rect del último actor.
+The engine is optimized so that this does not happen (see [16](#1016-optimization-and-golden-rules)):
 
-El motor está optimizado para que esto no pase (ver [16](#1016-optimización-y-reglas-de-oro)):
+- Actor rendering costs **~15 cycles per opaque pixel** (drawn and erased in a single pass).
+- Rule of thumb: **~5,600 px of in-camera sprite per frame** fits loosely.
+- Off-camera actors barely cost (rect clamp → 0 work per pixel).
 
-- El render de actores cuesta **~15 ciclos por píxel opaco** (dibujado y borrado en una sola pasada).
-- Regla práctica: **~5.600 px de sprite en cámara por frame** caben holgados.
-- Los actores fuera de cámara apenas cuestan (clamp del rect → 0 trabajo por píxel).
-
-**Tus scripts deben ser ligeros:** unas decenas de operaciones por actor por frame son irrelevantes; bucles anidados de miles de iteraciones dentro del VBLANK romperán el ritmo.
+**Your scripts must be lightweight:** a few dozen operations per actor per frame are irrelevant; Nested loops of thousands of iterations within the VBLANK will break the rhythm.
 
 ---
 
-## 10.6. Estructura del `main.c` generado
+## 10.6. Structure of the generated `main.c`
 
-Un `main.c` de AdvanceEngine sigue este orden (parcial dependiendo del proyecto):
-
+An AdvanceEngine `main.c` follows this order (partial depending on the project):
 ```
 1.  Encabezado (nombre, autor, fecha)
 2.  #include <gba.h> y <string.h>
@@ -235,9 +216,7 @@ Un `main.c` de AdvanceEngine sigue este orden (parcial dependiendo del proyecto)
 13. Scripts de usuario (tu C Directo) + userScriptsInit/Update
 14. int main() { init, splash, fill, sceneInit, sceneLoop }
 ```
-
-### `main()` visto por dentro
-
+### `main()` seen inside
 ```c
 int main() {
   REG_DISPCNT = MODE_3 | BG2_ENABLE;
@@ -250,9 +229,7 @@ int main() {
   // sceneLoop();   -> while(1) { waitVSync(); actorLoopBody(); }
 }
 ```
-
-### Funciones de la escena (te serán visibles desde tus scripts)
-
+### Scene functions (they will be visible to you from your scripts)
 ```c
 // Fondo de la escena (framebuffer)
 const u16 sceneData[PIXEL_COUNT] = { ... };  // o SCENE_COLOR
@@ -269,47 +246,44 @@ static void advanceAllActors(void);   // animación automática de sprites
 static void updatePlayer(void);       // input + colisiones + empuje actor-actor
 static void drawAllActors(u16* screen); // orden z + píxeles
 ```
-
-> Tú no escribes `main()`. Tu código se inserta **un nivel por debajo**: un archivo válido que solo existe por sus funciones `script_init`/`script_update` (ver [13](#1013-el-c-directo-de-tus-scripts-contrato-y-api)).
+> You don't write `main()`. Your code is inserted **one level below**: a valid file that only exists because of its `script_init`/`script_update` functions (see [13](#1013-the-direct-c-of-your-scripts-contract-and-api)).
 
 ---
 
-## 10.7. Tipos y convenciones del código generado
+## 10.7. Types and conventions of generated code
 
-libgba define los tipos que usa el template (`#include <gba.h>`):
+libgba defines the types used by the template (`#include &lt;gba.h&gt;`):
 
-| Tipo | Ancho | Volátil | Signo | Para qué |
+| Type | Width | Volatile | Sign | For what |
 | :--- | :--- | :--- | :--- | :--- |
-| `s8` `/` `s16` `/` `s32` | 8/16/32 | sí | con signo | matemática |
-| `u8` `/` `u16` `/` `u32` | 8/16/32 | no | sin | datos, colores, direcciones |
-| `vu8` `/` `vu16` `/` `vu32` | 8/16/32 | **sí** | sin | registros de hardware |
-| `int` | 32 | no | con | bucles y aritmética por defecto |
+| `s8` `/` `s16` `/` `s32` | 8/16/32 | yes | with sign | mathematics |
+| `u8` `/` `u16` `/` `u32` | 8/16/32 | not | without | data, colors, addresses |
+| `vu8` `/` `vu16` `/` `vu32` | 8/16/32 | **yes** | without | hardware logs |
+| `int` | 32 | not | with | loops and default arithmetic |
 
-Convenciones del template que deberías respetar en tus scripts:
+Template conventions that you should respect in your scripts:
 
-- **Todo es 32 bits por defecto.** No uses `long` a lo loco: `int` cuesta igual y más simple.
-- Los colores y valores de registro son `u16`.
-- Las posiciones de actores son `s16` (rango ±32767; fuera de ahí te preguntarás por qué se rompen).
-- Las funciones estáticas del template pueden llamarse desde tus scripts porque están definidas **arriba** de la sección de scripts (mismo archivo, mismo scope). No necesitas prototipos.
-- Los símbolos `static` dentro de tus scripts (variables auxiliares) son perfectos porque tu bloque vive al nivel del archivo.
+- **Everything is 32 bits by default.** Don't use `long` like crazy: `int` costs the same and is simpler.
+- Registration colors and values ​​are `u16`.
+- Actor positions are `s16` (range ±32767; outside of that you'll wonder why they break).
+- The template's static functions can be called from your scripts because they are defined **above** the scripts section (same file, same scope). You don't need prototypes.
+- `static` symbols inside your scripts (auxiliary variables) are perfect because your block lives at the file level.
 
-### Atributos de sección que verás en el código
-
+### Section attributes that you will see in the code
 ```c
 static u16 gActorBack[240*160] __attribute__((section(".ewram"), aligned(4)));
 ```
+-
+ `section(".ewram")` → places the buffer in EWRAM (256 KB) instead of in the BSS. 240×160×2 = 76,800 B does not fit in stack-rooted IWRAM.
+- `aligned(4)` → efficient mid-word access.
 
-- `section(".ewram")` → coloca el buffer en EWRAM (256 KB) en vez de en el BSS. 240×160×2 = 76.800 B no cabe en IWRAM stack-rooted.
-- `aligned(4)` → acceso eficiente a mitad de palabra.
-
-Consejo: para tu propio buffer grande (p. ej. un mini-buffer de texto), aplica el mismo atributo; si lo declaras local te explota el stack (32 KB).
+Tip: for your own large buffer (e.g. a mini-text buffer), apply the same attribute; If you declare it local, your stack explodes (32 KB).
 
 ---
 
-## 10.8. Sistema de actores (las entidades del juego)
+## 10.8. Actor system (the game entities)
 
-### El struct `GBAActor`
-
+### The `GBAActor` struct
 ```c
 typedef struct {
   s16 x, y;         // posición top-left del sprite EN PANTALLA (relativa a cámara)
@@ -333,18 +307,14 @@ typedef struct {
   u8 animSpeed;                // paso por vsync del avance (0/1 = cadencia exacta, 2+ = más rápido)
 } GBAActor;
 ```
-
-`GBAFrame` es:
-
+`GBAFrame` is:
 ```c
 typedef struct {
   const u16* img;  // píxeles RGB555; bit15=1 => transparente
   u16 w, h;
 } GBAFrame;
 ```
-
-### La lista global
-
+### The global list
 ```c
 #define ACTOR_COUNT  <n>        // 1..64
 #define PLAYER_INDEX 0          // el actor 0 es "el jugador"
@@ -354,29 +324,23 @@ typedef struct {
 
 static GBAActor gActors[ACTOR_COUNT];
 ```
+### Life cycle of an actor
 
-### Ciclo de vida de un actor
-
-1. **`initActors()`** (dentro de `sceneInit`): posiciona actores, engancha `frames[]` y `delays[]` a imágenes del pool, ajusta `mode`, `hasCollider`, `cw/ch`.
-2. **`advanceAllActors()`** (cada frame): si `frameCount > 1`, incrementa `timer`; cuando `timer >= delays[frame]` avanza el `frame` según el `mode`:
-   - `mode 0` (*once*): sube hasta `frameCount-1` y se queda.
+1. **`initActors()`** (inside `sceneInit`): positions actors, hooks `frames[]` and `delays[]` to images in the pool, sets `mode`, `hasCollider`, `cw/ch`.
+2. **`advanceAllActors()`** (every frame): if `frameCount > 1`, increment `timer`; when `timer >= delays[frame]` advances the `frame` according to the `mode`:
+   - `mode 0` (*once*): goes up to `frameCount-1` and stays.
    - `mode 1` (*loop*): `(frame+1) % frameCount`.
-   - `mode 2` (*pingpong*): sube/baja alternando según `dir`.
-3. **`updatePlayer()`** (cada frame, solo si `gActors[PLAYER_INDEX].hasCollider == 1`): mueve al jugador con colisiones **a menos que el jugador tenga un script asignado** (en ese caso lo mueve tu `script_update`) y empuja a otros actores. (ver seccion 9, 10 y 10.14).
-4. **`drawAllActors(screen)`** (cada frame): ordena por `z` y dibuja `drawActorRect` uno a uno.
+   - `mode 2` (*pingpong*): goes up/down alternating according to `dir`.
+3. **`updatePlayer()`** (every frame, only if `gActors[PLAYER_INDEX].hasCollider == 1`): moves the player with collisions **unless the player has a script assigned** (in which case it is moved by your `script_update`) and pushes other actors. (see sections 9, 10 and 10.14).
+4. **`drawAllActors(screen)`** (each frame): sort by `z` and draw `drawActorRect` one by one.
 
-### La cadencia de la animación y `animSpeed`
+### The animation cadence and `animSpeed`
 
-`advanceAllActors()` hace avanzar el `timer` de cada actor y pasa al siguiente `frame` cuando `timer >= delays[frame]`. Es decir:
+`advanceAllActors()` advances the `timer` of each actor and moves to the next `frame` when `timer >= delays[frame]`. That is to say:- **Base speed**: `delays[frame]` vsyncs per frame (the exporter calculates it in the editor from the duration of each frame of the sprite). With delays of 6 vsyncs → 10 fps animation.- **`animSpeed`** (actor field, `0/1` = normal): Every vsync the `timer` advances `animSpeed` ticks instead of 1. It is written by your script and only affects the actor that touches it. - **There is no automatic acceleration**: the motor does NOT increase the speed of anyone for moving (neither the walker nor the NPCs). Any speed other than the exact cadence comes out of your code.
 
-- **Velocidad base**: `delays[frame]` vsyncs por frame (el exportador lo calcula en el editor a partir de la duración de cada frame del sprite). Con `delays` de 6 vsyncs → 10 fps de animación.
-- **`animSpeed`** (campo del actor, `0/1` = normal): cada vsync el `timer` avanza `animSpeed` ticks en vez de 1. Lo escribe tu script y solo afecta al actor que lo toca.
-- **No hay aceleración automática**: el motor NO sube la velocidad de nadie por moverse (ni del que camina ni de los NPC). Toda velocidad distinta de la cadencia exacta sale de tu código.
+#### Accelerate your stride only when walking
 
-#### Acelerar la zancada solo al caminar
-
-El uso típico es que la animación del que camina acompañe el desplazamiento. En `script_update` sube `animSpeed` mientras mueves con `gSelf` y lo devuelves a `1` al soltar:
-
+The typical use is for the animation of the walker to accompany the movement. In `script_update` raise `animSpeed` while moving with `gSelf` and return it to `1` when releasing:
 ```c
 static void script_update(void) {
   u16 keys = ~REG_KEYINPUT & 0x3FF;
@@ -388,58 +352,48 @@ static void script_update(void) {
   }
 }
 ```
+It
+ only changes the animation of the actor whose `animSpeed` you tap; the rest of the scene continues with its exact cadence even though the world moves.
 
-Solo cambia la animación del actor cuyo `animSpeed` tocas; el resto de la escena sigue con su cadencia exacta aunque el mundo se mueva.
-
-### To-codigo ejemplo: leer el actor del jugador
-
+### To-code example: read player actor
 ```c
 void script_update(void) {
   GBAActor* p = &gActors[PLAYER_INDEX];
   p->x += 1;            // mueves 1 px por frame (60 px/s)
 }
 ```
+**Actors API Tips from Scripts:**
 
-**Consejos de la API de actores desde scripts:**
-
-- Cada vuelta de `script_update` ejecuta **después** de `advanceAllActors`/`updatePlayer` y **antes** de `drawAllActors`. O sea: lees estado ya animado y tus cambios se pintan ese mismo frame.
-- Para "saltar" a un frame concreto de la animación: `a->frame = k; a->timer = 0;`
-- Para usar otra animación (otro set de frames) necesitarías re-mapear `a->frames[i]`; en la versión actual de export el set está fijado en `initActors`. Puedes cambiar `a->frame` y `a->mode`, o compartir frames entre actores (el pool deduplica imágenes).
-- `z` controla quién tapa a quién. Cámbialo a voluntad (incluso cada frame) para efectos "clase de profundidad".
-- `vx`/`vy` son campos **libres**: úsalos para tu propia física (gravedad, obstáculos, NPCs).
+- Each round of `script_update` runs **after** `advanceAllActors`/`updatePlayer` and **before** `drawAllActors`. That is to say: you read the animated state and your changes are painted in that same frame.
+- To "jump" to a specific frame of the animation: `a->frame = k; a->timer = 0;`
+- To use another animation (another set of frames) you would need to remap `a->frames[i]`; in the current version of export the set is set to `initActors`. You can change `a->frame` and `a->mode`, or share frames between actors (the pool deduplicates images).
+- `z` controls who covers who. Change it at will (even every frame) for "depth class" effects.
+- `vx`/`vy` are **free** fields: use them for your own physics (gravity, obstacles, NPCs).
 
 ---
 
-## 10.9. Entrada: leer los botones
+## 10.9. Input: read buttons
 
-### La verdad sobre `REG_KEYINPUT`
+### The truth about `REG_KEYINPUT`
 
-`REG_KEYINPUT` es un registro de 16 bits de solo lectura en `0x04000130`.
+`REG_KEYINPUT` is a read-only 16-bit register at `0x04000130`.
 
-**Bit = 0 significa botón PULSADO** (activo por nivel bajo). Bit = 1 significa suelto.
+**Bit = 0 means button PRESSED** (active due to low level). Bit = 1 means loose.
 
-| Bit | Botón | Bit | Botón |
+| Bit | Button | Bit | Button |
 | :--- | :--- | :--- | :--- |
 | 0 | **A** | 5 | **←** (LEFT) |
 | 1 | **B** | 6 | **↑** (UP) |
 | 2 | **SELECT** | 7 | **↓** (DOWN) |
 | 3 | **START** | 8 | **R** |
-| 4 | **→** (RIGHT) | 9 | **L** |
-
-Los bits 10-15 están sin cablear (los ignoras, no los leas).
-
-> ⚠️ Es el **mapa real del GBA** (`b0=A, b1=B, b2=SELECT, b3=START, b4=RIGHT, b5=LEFT, b6=UP, b7=DOWN, b8=R, b9=L`). No lo confundas: el comtexto inverso te dará un jugador que anda al revés. Será un bug muy habitual.
-
-### El patrón estándar para "botón pulsado"
-
+| 4 | **→** (RIGHT) | 9 | **L** |Bits 10-15 are unwired (you ignore them, don't read them).> ⚠️ It is the **real GBA map** (`b0=A, b1=B, b2=SELECT, b3=START, b4=RIGHT, b5=LEFT, b6=UP, b7=DOWN, b8=R, b9=L`). Don't confuse it: the reverse context will give you a player who walks backwards. It will be a very common bug.### The standard pattern for "button pressed"
 ```c
 u16 keys = ~REG_KEYINPUT & 0x3FF;   // invertir bits + enmascarar a los 10 botones
 if (keys & (1 << 0)) { /* A pulsado */ }
 if (keys & (1 << 4)) { /* derecha */ }
 ```
-
-El template trae los botones ya enmascarados con constantes, para no contar shifts a mano:
-
+The
+ template has the buttons already masked with constants, so as not to count shifts by hand:
 ```c
 #define KEY_RIGHT 0x010
 #define KEY_LEFT  0x020
@@ -451,13 +405,12 @@ El template trae los botones ya enmascarados con constantes, para no contar shif
 
 if (keys & KEY_RIGHT) { /* derecha */ }
 ```
+And
+ `movePlayer()` moves the player with [`moveTopDown`](#move-primitives-ready-to-use):
 
-Y `movePlayer()` mueve al jugador con [`moveTopDown`](#primitivas-de-movimiento-listos-para-usar):
+### Detect "just pressed" (edges: edge/rising)
 
-### Detectar "recién pulsado" (flancos: edge/rising)
-
-El D-pad "mantener" mueve cada frame. Para saltar o disparar solo **en el frame en que se presiona** guarda el estado anterior:
-
+The D-pad "hold" moves each frame. To jump or shoot only **in the frame in which it is pressed** save the previous state:
 ```c
 static u16 prevKeys = 0;
 
@@ -470,25 +423,22 @@ void script_update(void) {
   if (justPressed & (1 << 0)) { /* acción de salto: se dispara UNA vez */ }
 }
 ```
+### Simultaneous and priority controls
 
-### Controles en simultáneo y prioridad
-
-- `justPressed` es un conjunto de bits: puedes exigir **combinaciones**:
-
+- `justPressed` is a set of bits: you can require **combinations**:
 ```c
 if ((justPressed & (1 << 0)) && (justPressed & (1 << 1))) { /* A+B */ }
 ```
-
-- Decide tú la prioridad en el código: `if / else if` es más predecible que varias comprobaciones independientes que provoquen "picos".
+-
+ You decide the priority in the code: `if / else if` is more predictable than several independent checks that cause "spikes".
 
 ---
 
-## 10.10. Movimiento y colisiones
+## 10.10. Movement and collisions
 
-### Coordenadas y cámara
+### Coordinates and camera
 
-En el mundo del template, cada actor guarda su posición **en pantalla** (`x, y`), porque el motor está pensado para pantalla fija 240×160. `CAM_X/CAM_Y` suman un offset de mundo a la colisión:
-
+In the world of the template, each actor saves its position **on screen** (`x, y`), because the engine is designed for a fixed 240×160 screen. `CAM_X/CAM_Y` add a world offset to the collision:
 ```c
 // Coordenadas del collider en el MUNDO:
 static inline void actorBox(const GBAActor* a, s16* bx, s16* by, s16* bw, s16* bh) {
@@ -498,13 +448,12 @@ static inline void actorBox(const GBAActor* a, s16* bx, s16* by, s16* bw, s16* b
   *by = a->y + CAM_Y + (a->h - *bh) / 2;
 }
 ```
+-
+ If in the World inspector the actor has **collider**, the template fills `cw/ch` with its size (or that of the sprite if not). The collider is **centered** on the sprite.
 
-- Si en el inspector de Mundo el actor tiene **collider**, el template rellena `cw/ch` con su tamaño (o el del sprite si no). El collider queda **centrado** sobre el sprite.
+### The collision map and its tile types
 
-### El mapa de colisiones y sus tipos de tile
-
-Si tu escena tiene mapa de colisiones (editado en el Módulo Mundo), el template emite:
-
+If your scene has a collision map (edited in the World Module), the template emits:
 ```c
 #define COLLISION_COLS ...
 #define COLLISION_ROWS ...
@@ -513,19 +462,17 @@ Si tu escena tiene mapa de colisiones (editado en el Módulo Mundo), el template
 #define CAM_Y ...
 const u8 collisionMap[ROWS][COLS] = { ... };
 ```
+**Tile values on the map** (according to `solidTile`):
 
-**Valores de tile en el mapa** (según `solidTile`):
-
-| Valor | Tipo | Bloquea |
+| Value | Type | Blocks |
 | :--- | :--- | :--- |
-| `0` | Vacío | nada |
-| `1` | Sólido | siempre |
-| `2` | One-way ↑ | solo al **caer** (dirY > 0) |
-| `3` | One-way ↓ | solo al **subir** (dirY < 0) |
-| `4` | One-way ← | solo yendo a la **derecha** (dirX > 0) |
-| `5` | One-way → | solo yendo a la **izquierda** (dirX < 0) |
-| `6` | Escalera | pasable (no bloquea) |
-
+| `0` | Empty | nothing |
+| `1` | Solid | always |
+| `2` | One-way ↑ | only when **falling** (Ydir > 0) |
+| `3` | One-way ↓ | only when **up** (dirY < 0) |
+| `4` | One-way ← | only going **right** (Xdir > 0) |
+| `5` | One-way → | only going **left** (Xdir < 0) |
+| `6` | Staircase | passable (does not block) |
 ```c
 static inline u8 solidTile(u8 v, int dirX, int dirY) {
   if (v == 1) return 1;                      // sólido
@@ -536,10 +483,9 @@ static inline u8 solidTile(u8 v, int dirX, int dirY) {
   return 0;
 }
 ```
-
-### `rectHitsSolid` y `moveActorCollide`
-
-```c
+### `rectHitsSolid` and `moveActorCollide
+```
+`c
 // ¿El rectángulo de mundo (bx,by,bw,bh) toca algún tile sólido PARA la
 // dirección (dx,dy)?
 static inline int rectHitsSolid(s16 bx, s16 by, s16 bw, s16 bh, s16 dx, s16 dy);
@@ -548,11 +494,9 @@ static inline int rectHitsSolid(s16 bx, s16 by, s16 bw, s16 bh, s16 dx, s16 dy);
 // se mueve, comprueba, y si choca, revierte.
 static void moveActorCollide(GBAActor* a, s16 dx, s16 dy);
 ```
+`moveActorCollide` is the best tool: it allows you to slide on walls (it doesn't get stuck on diagonals). Use it with **small displacements** (2-4 px per frame).
 
-`moveActorCollide` es la mejor herramienta: permite deslizar por paredes (no se atasca en diagonales). Úsalo con **desplazamientos pequeños** (2-4 px por frame).
-
-### Empuje actor-actor
-
+### Actor-actor push
 ```c
 static void updatePlayer(void) {
   GBAActor* p = &gActors[PLAYER_INDEX];
@@ -563,13 +507,12 @@ static void updatePlayer(void) {
   // menor intrusión (AABB)
 }
 ```
+That
+ is to say: the player **pushes** the others (if they both have a collider). So that an NPC doesn't do it, let him have `hasCollider = 0` (or only he doesn't collide). If you want *everyone* to push each other, replicate that loop in your script.
 
-O sea: el jugador **empuja** a los demás (si ambos tienen collider). Para que un NPC no lo haga, déjale `hasCollider = 0` (o que solo él no colisione). Si quieres que *todos* se empujen entre sí, replica ese bucle en tu script.
+### Manual physics with integers (gravity without float)
 
-### Física manual con enteros (gravedad sin float)
-
-Ejemplo de física "gravedad simple" para un NPC, usando `vx/vy` y un collider:
-
+Example of "simple gravity" physics for an NPC, using `vx/vy` and a collider:
 ```c
 void script_update(void) {
   GBAActor* e = &gActors[1];       // un "enemigo"
@@ -584,15 +527,13 @@ void script_update(void) {
   if (e->vx > 0) moveActorCollide(e, 1, 0); else moveActorCollide(e, -1, 0);
 }
 ```
+> Since the positions are integral, the "1 px per frame squared" gravity works fine at 60 fps. Don't claim to duplicate with `/=2` if it's not a power of 2 (see [16](#1016-optimization-and-golden-rules)).
 
-> Como las posiciones son enteros, la gravedad "1 px por frame al cuadrado" funciona fina a 60 fps. No clames duplicar con `/=2` si no es potencia de 2 (ver [16](#1016-optimización-y-reglas-de-oro)).
+### Movement primitives (out of the box)
 
-### Primitivas de movimiento (listos para usar)
+Writing the physics by hand for each game is repetitive, so the template comes with **two already solved primitives** that you just have to call. They are not prefabricated "bases" or "levels": the level is already your tile map, and the only thing that changes between a platformer and a topdown maze is what primitive you call.
 
-Escribir la física a mano para cada juego es repetitivo, así que el template trae **dos primitivas ya resueltas** que solo tienes que llamar. No son "bases" ni "niveles" prefabricados: el nivel ya es tu mapa de tiles, y lo único que cambia entre un plataformas y un laberinto topdown es qué primitiva llamas.
-
-**Todo se ajusta con `#define`s**, así que el comportamiento se cambia en un sitio y afecta a todos tus scripts:
-
+**Everything is wrapped with `#define`s**, so the behavior is changed on one site and affects all your scripts:
 ```c
 #define WALK_SPEED 2        // px/vsync horizontal máximo
 #define RUN_SPEED 3         // con R/L (shoulder)
@@ -605,54 +546,46 @@ Escribir la física a mano para cada juego es repetitivo, así que el template t
 #define JUMP_BUFFER 5       // vsyncs que un salto espera a que haya suelo
 #define JUMP_CUT_VEL -3     // salto corto: soltar A corta la subida
 ```
-
-#### `movePlatformer(actor, keys)` — plataformas
-
+#### `movePlatformer(actor, keys)` — platforms
 ```c
 static void movePlatformer(GBAActor* a, u16 keys);
 ```
+Gravity
+ + jump "from Orphan Knife", with the three aids that make a jump feel good:
 
-Gravedad + salto "de Orphan Knife", con las tres ayudas que hacen que un salto se sienta bien:
+- **Coyote time**: If you just left a platform, you can still jump during `COYOTE_FRAMES`. Press A mid-frame after leaving the edge and the jump counts.
+- **Jump buffer**: If you press A until `JUMP_BUFFER` vsyncs *before* touching the ground, the jump is saved and triggered upon landing. Avoid the "I pressed late and it didn't jump."
+- **Variable jump**: releasing A while climbing cuts the speed to `JUMP_CUT_VEL`. Hold down = high jump; one touch = short jump.
+- **one-way** tiles only block if you are falling, so you can go up through them.
 
-- **Coyote time**: si acabas de salir de una plataforma, aún puedes saltar durante `COYOTE_FRAMES`. Pulsa A medio frame después de abandonar el borde y el salto cuenta.
-- **Jump buffer**: si pulsas A hasta `JUMP_BUFFER` vsyncs *antes* de tocar suelo, el salto se guarda y se dispara al aterrizar. Evita el "pulsé tarde y no saltó".
-- **Salto variable**: soltar A mientras subes recorta la velocidad a `JUMP_CUT_VEL`. Mantenerlo pulsado = salto alto; un toque = salto corto.
-- Los tiles **one-way** solo bloquean si vienes cayendo, así que puedes subir atravesándolos.
-
-Tu script completo de plataformas es literalmente esto:
-
+Your full platform script is literally this:
 ```c
 void script_update(void) {
   u16 keys = ~REG_KEYINPUT & 0x3FF;
   movePlatformer(gSelf, keys);
 }
 ```
-
-#### `moveTopDown(actor, keys)` — laberinto / RPG / menús
-
+#### `moveTopDown(actor, keys)` — maze / RPG / menus
 ```c
 static void moveTopDown(GBAActor* a, u16 keys);
 ```
-
-Cuatro direcciones con aceleración y frenada, **sin gravedad**. Correr con `R`/`L`:
-
+Four
+ directions with acceleration and braking, **without gravity**. Run with `R`/`L`:
 ```c
 void script_update(void) {
   u16 keys = ~REG_KEYINPUT & 0x3FF;
   moveTopDown(gSelf, keys);
 }
 ```
+If
+ the actor hits a tile, that speed is set to 0 (so as not to get "stuck" to the wall with the maximum loaded speed).
 
-Si el actor choca contra un tile, esa velocidad se pone a 0 (para no quedarse "pegado" al muro con la velocidad máxima cargada).
-
-#### `onFloor(actor)` — ¿está en el suelo?
-
+#### `onFloor(actor)` — is it on the floor?
 ```c
 static int onFloor(GBAActor* a);
 ```
-
-Mira un tile por debajo del collider. Útil para tus propias decisiones (patrullas, enemigos que solo se mueven en suelo, animaciones de "en el aire"):
-
+Look
+ at a tile below the collider. Useful for your own decisions (patrols, enemies that only move on the ground, "in the air" animations):
 ```c
 void script_update(void) {
   GBAActor* e = &gActors[1];
@@ -661,37 +594,34 @@ void script_update(void) {
   }
 }
 ```
+> **Nothing forces you to use them.** If a primitive doesn't fit your game, ignore it and move `gSelf` by hand with `moveActorCollide` — the previous section. They are there to save you 90% of physics, not to impose a gender on you.
 
-> **Nada te obliga a usarlas.** Si una primitiva no encaja con tu juego, ignórala y mueve `gSelf` a mano con `moveActorCollide` — la sección anterior. Están ahí para ahorrarte el 90% de la física, no para imponerte un género.
 
-
-### Teletransporte y limites
-
+### Teleportation and limits
 ```c
 p->x = 100; p->y = 80;      // la posición se aplica ANTES del draw del frame
 // si reciclás a fuera de pantalla, recuerda drawActorRect hace clamp y lo ignora
 // (baja coste), pero volverá visible al read-regresar.
 ```
+--
+-
 
----
+## 10.11. Sound: the GBA APU
 
-## 10.11. Sonido: la APU del GBA
+### The APU in summary
 
-### La APU en resumen
+4 effective synthesis channels (plus a DMA of PCM samples that the engine does not use):
 
-4 canales efectivos de síntesis (más un DMA de muestras PCM que el motor no usa):
-
-| Canal | Nombre | Síntesis |
+| Channel | Name | Synthesis |
 | :--- | :--- | :--- |
-| 1 | **Pulse 1** | onda cuadrada + barrido de frecuencia (sweep) |
-| 2 | **Pulse 2** | onda cuadrada (sin barrido) |
-| 3 | **Wave** | 16 muestras de 4 bits (wave RAM) |
-| 4 | **Noise** | ruido pseudoaleatorio |
+| 1 | **Press 1** | square wave + frequency sweep (sweep) |
+| 2 | **Press 2** | square wave (no sweep) |
+| 3 | **Wave** | 16 4-bit samples (wave RAM) |
+| 4 | **Noise** | pseudorandom noise |
 
-### `noteOn()`: la función que toca una nota
+### `noteOn()`: the function that plays a note
 
-El template genera (para el editor de sonido del proyecto) una función `noteOn(int ch, const GBAInst* inst, u16 period)` y una tabla de periodos:
-
+The template generates (for the project's sound editor) a function `noteOn(int ch, const GBAInst* inst, u16 period)` and a period table:
 ```c
 // De la frecuencia (Hz) al valor de registro:
 // period ≈ round(2048 - 131072 / freq)
@@ -707,9 +637,7 @@ typedef struct {
   u8 sweepDir;  // 0=down, 1=up
 } GBAInst;
 ```
-
-`noteOn` aplica:
-
+`noteOn` applies:
 ```c
 static void noteOn(int ch, const GBAInst* inst, u16 period) {
   u16 dutyVal  = (inst->duty & 3);
@@ -720,22 +648,20 @@ static void noteOn(int ch, const GBAInst* inst, u16 period) {
   switch (ch) { ... /* escribe REG_SND1/2/3/4* */ }
 }
 ```
+### Duty cycles (square wave)
 
-### Duty cycles (onda cuadrada)
+The `duty` field (0-3) controls the high/low ratio of the waveform:
 
-El campo `duty` (0-3) controla la proporción alto/bajo de la onda:
-
-| duty | Onda | Sonoridad |
+| duty | Wave | Loudness |
 | :--- | :--- | :--- |
-| 0 | 12.5% | flauta fina, "tu-tu" |
-| 1 | 25% | timbre más nasal |
-| 2 | 50% | onda cuadrada clásica (melodías) |
-| 3 | 75% | timbre parecido al 25% invertido |
+| 0 | 12.5% ​​| fine flute, "tu-tu" |
+| 1 | 25% | more nasal timbre |
+| 2 | 50% | classic square wave (tunes) |
+| 3 | 75% | ringtone similar to 25% invested |
 
-### Reproducir un SFX desde un script
+### Play an SFX from a script
 
-Estrategia práctica: **roba un canal** mientras no toque música de fondo, o añade tu propio sonido si el proyecto no tiene song. Un mini-SFX de impacto para el canal 2:
-
+Practical strategy: **steal a channel** as long as it doesn't play background music, or add your own sound if the project doesn't have a song. A shocking mini-SFX for channel 2:
 ```c
 // Un disparo corto en el canal 2 (pulse), una sola vez al pulsar A
 static u32 sfxTimer = 0;
@@ -760,11 +686,9 @@ void script_update(void) {
   }
 }
 ```
+> If the project has background music, channels 1-4 will be occupied by the sequencer. For your own SFX without crashing, you could lower a channel of the song at that moment or **reuse channel 4 (noise)** for percussion/beats, which is the least intrusive. Dedicated SFX are planned in future versions.
 
-> Si el proyecto tiene música de fondo, los canales 1-4 los ocupará el secuenciador. Para un SFX propio sin chocar, podrías bajar un canal de la canción en ese instante o **reutilizar el canal 4 (ruido)** para percusión/golpes, que es de lo que menos se entromete. En versiones futuras se prevén SFX dedicados.
-
-### Wave RAM del canal 3
-
+### Channel 3 Wave RAM
 ```c
 static void initWaveRAM(void) {
   vu16* wave = (vu16*)0x04000090;
@@ -773,11 +697,10 @@ static void initWaveRAM(void) {
   for (i=0;i<8;i++) wave[i] = waveData[i];
 }
 ```
+16
+ 4-bit samples, the template loads them in `initSound()`. By defining your own waveform here you can create different timbres for channel 3 (e.g. a triangle wave or a soft square).
 
-16 muestras de 4 bits, el template las carga en `initSound()`. Si defines tu propia forma de onda aquí podrás crear timbres distintos para el canal 3 (p. ej., una onda triangular o un cuado-suave).
-
-### Valores típicos de `initSound()`
-
+### Typical `initSound()` values
 ```c
 REG_SNDBIAS = 0x200;      // sesgo correcto del DAC (136' ciclo)
 REG_SNDCNTX = 0x0080;     // volumen del sonido al 100% (canal master)
@@ -787,11 +710,9 @@ REG_SND3CNT_L = 0x0080;   // wave al 100%, sin output tweak
 REG_SND3CNT_H = 0x0001;
 initWaveRAM();
 ```
+### Songs and the time loop
 
-### Canciones y el bucle de tiempo
-
-Si el proyecto tiene música, el template genera `SONG_BPM...`, `SONG_STEPS...`, las constantes de la canción y:
-
+If the project has music, the template generates `SONG_BPM...`, `SONG_STEPS...`, the song constants and:
 ```c
 while (1) {
   waitVSync();
@@ -804,19 +725,18 @@ while (1) {
   advanceAllActors(); updatePlayer(); userScriptsUpdate(); drawAllActors(screen);
 }
 ```
-
-Con BPM=900 un paso coincide con un frame (60 pasos/s). Cambia el acumulador si quieres un tempo distinto, no el umbral.
+With
+ BPM=900 one step matches one frame (60 steps/s). Change the accumulator if you want a different tempo, not the threshold.
 
 ---
 
-## 10.12. Frames, vsyncs y animación
+## 10.12. Frames, vsyncs and animation
 
-Todo el sistema de timing del motor se basa en **vsyncs = frames**:
+The entire engine timing system is based on **vsyncs = frames**:
 
-- `waitVSync()` se llama una vez por vuelta del bucle → **1 frame = 1/60 s**.
-- `delays[i]` guarda cuántos vsyncs dura cada frame de la animación. En el inspector, el motor **convierte** milisegundos → vsyncs (`round(ms*60/1000)`).
-- Para una animación propia desde script, haz algo equivalente: un contador de frames y cambia `a->frame` cuando toque.
-
+- `waitVSync()` is called once per loop loop → **1 frame = 1/60 s**.
+- `delays[i]` saves how many vsyncs each frame of the animation lasts. In the inspector, the engine **converts** milliseconds → vsyncs (`round(ms*60/1000)`).
+- For your own animation from script, do something equivalent: a frame counter and change `a->frame` when it touches.
 ```c
 // Parpadeo cada 30 frames (0,5 s)
 static u16 blink = 0;
@@ -826,20 +746,18 @@ void script_update(void) {
   else if (blink < 60) { a->frame = 1; if (blink >= 60) blink = 0; }
 }
 ```
-
-**Regla práctica:** nunca pongas retardos en milisegundos a mano; cuenta vsyncs (`u16 timer`). Un "delay(500)" bloqueante deja el juego congelado porque **no hay otro hilo**: tu script y el render comparten el mismo frame.
+**Rule of thumb:** never put delays in milliseconds by hand; count vsyncs (`u16 timer`). A blocking "delay(500)" leaves the game frozen because **there is no other thread**: your script and the renderer share the same frame.
 
 ---
 
-## 10.13. El C Directo de tus scripts: contrato y API
+## 10.13. The Direct C of your scripts: contract and API
 
-### Cómo se inserta tu código
+### How to insert your code
 
-Cuando exportas con un script en modo **C Directo** cuyo campo `cCode` no está vacío, `gba_export.ts`:
+When you export with a **Direct C** mode script whose `cCode` field is not empty, `gba_export.ts`:
 
-1. Coloca tu código **verbatim** (tal cual, `\n` `\n`) dentro del `main.c`, en la sección `// ── Scripts de usuario (C Directo) ──` **antes** de `int main()`.
-2. Genera dos dispatchers:
-
+1. Place your **verbatim** code (as is, `\n` `\n`) inside the `main.c`, in the section `// ── User Scripts (Direct C) ──` **before** `int main()`.
+2. Generate two dispatchers:
 ```c
 static void userScriptsInit(void) {
   script_init();          // si existe EXACTAMENTE 1 definición
@@ -849,11 +767,10 @@ static void userScriptsUpdate(void) {
   script_update();
 }
 ```
+3
+. Call `userScriptsInit()` inside `sceneInit()` (after `initActors()+drawAllActors`) and `userScriptsUpdate()` **at every turn** of the game loop (with actors, with music, and if there are no actors, too!). That's why your `script_update` always runs at 60 fps.
 
-3. Llama `userScriptsInit()` dentro de `sceneInit()` (tras `initActors()+drawAllActors`) y `userScriptsUpdate()` **en cada vuelta** del bucle de juego (con actores, con música y, si no hay actores, ¡también!). Por eso tu `script_update` corre siempre a 60 fps.
-
-### El contrato exacto
-
+### The exact contract
 ```c
 void script_init(void) {
   //  1 vez, al entrar en la escena (después de que los actores estén colocados).
@@ -862,32 +779,28 @@ void script_update(void) {
   //  cada frame del juego, justo antes del drawAllActors.
 }
 ```
+-
+ **Both are optional.** If you don't define `script_update`, your script is just setup. If you do not define any, the export already warns you with a warning.
+- **There must be EXACTLY 1 definition** of each one. If there are several (or several scripts with the same function), the engine does not call any of them and a warning indicates this in the export console. With `cCode` like this, the compiler will give duplicate symbol if you define duplicate.
+- So that the contract is well understood: **do not write `void script_update(void)` inside blocks or with parameters**. It is the exact shape that the detector detects (with tolerable spaces).
 
-- **Ambos son opcionales.** Si no defines `script_update`, tu script es solo setup. Si no defines ninguno, el export ya te avisa con un warning.
-- **Debe haber EXACTAMENTE 1 definición** de cada uno. Si hay varias (o varias scripts con la misma función), el motor no llama a ninguna y un warning lo indica en la consola de export. Con `cCode` así, el compilador dará símbolo duplicado si defines por duplicado.
-- Para que el contract se comprenda bien: **no escribas `void script_update(void)` dentro de bloques ni con parámetros**. Es la forma exacta que detecta el detector (con espacios tolerables).
+### What is available within your scripts (full API)
 
-### Qué hay disponible dentro de tus scripts (API completa)
+Everything already defined above in the file (static if it is `static`) is accessible:
 
-Todo lo ya definido arriba en el archivo (estático si es `static`) es accesible:
-
-- `gActors[ACTOR_COUNT]`, `GBAActor`, `GBAFrame`, `PLAYER_INDEX`, `CAM_X/CAM_Y` (single-scene; en multi-escena son `gCamX/gCamY`, ver [10.15](#1015-varias-escenas-en-la-rom-switchscene-near-y-gjp)), `MAX_ACTOR_FRAMES`.
-- `moveActorCollide(a, dx, dy)`, `movePlayer(u16 keys, GBAActor* p)`, `updatePlayer()`, `actorBox()`, `rectsOverlap()`, `rectHitsSolid()` (si hay mapa), `solidTile()`, `advanceAllActors()`, `initActors()`.
-- **Primitivas de movimiento:** `moveTopDown(a, keys)`, `movePlatformer(a, keys)`, `onFloor(a)`, `approach(&v, target, step)`.
-- **Múltiples escenas:** `switchScene(n)`, `near(a, b, dist)`, `gJp`, `gScene` (ver [10.15](#1015-varias-escenas-en-la-rom-switchscene-near-y-gjp)).
-- Botones: `KEY_A`, `KEY_B`, `KEY_UP`, `KEY_DOWN`, `KEY_LEFT`, `KEY_RIGHT`, `KEY_SHOULDER`.
-- `REG_KEYINPUT` (`0x04000130`), mapa de bits correcto (ver [9](#109-entrada-leer-los-botones)).
-- **Diálogos:** `showDialogue(id)`, `nextDialogueRow()`, `hideDialogue()`, `gLang` (ver [10.13.1](#10131-diálogos-e-idiomas)).
-- **Menús:** `menuOpen(count)`, `menuClose()`, `menuSetItem(i, text)`, `menuSetBox(x,y,w,h)`, `menuSetFont(f)`, `menuSetBoxSprite(db)`, `menuSelected()`, `menuVisible()`, `menuUpdate()` (ver [10.13.2](#10132-menús-mercados-inventarios-tiendas)).
-- `SCREEN_W=240`, `SCREEN_H=160`, `PIXEL_COUNT=38400`, `screen` **no** está como símbolo: usa `(u16*)VRAM` si quieres pintar.
-- `REG_SND1..4*`, `noteOn()`, `GBAInst`, `gNotePeriods` (si hay sonido en el proyecto).
+- `gActors[ACTOR_COUNT]`, `GBAActor`, `GBAFrame`, `PLAYER_INDEX`, `CAM_X/CAM_Y` (single-scene; in multi-scene they are `gCamX/gCamY`, see [10.15](#1015-various-scenes-in-rom-switchscene-near-y-gjp)), `MAX_ACTOR_FRAMES`.
+- `moveActorCollide(a, dx, dy)`, `movePlayer(u16 keys, GBAActor* p)`, `updatePlayer()`, `actorBox()`, `rectsOverlap()`, `rectHitsSolid()` (if map), `solidTile()`, `advanceAllActors()`, `initActors()`.- **Move primitives:** `moveTopDown(a, keys)`, `movePlatformer(a, keys)`, `onFloor(a)`, `approach(&v, target, step)`.- **Multiple scenes:** `switchScene(n)`, `near(a, b, dist)`, `gJp`, `gScene` (see [10.15](#1015-multiple-scenes-in-the-rom-switchscene-near-y-gjp)). `KEY_DOWN`, `KEY_LEFT`, `KEY_RIGHT`, `KEY_SHOULDER`.
+- `REG_KEYINPUT` (`0x04000130`), correct bitmap (see [9](#109-input-read-the-buttons)).
+- **Dialogues:** `showDialogue(id)`, `nextDialogueRow()`, `hideDialogue()`, `gLang` (see [10.13.1](#10131-dialogues-and-languages)).
+- **Menus:** `menuOpen(count)`, `menuClose()`, `menuSetItem(i, text)`, `menuSetBox(x,y,w,h)`, `menuSetFont(f)`, `menuSetBoxSprite(db)`, `menuSelected()`, `menuVisible()`, `menuUpdate()` (see [10.13.2](#10132-menus-markets-inventories-stores)).
+- `SCREEN_W=240`, `SCREEN_H=160`, `PIXEL_COUNT=38400`, `screen` is **not** as a symbol: use `(u16*)VRAM` if you want to paint.
+- `REG_SND1..4*`, `noteOn()`, `GBAInst`, `gNotePeriods` (if there is sound in the project).
 - `waitVSync()`.
-- Defines condicionales: `ACTOR_COUNT`, `COLLISION_*` (si hay mapa).
+- You define conditionals: `ACTOR_COUNT`, `COLLISION_*` (if there is a map).
 
-### 10.13.1. Diálogos e idiomas
+### 10.13.1. Dialogues and languages
 
-Si el proyecto tiene diálogos, el motor exporta estas funciones y la variable global:
-
+If the project has dialogs, the engine exports these functions and the global variable:
 ```c
 void showDialogue(int id);            // muestra el diálogo `id` desde la fila 0
 void showDialogueRow(const char* key); // salta a una fila por su código o su ID
@@ -896,16 +809,15 @@ void hideDialogue(void);              // oculta el diálogo
 void dialogueUpdate(void);            // avanza solo al pulsar A (llámala cada frame)
 extern int gLang;                     // idioma activo: 0 = primera columna, 1 = segunda, …
 ```
-
-- `id` es el **orden del diálogo en el editor** (0, 1, 2…), no el ID de la fila.
-- `showDialogueRow(key)` busca la primera fila cuyo **campo Código** o cuyo **ID completo** coincida con `key` y la muestra. Si no encuentra ninguna, no hace nada.
-- El texto mostrado es `texto[fila][gLang]`. Cambia `gLang` antes de `showDialogue`/`showDialogueRow` para elegir el idioma (el índice sigue el orden de las columnas de la tabla de Diálogo).
-- **Caja por actor**: la caja se dibuja con la imagen, posición y tamaño que configuraste en el actor (Mundo → actor de texto → Dialog Box). Si el actor no tiene caja, se usa una por defecto.
-- **Fuente por fila**: cada fila usa la fuente elegida en la columna "Fuente" de la tabla de Diálogo.
-- **Hablante**: el campo "Nombre" de la fila se dibuja sobre la caja.
-- **Sonido por fila**: si la fila tiene un sonido asignado, suena al mostrarse.
-- `nextDialogueRow()` y `hideDialogue()` no hacen nada si el diálogo está oculto.
-
+-
+ `id` is the **order of the dialog in the editor** (0, 1, 2...), not the ID of the row.
+- `showDialogueRow(key)` finds the first row whose **Code field** or **Full ID** matches `key` and displays it. If it doesn't find anything, it doesn't do anything.
+- The displayed text is `text[row][gLang]`. Change `gLang` before `showDialogue`/`showDialogueRow` to choose the language (the index follows the order of the Dialogue table columns).
+- **Box by actor**: the box is drawn with the image, position and size that you configured in the actor (World → text actor → Dialog Box). If the actor does not have a box, one is used by default.
+- **Font per row**: each row uses the font chosen in the "Font" column of the Dialog table.
+- **Speaker**: The "Name" field of the row is drawn over the box.
+- **Sound per row**: if the row has a sound assigned, it plays when displayed.
+- `nextDialogueRow()` and `hideDialogue()` do nothing if the dialog is hidden.
 ```c
 void script_update(void) {
   gLang = 1;                              // 0 = primer idioma, 1 = segundo
@@ -914,13 +826,12 @@ void script_update(void) {
   if (gJp & 2) hideDialogue();            // B: ocultar
 }
 ```
+You
+ can also use the full ID of the row: `showDialogueRow("New dialog 3-002-1")`.
 
-También puedes usar el ID completo de la fila: `showDialogueRow("Nuevo diálogo 3-002-1")`.
+### 10.13.2. Menus (markets, inventories, stores)
 
-### 10.13.2. Menús (mercados, inventarios, tiendas)
-
-Un menú genérico para scripts: el motor lo dibuja **encima de los actores** cada frame, con la caja del diálogo que elijas (o una caja cualquiera) y la fuente que pongas. Hasta 8 ítems.
-
+A generic menu for scripts: the engine draws it **above the actors** every frame, with the dialog box you choose (or any box) and the font you put. Up to 8 items.
 ```c
 void menuOpen(int count);            // abre el menú con `count` ítems (0..8)
 void menuClose(void);                // ciérralo
@@ -932,13 +843,12 @@ int  menuSelected(void);             // ítem resaltado (0..count-1)
 int  menuVisible(void);              // 1 si el menú está abierto
 void menuUpdate(void);               // mueve la selección con ARRIBA/ABAJO (auto)
 ```
+-
+ The selection is moved by the engine (`menuUpdate` is called alone each frame); your script just reads `menuSelected()` and decides what to do with A/B.
+- The menu **does not pause** the game: the actors continue animating. If you want to freeze the player, do not move it while the menu is open.
+- The highlighted item is drawn with a `>` to the left.
 
-- La selección la mueve el motor (`menuUpdate` se llama sola cada frame); tu script solo lee `menuSelected()` y decide qué hacer con A/B.
-- El menú **no pausa** el juego: los actores siguen animando. Si quieres congelar al player, no lo muevas mientras el menú esté abierto.
-- El ítem resaltado se dibuja con un `>` a la izquierda.
-
-Ejemplo (NPC que vende 3 objetos):
-
+Example (NPC selling 3 items):
 ```c
 static int state = 0;                // 0 = espera, 1 = diálogo, 2 = mercado
 static int gold = 100;
@@ -965,19 +875,17 @@ void script_update(void) {
   }
 }
 ```
+### 10.13.3. Saved in SRAM
 
-### 10.13.3. Guardado en SRAM
-
-El motor incluye un sistema de guardado en la SRAM de la cartucho (`0x0E000000`), con magic, versión y checksum (FNV-1a) para detectar partidas corruptas o de otra versión.
-
+The engine includes a save system in the cartridge's SRAM (`0x0E000000`), with magic, version and checksum (FNV-1a) to detect corrupted games or another version.
 ```c
 int  aeSaveHasGame(void);              // 1 si hay partida guardada válida
 int  aeSaveWrite(const u8* data, u32 size); // 0 ok, -1 si no cabe (máx. 256 B)
 int  aeSaveRead(u8* data, u32 size);   // 0 ok, -1 si no hay partida
 void aeSaveClear(void);                // borra la partida
 ```
-
-Ejemplo:
+Example
+:
 ```c
 u8 save[128];
 
@@ -992,36 +900,29 @@ if (aeSaveHasGame()) {
   gScene = save[0];
 }
 ```
+-
+ The block is **256 bytes** maximum (`AE_SAVE_MAX`); If you need more, change the `define` in `main.c`.
+- SRAM persists between runs in the emulator (mGBA saves it in a `.sav`) and in flashcart.
+- **Do not confuse** with the emulator's save-state (which is separate).
+- If the checksum does not match (corrupt game or other version), `aeSaveHasGame()` returns 0 and is treated as "no game".
 
-- El bloque es de **256 bytes** máximo (`AE_SAVE_MAX`); si te hace falta más, cambia el `define` en el `main.c`.
-- La SRAM persiste entre ejecuciones en el emulador (mGBA la guarda en un `.sav`) y en flashcart.
-- **No confundir** con el save-state del emulador (que es aparte).
-- Si el checksum no coincide (partida corrupta o de otra versión), `aeSaveHasGame()` devuelve 0 y se trata como "sin partida".
+### Mandatory rules for your code
 
-### Reglas obligatorias de tu código
-
-| Regla | Por qué |
+| Rule | Why |
 | :--- | :--- |
-| **Sin `float`/`double`** | No hay FPU; el compilador simula con soft-float lentísimo. |
-| **Sin `malloc`/`free`** | No hay gestor de memoria; declara estáticos. |
-| **Sin `printf` a pantalla** | No hay consola. Para depurar, ver [17](#1017-depuración). |
-| **Sin bucles infinitos bloqueantes** | Congelan el render. Usa contadores por vsync. |
-| **No escribas VRAM fuera de VBLANK** | Tearing en consola real. |
-| **Código corto por frame** | Presupuesto VBLANK (~83.8K ciclos). |
-| **Sin I/O de archivos** | No existe. No hay filesystem. |
+| **Without `float`/`double`** | There is no FPU; the compiler simulates with very slow soft-float. |
+| **Without `malloc`/`free`** | There is no memory manager; declare static. |
+| **Without `printf` on screen** | There is no console. To debug, see [17](#1017-debugging). |
+| **No blocking infinite loops** | They freeze the render. Use counters per vsync. |
+| **Do not write VRAM outside of VBLANK** | Tearing on real console. |
+| **Shortcode per frame** | VBLANK budget (~83.8K cycles). |
+| **No file I/O** | It doesn't exist. There is no file system. |
 
----
+---## 10.14. Examples of ready-to-copy scripts### 1. Move an actor with the D-pad (with and without collisions)**Player/actors:** a script ONLY runs if it is **assigned to an actor** (World → Inspector → Script). The engine calls the script **once for each assigned actor**, with the global variable `GBAActor* gSelf` pointing to the actor in question — use `gSelf` to move THAT actor (not `gActors[PLAYER_INDEX]`, which always moves the player). If the player **does not** have a script assigned, the engine moves him only with the D-pad using `moveTopDown` (2 px/frame, with tile collisions) — change `WALK_SPEED` if you want another speed. If the player **does** have a script assigned, it is moved by your `script_update` (and the engine does not interfere). Be careful: scripts from OTHER actors (NPC, enemies) do not take control away from the player.
 
-## 10.14. Ejemplos de scripts listos para copiar
+> Shortcut: If you just want to move, don't write physics. `movePlatformer(gSelf, keys)` gives you full platforms and `moveTopDown(gSelf, keys)` a maze, both with collisions. See [10.10](#out-of-the-box-motion-primitives).
 
-### 1. Mover a un actor con el D-pad (con y sin colisiones)
-
-**Jugador / actores:** un script SOLO se ejecuta si está **asignado a un actor** (Mundo → Inspector → Script). El motor llama al script **una vez por cada actor asignado**, con la variable global `GBAActor* gSelf` apuntando al actor en cuestión — usa `gSelf` para mover a ESE actor (no `gActors[PLAYER_INDEX]`, que siempre mueve al jugador). Si el jugador **no** tiene un script asignado, el motor lo mueve solo con el D-pad usando `moveTopDown` (2 px/frame, con colisiones de tiles) — cambia `WALK_SPEED` si quieres otra velocidad. Si el jugador **sí** tiene un script asignado, lo mueve tu `script_update` (y el motor no interfiere). Ojo: los scripts de OTROS actores (NPC, enemigos) no le quitan el control al jugador.
-
-> Atajo: si solo quieres moverte, no escribas la física. `movePlatformer(gSelf, keys)` te da plataformas completas y `moveTopDown(gSelf, keys)` un laberinto, ambos con colisiones. Ver [10.10](#primitivas-de-movimiento-listos-para-usar).
-
-El ejemplo sirve para **cualquier actor** (jugador o NPC) con mando. **Importante para que los tiles de colisión funcionen:** si mueves un actor `+= 2` a pelo, **ignora el mapa de colisiones** (no lo detecta → atraviesa o «se frena» por el empuje de otros actores). Para chocar con tiles usa `moveActorCollide()`:
-
+The example works for **any actor** (player or NPC) with a controller. **Important for the collision tiles to work:** if you move an actor `+= 2` bareback, it **ignores the collision map** (it does not detect it → it passes through or "slows down" due to the push of other actors). To collide with tiles use `moveActorCollide()`:
 ```c
 // Mueve al actor asignado (gSelf) respetando el mapa de colisiones de la escena
 void script_update(void) {
@@ -1033,9 +934,8 @@ void script_update(void) {
   if (keys & (1 << 7)) moveActorCollide(p,  0,  2); // abajo
 }
 ```
-
-Si tu escena **no** tiene mapa de colisiones (o no quieres chocar), la versión directa:
-
+If
+ your scene does **not** have a collision map (or you don't want to crash), the direct version:
 ```c
 void script_update(void) {
   GBAActor* p = gSelf;
@@ -1046,11 +946,9 @@ void script_update(void) {
   if (keys & (1 << 7)) p->y += 2;   // abajo
 }
 ```
+> The actor collider in the inspector only intervenes in the **actor-actor** push (`updatePlayer`) and in `moveActorCollide` (uses the centered collider `cw/ch`). For a move to respective tiles, the call to `moveActorCollide` is mandatory.
 
-> El collider del actor en el inspector solo interviene en el empuje **actor-actor** (`updatePlayer`) y en `moveActorCollide` (usa el collider centrado `cw/ch`). Para que un movimiento propio respete tiles, la llamada a `moveActorCollide` es obligatoria.
-
-### 2. Disparar SFX al pulsar A (una vez)
-
+### 2. Trigger SFX when pressing A (eleven)
 ```c
 static u16 prevKeys = 0;
 static int shotHeld = 0;
@@ -1069,9 +967,7 @@ void script_update(void) {
   if (justPressed & (1 << 1)) playShot();   // A (bit1)
 }
 ```
-
-### 3. Enemigo que patrulla y se teletransporta al llegar al borde
-
+### 3. Enemy that patrols and teleports when reaching the edge
 ```c
 void script_update(void) {
   GBAActor* e = &gActors[1];
@@ -1079,9 +975,7 @@ void script_update(void) {
   if (e->x > 230) e->x = -21;   // fuera de cámara por la izquierda
 }
 ```
-
-### 4. Cambiar la animación de un actor (frame/modo)
-
+### 4. Change the animation of an actor (frame/mode)
 ```c
 void script_update(void) {
   GBAActor* p = &gActors[PLAYER_INDEX];
@@ -1090,9 +984,7 @@ void script_update(void) {
   p->timer = 0;   // reinicia el contador para que no "salte" solo
 }
 ```
-
-### 5. Ice-física: inercia con entero (sin float)
-
+### 5. Ice-physics: inertia with integer (without float)
 ```c
 static s16 vx = 0;
 void script_update(void) {
@@ -1106,9 +998,7 @@ void script_update(void) {
   p->x += vx;
 }
 ```
-
-### 6. Plataformas completas (gravedad, salto, coyote y buffer)
-
+### 6. Full platforms (gravity, jump, coyote and buffer)
 ```c
 void script_update(void) {
   GBAActor* p = gSelf;
@@ -1116,11 +1006,10 @@ void script_update(void) {
   movePlatformer(p, keys);   // todo el trabajo, una línea
 }
 ```
+Before
+ primitives existed this was ~20 lines of `vy += GRAVITY`, saturate to `MAX_FALL`, detect ground by hand and watch `vy == 0` to jump. It is no longer necessary: ​​`movePlatformer` does it and also adds coyote time, jump buffer and variable jump. Adjust the behavior by touching the `#define` of [10.10](#movement-primitives-ready-to-use).
 
-Antes de que existieran las primitivas esto era ~20 líneas de `vy += GRAVITY`, saturar a `MAX_FALL`, detectar suelo a mano y vigilar `vy == 0` para saltar. Ya no hace falta: `movePlatformer` lo hace y además añade coyote time, jump buffer y salto variable. Ajusta el comportamiento tocando los `#define` de [10.10](#primitivas-de-movimiento-listos-para-usar).
-
-Si tu actor es un NPC con gravedad pero control manual (por ejemplo, una pelota o un enemigo que cae), usa `onFloor` para saber si tocó suelo:
-
+If your actor is an NPC with gravity but manual control (for example, a ball or a falling enemy), use `onFloor` to find out if it touched the ground:
 ```c
 static u8 prevFloor = 0;
 void script_update(void) {
@@ -1133,11 +1022,9 @@ void script_update(void) {
   prevFloor = suelo;
 }
 ```
+> `onFloor` looks at one tile below the collider in the fall direction, so it respects one-way tiles just like the rest of the physics.
 
-> `onFloor` mira un tile por debajo del collider en la dirección de caída, así que respeta los tiles one-way igual que el resto de la física.
-
-### 7. Contador de frames y condición cada N segundos
-
+### 7. Frame counter and condition every N seconds
 ```c
 static u32 tick = 0;
 void script_update(void) {
@@ -1148,36 +1035,29 @@ void script_update(void) {
   }
 }
 ```
+--
+-
 
----
+## 10.15. Various scenes in the ROM: `switchScene`, `near` and `gJp`
 
-## 10.15. Varias escenas en la ROM: `switchScene`, `near` y `gJp`
+The export **embeds ALL the project scenes** in the ROM. The starting scene is the one that the splash has defined as follows; changing scenes mid-game is a script call.
 
-El export **embebe TODAS las escenas del proyecto** en la ROM. La escena de inicio es la que el splash tiene definida como siguiente; cambiar de escena en mitad del juego es una llamada de script.
+### How scenes are numbered
 
-### Cómo se numeran las escenas
+The scene index is the **order in the editor** (the list of World scenes, from top to bottom): scene 0 is first, scene `N-1` is last (N = total). It doesn't depend on the name. Editor **connections** are exported: they define the transition that plays when changing scenes (see below).
 
-El índice de escena es el **orden en el editor** (la lista de escenas de Mundo, de arriba abajo): la escena 0 es la primera, la escena `N-1` la última (N = total). No depende del nombre. Las **conexiones** del editor sí se exportan: definen la transición que se reproduce al cambiar de escena (ver más abajo).
-
-- `gScene` — índice de la escena actual (lectura).
-- `switchScene(n)` — pide cambiar a la escena `n`. El motor reproduce la **transición de entrada de la conexión `gScene→n`** (fade, instantánea o cortinilla de tileset), carga la escena nueva (imagen, colisión, cámara, actores y sus scripts) y la revela. Si no hay conexión definida usa el fade por defecto (~1 s). Si `n` está fuera de rango no hace nada.
-- `switchScene(n, "nombre")` — igual, pero elige la conexión cuyo campo **Nombre** sea `"nombre"` (útil si hay varias conexiones al mismo destino). Si el nombre no coincide con ninguna, se usa el fade por defecto. En AdvanceCode se escribe igual.
-
-### Transición por conexión
-
-En Mundo, cada **conexión** entre escenas tiene una transición de **Entrada** (la que se ve al llegar a la escena destino) de tipo *instantánea*, *fade* o *cortinilla* (tileset animado + degradado). El export la compila a una pareja `runToBlack_CTi` / `runToScene_CTi` y `switchScene` la localiza por `(origen, destino)`:
-
+- `gScene` — index of the current scene (read).
+- `switchScene(n)` — requests to switch to scene `n`. The engine plays the **input transition of the `gScene→n`** connection (fade, snapshot or tileset wipe), loads the new scene (image, collision, camera, actors and their scripts) and reveals it. If there is no connection defined, use the default fade (~1 s). If `n` is out of range it does nothing.- `switchScene(n, "name")` — same, but choose the connection whose **Name** field is `"name"` (useful if there are multiple connections to the same destination). If the name does not match any, the default fade is used. In AdvanceCode it is written the same.### Connection transitionIn World, each **connection** between scenes has an **Input** transition (the one seen when arriving at the destination scene) of type *snapshot*, *fade* or *wipe* (animated tileset + gradient). The export compiles it to a `runToBlack_CTi` / `runToScene_CTi` pair and `switchScene` locates it by `(source, destination)`:
 ```c
 switchScene(1);            // primera conexión gScene→1
 switchScene(1, "puerta");  // la conexión llamada "puerta"
 ```
+Below
+ that is a table `gTransFrom/gTransTo/gTransName/gTransKind/gTransFrames/gTransCover/gTransReveal` and `findTransition(from, to, name)`. If a connection was configured as a curtain but does not have a valid tileset, it is demoted to fade and is reported in the export log.
 
-Por debajo hay una tabla `gTransFrom/gTransTo/gTransName/gTransKind/gTransFrames/gTransCover/gTransReveal` y `findTransition(from, to, name)`. Si una conexión se configuró como cortinilla pero no tiene tileset válido, se degrada a fade y se avisa en el log de exportación.
+### Proximity: `near(a, b, dist)`
 
-### Proximidad: `near(a, b, dist)`
-
-Devuelve `1` si la caja de `dist` px alrededor del **centro** de `b` toca al actor `a` (`|centroX_a − centroX_b| ≤ dist` y lo mismo en Y). Pensada para «hablar» / «usar» pegado a un personaje:
-
+Returns `1` if the `dist` px box around the **center** of `b` touches actor `a` (`|centerX_a − centerX_b| ≤ dist` and the same in Y). Intended to "speak" / "use" attached to a character:
 ```c
 void script_update(void) {
   // pegado al jugador + pulsas A → cambio a la escena 1
@@ -1186,49 +1066,44 @@ void script_update(void) {
   }
 }
 ```
+`dist` are screen pixels; 20 ≈ half the player's body. Adjust to the scale of your game.
 
-`dist` son píxeles de pantalla; 20 ≈ medio cuerpo del jugador. Ajusta a la escala de tu juego.
+### Key flank: `gJp`
 
-### Flanco de teclas: `gJp`
+`REG_KEYINPUT` tells whether a key is pressed **now**; `gJp` (just-pressed) has **only the bits that were pressed THIS frame** (rising edge). Same bits as `REG_KEYINPUT` (0 = pressed). Avoid saving the previous state by hand: `if (gJp & KEY_A)` is executed only once per press, even if you hold the key.
 
-`REG_KEYINPUT` dice si una tecla está pulsada **ahora**; `gJp` (just-pressed) tiene **solo los bits que se pulsaron ESTE frame** (flanco de subida). Mismos bits que `REG_KEYINPUT` (0 = pulsado). Evita guardar a mano el estado anterior: `if (gJp & KEY_A)` se ejecuta una sola vez por pulsación, aunque mantengas la tecla.
+> The motor resets the edge when changing scenes so that the button that caused the change does not slip.
 
-> El motor resetea el flanco al cambiar de escena para que no se cuele el botón que provocó el cambio.
+### What changes when changing scenes
 
-### Qué cambia al pasar de escena
-
-- **Imagen, colisión y cámara** son por escena: `gColMap`/`gColCols`/`gColRows`/`gColTile` y `gCamX`/`gCamY` se actualizan al cargar (ya no son macros `CAM_X`/`CAM_Y` en multi-escena; úsalos como variables).
-- **Actores**: cada escena configura las **suyas** en `gActors[0..count-1]`. `ACTOR_COUNT` es el máximo entre todas las escenas; los huecos sobrantes quedan a 0 (`frameCount == 0`) y no se dibujan ni colisionan.
-- **Scripts**: el script asignado a un actor se llama con `gSelf` apuntando a ESE actor (índice de su escena). Ponerle un script a un actor nuevo de otra escena = cambiar de escena al momento.
-- **Jugador**: `PLAYER_INDEX` siempre es `0`, así que en cada escena el actor en la posición 0 es el «jugador» de esa escena (los scripts lo mueven; si su actor no tiene collider, `updatePlayer` no hace nada).
-- **Música**: por ahora solo suena la canción de la **escena de inicio**; música por escena queda pendiente.
-- `sceneData` en el código generado es SIEMPRE la escena de inicio (tras el splash); las demás van `sceneData_1 … sceneData_{N-1}` (no las referencies con índices fijos: son nombres generados).
+- **Image, collision and camera** are per scene: `gColMap`/`gColCols`/`gColRows`/`gColTile` and `gCamX`/`gCamY` are updated on load (they are no longer `CAM_X`/`CAM_Y` macros in multi-scene; use them as variables).
+- **Actors**: each scene sets **its** in `gActors[0..count-1]`. `ACTOR_COUNT` is the maximum among all scenes; the remaining spaces are set to 0 (`frameCount == 0`) and are not drawn or collided.
+- **Scripts**: The script assigned to an actor is called with `gSelf` pointing to THAT actor (its scene index). Putting a script on a new actor from another scene = changing scenes instantly.- **Player**: `PLAYER_INDEX` is always `0`, so in each scene the actor in position 0 is the "player" of that scene (scripts move it; if your actor has no collider, `updatePlayer` does nothing).- **Music**: for now only the song from the **starting scene** plays; music per scene is pending.- `sceneData` in the generated code is ALWAYS the starting scene (after the splash); the others go `sceneData_1 … sceneData_{N-1}` (not the references with fixed indexes: they are generated names).
 
 ---
 
-## 10.16. Optimización y reglas de oro
+## 10.16. Optimization and golden rules
 
-### Lo más importante: no romper el presupuesto del frame
+### The most important thing: not to break the frame budget
 
-- **~83.800 ciclos** de VBLANK.
-- Render de sprites: **~15 ciclos/píxel opaco** (borrado por deltas del rect anterior + pintado con transparencia por «skip»).
-- Límite holgado: **~5.600 px de sprite en cámara**. Un actor de 21×31 (651 px) cuesta ~10 K ciclos; tres así ~30 K, queda margen.
-- Fuera de cámara el coste es ~0 (el `drawActorRect` clampa y devuelve).
+- **~83,800 cycles** of VBLANK.
+- Sprite render: **~15 cycles/opaque pixel** (deleted by deltas of the previous rect + painted with transparency by "skip").
+- Loose limit: **~5,600 px of sprite in camera**. A 21x31 (651px) actor costs ~10K cycles; three like this ~30 K, there is room left.
+- Off camera the cost is ~0 (the `drawActorRect` clamps and returns).
 
-### Reglas de coste de CPU (ARM7TDMI)
+### CPU cost rules (ARM7TDMI)
 
-| Operación | Coste relativo | Consejo |
+| Operation | Relative cost | Council |
 | :--- | :--- | :--- |
-| Suma/producto `int` | 1 | Tu pan de cada día |
-| `>>` / `<<` | 1 | Usa potencias de 2 para dividir/multiplicar |
-| `%` (módulo) | muy alto | Evita `% n`; si `n` es potencia de 2, usa `& (n-1)` |
-| División `/` | muy alto | Evita dividir por constantes no-potencia de 2 |
-| `float` | catastrófico | Prohibido |
-| Acceso a EWRAM | lento | Tablas grandes en `const` (ROM), buffer en EWRAM |
-| `memcpy` de 76 KB | lento | El motor ya evita copiar la escena entera |
+| Sum/product `int` | 1 | Your daily bread |
+| `>>` / `<<` | 1 | Use powers of 2 to divide/multiply |
+| `%` (module) | very high | Avoid `%n`; if `n` is power of 2, use `& (n-1)` |
+| `/` division | very high | Avoid dividing by non-power of 2 constants |
+| `float` | catastrophic | Banned |
+| EWRAM Access | slow | Large tables in `const` (ROM), buffer in EWRAM |
+| 76KB `memcpy` | slow | The engine now avoids copying the entire scene |
 
-Ejemplos:
-
+Examples:
 ```c
 // mal (cada frame):
 // int idx = p->frame % 13;
@@ -1238,35 +1113,33 @@ int idx = p->frame & 15;       // asumiendo frameCount = 16 o potencia de 2
 // mal: vx /= 10;   → mejor:
 vx -= vx / 8;                  // o vx >>= 3 si no necesitas precisión
 ```
+### Recommended own optimizations
 
-### Optimizaciones propias recomendadas
+- Declare small `static inline` functions (it tells the `-O2` compiler to expand them).
+- Make the tables 'const': they will live in ROM and do not dirty EWRAM or IWRAM.
+- Access VRAM as `u16*` with local buffer, not with `volatile` pointers in the inner loop (the template already does this).
+- Reuse the actor's free fields (`vx`, `vy`, `timer`, `dir`) rather than declaring 50 of your own global variables.
+- If you paint something of your own (mini-bar, precomputed text), do it within the same VBLANK and with few pixels.
 
-- Declara funciones pequeñas `static inline` (el indica al compilador `-O2` que las expanda).
-- Haz `const` las tablas: vivirán en ROM y no ensucian EWRAM ni IWRAM.
-- Accede a VRAM como `u16*` con buffer local, no con punteros `volatile` en el bucle interior (el template ya lo hace).
-- Reusa los campos libres del actor (`vx`, `vy`, `timer`, `dir`) antes que declarar 50 variables globales tuyas.
-- Si pintas algo propio (mini-barra, texto precomputed), hazlo dentro del mismo VBLANK y con pocos píxeles.
+### Cases that look bad in real console but not in gbajs
 
-### Casos que se ven mal en consola real pero no en gbajs
-
-- Tear/parpadeo en la zona baja de la pantalla → sobrepaso de VBLANK.
-- Juego a mitad de FPS → el frame entero hace más trabajo de lo que cabe.
-- La solución de ambos es reducir trabajo por frame (actores visibles, píxeles propios, scripts ligeros), no parchear.
+- Tear/flicker in the lower area of the screen → VBLANK override.
+- I play at half FPS → the entire frame does more work than it fits.
+- The solution for both is to reduce work per frame (visible actors, own pixels, lightweight scripts), not patch.
 
 ---
 
-## 10.17. Depuración en la consola real vs. emuladores
+## 10.17. Debugging in the real console vs. emulators
 
-| Entorno | Qué detecta | Qué oculta |
+| Environment | What it detects | What is hidden |
 | :--- | :--- | :--- |
-| **Emulador integrado (gbajs)** | Lógica, colisiones, transiciones | Timing intraframe (copia VRAM al final de frame) |
-| **mGBA** | Timing VBLANK, precisa | — (muy fiel) |
-| **Flashcart / GBA real** | Todo lo real | — |
+| **Built-in emulator (gbajs)** | Logic, collisions, transitions | Intraframe timing (VRAM copy at the end of the frame) |
+| **mGBA** | VBLANK Timing, precise | — (very faithful) |
+| **Flashcart / real GBA** | Everything real | — |
 
-### Técnicas de depuración sin `printf`
+### Debugging techniques without `printf`
 
-1. **Pausa por botón:** traba el juego y avanza frame a frame.
-
+1. **Pause by button:** lock the game and advance frame by frame.
 ```c
 static u8 paused = 0;
 static u16 kprev = 0;
@@ -1278,59 +1151,55 @@ void script_update(void) {
   // ... resto de la lógica
 }
 ```
+2
+. **Visible states in the sprite:** changes the actor's frame according to a state (cheap state tag).
+3. **Sentinel flashing:** toggles the color of a pixel on the screen (`screen[y*240+x]`) to count loops or detect paths not taken.
+4. **Counters in `gActors`:** Write a debug value to `p->vx` and see it in the emulator loggers with frame-step.
 
-2. **Estados visibles en el sprite:** cambia el `frame` del actor según un estado (etiqueta barata de estado).
-3. **Parpadeo centinela:** alterna el color de un píxel en pantalla (`screen[y*240+x]`) para contar loops o detectar caminos no tomados.
-4. **Contadores en `gActors`:** escribe en `p->vx` un valor de depuración y míralo en los loggers del emulador con frame-step.
+### The export console
 
-### La consola de export
-
-Los avisos del export (`[WARN]`, `[OK]`) los verás en el panel inferior del editor al **EXPORTAR** o al compilar con **PLAY**. Presta atención a:
-- Scripts sin `script_update()`.
-- `script_init/update` duplicados (símbolos repetidos).
-- Actores > 64 (se truncan).
-- Transiciones largas (recuerda ajustar velocidad).
+You will see the export warnings (`[WARN]`, `[OK]`) in the bottom panel of the editor when **EXPORT** or when compiling with **PLAY**. Pay attention to:
+- Scripts without `script_update()`.
+- duplicate `script_init/update` (repeated symbols).
+- Actors > 64 (they are truncated).
+- Long transitions (remember to adjust speed).
 
 ---
 
-## 10.18. Referencia rápida (cheat-sheet)
+## 10.18. Quick reference (cheat-sheet)
 
-### Constantes y símbolos del template
+### Template constants and symbols
 
-| Símbolo | Valor | Nota |
+| Symbol | Value | Note |
 | :--- | :--- | :--- |
-| `SCREEN_W`, `SCREEN_H` | 240, 160 | píxeles |
+| `SCREEN_W`, `SCREEN_H` | 240, 160 | pixels |
 | `PIXEL_COUNT` | 38400 | 240×160 |
 | `VRAM` | `0x06000000` | `screen = (u16*)VRAM` |
-| `ACTOR_COUNT` | 1-64 | segun actores exportados |
-| `PLAYER_INDEX` | 0 | el actor 0 |
-| `WALK_SPEED` / `RUN_SPEED` | 2 / 3 | px/vsync (shoulder = correr) |
-| `ACCEL` / `FRICTION` | 1 / 1 | aceleración y frenada |
-| `GRAVITY` / `MAX_FALL` | 1 / 5 | px/vsync² y velocidad terminal |
-| `JUMP_VEL` / `JUMP_CUT_VEL` | -11 / -3 | impulso y corte del salto |
-| `COYOTE_FRAMES` / `JUMP_BUFFER` | 5 / 5 | margen tras el borde / antes de aterrizar |
-| `MAX_ACTOR_FRAMES` | 32 | frames por actor |
-| `CAM_X`, `CAM_Y` | 0 por defecto | offset de mundo (single-scene); en multi-escena `gCamX`/`gCamY` |
-| `gScene` / `gSceneTarget` | — | escena actual / escena pedida (multi-escena) |
-| `gJp` | — | flanco de teclas: bits pulsados ESTE frame |
-| `gActorBack[]` | EWRAM | fondo de actores |
-| `gActors[]` | — | lista global |
+| `ACTOR_COUNT` | 1-64 | according to exported actors |
+| `PLAYER_INDEX` | 0 | the actor 0 |
+| `WALK_SPEED` / `RUN_SPEED` | 23 | px/vsync (shoulder = run) |
+| `ACCEL` / `FRICTION` | 1 / 1 | acceleration and braking |
+| `GRAVITY` / `MAX_FALL` | 1 / 5 | px/vsync² and terminal speed |
+| `JUMP_VEL` / `JUMP_CUT_VEL` | -11 / -3 | jump boost and cut || `COYOTE_FRAMES` / `JUMP_BUFFER` | 5/5 | margin behind the edge / before landing || `MAX_ACTOR_FRAMES` | 32 | frames by actor || `CAM_X`, `CAM_Y` | 0 by default | world offset (single-scene); in multi-scene `gCamX`/`gCamY` |
+| `gScene` / `gSceneTarget` | — | current scene / requested scene (multi-scene) |
+| `gJp` | — | key edge: bits pressed THIS frame |
+| `gActorBack[]` | EWRAM | actors background |
+| `gActors[]` | — | globallist |
 
-### Registros
+###Records
 
-| Registro | Dir | Leer/Uso |
+| Registration | Dir | Read/Use |
 | :--- | :--- | :--- |
 | `REG_DISPCNT` | `0x04000000` | `MODE_3 \\| BG2_ENABLE` |
-| `REG_VCOUNT` | `0x04000006` | scanline actual |
-| `REG_KEYINPUT` | `0x04000130` | botones (0=pulsado) |
-| `REG_SND1SWEEP/CNT/FREQ` | `0x60/62/64` | canal 1 |
-| `REG_SND2CNT/FREQ` | `0x68/6C` | canal 2 |
-| `REG_SND3CNT_L/H, FREQ` | `0x70/72/74` | canal 3 wave |
-| `REG_SND4CNT/FREQ` | `0x78/7C` | canal 4 ruido |
+| `REG_VCOUNT` | `0x04000006` | current scanline |
+| `REG_KEYINPUT` | `0x04000130` | buttons (0=pressed) |
+| `REG_SND1SWEEP/CNT/FREQ` | `0x60/62/64` | channel 1 |
+| `REG_SND2CNT/FREQ` | `0x68/6C` | channel 2 |
+| `REG_SND3CNT_L/H, FREQ` | `0x70/72/74` | channel 3 wave |
+| `REG_SND4CNT/FREQ` | `0x78/7C` | channel 4 noise |
 | `REG_SNDCTL/CNTH/CNTX/BIAS` | `0x80/82/84/88` | master |
 
-### Mapa de bits de `REG_KEYINPUT`
-
+### `REG_KEYINPUT` bitmap
 ```
 bit 0 A · bit 1 B · bit 2 SELECT · bit 3 START
 bit 4 RIGHT · bit 5 LEFT · bit 6 UP · bit 7 DOWN
@@ -1341,64 +1210,59 @@ bit 8 R · bit 9 L   —  bit = 0 → PULSADO
 u16 keys = ~REG_KEYINPUT & 0x3FF;          // con 1 = pulsado
 u16 jp   = keys & ~prevKeys; prevKeys = keys; // flanco
 ```
+### Useful Features
 
-### Funciones útiles
-
-| Función | Resultado |
+| Function | Result |
 | :--- | :--- |
-| `waitVSync()` | espera al VBLANK |
-| `actorBox(a,&bx,&by,&bw,&bh)` | collider en coords mundo |
-| `rectHitsSolid(bx,by,bw,bh,dx,dy)` | ¿choca con tiles? |
-| `moveActorCollide(a,dx,dy)` | mueve con colision, por ejes |
-| `gSelf->animSpeed` | paso/vsync de la animación (2 = doble, ver [10.8](#108-sistema-de-actores-las-entidades-del-juego)) |
-| `movePlayer(keys,p)` | D-pad del jugador |
+| `waitVSync()` | wait for VBLANK |
+| `actorBox(a,&bx,&by,&bw,&bh)` | collider in world coords |
+| `rectHitsSolid(bx,by,bw,bh,dx,dy)` | Does it collide with tiles? |
+| `moveActorCollide(a,dx,dy)` | moves with collision, by axes |
+| `gSelf->animSpeed` | animation step/vsync (2 = double, see [10.8](#108-actor-system-game-entities)) |
+| `movePlayer(keys,p)` | Player's D-pad |
 | `updatePlayer()` | input + push actor-actor |
-| `showDialogue(id)` | muestra el diálogo `id` desde la fila 0 (ver [10.13.1](#10131-diálogos-e-idiomas)) |
-| `showDialogueRow(key)` | salta a una fila por su código o ID |
-| `nextDialogueRow()` | avanza a la siguiente fila |
-| `dialogueUpdate()` | avanza solo al pulsar A (llamar cada frame) |
-| `aeSaveHasGame()` | ¿hay partida guardada válida? |
-| `aeSaveWrite(data, size)` | guarda en SRAM (0 ok, -1 si no cabe) |
-| `aeSaveRead(data, size)` | carga de SRAM (0 ok, -1 sin partida) |
-| `aeSaveClear()` | borra la partida |
-| `hideDialogue()` | oculta el diálogo |
-| `gLang = n` | elige el idioma (0 = primera columna, 1 = segunda…) |
-| `initActors()` / `advanceAllActors()` | animación automática |
-| `drawAllActors(screen)` | z-sort + dibujado |
-| `near(a,b,dist)` | ¿±`dist` px entre centros? (proximidad) |
-| `switchScene(n[, "nombre"])` | cambia de escena con la transición de la conexión (multi-escena) |
-| `noteOn(ch,&inst,period)` | dispara una nota/SFX |
+| `showDialogue(id)` | show dialog `id` from row 0 (see [10.13.1](#10131-dialogs-and-languages)) |
+| `showDialogueRow(key)` | jump to a row by its code or ID |
+| `nextDialogueRow()` | advance to the next row |
+| `dialogueUpdate()` | advances only when pressing A (call each frame) |
+| `aeSaveHasGame()` | Is there a valid saved game? |
+| `aeSaveWrite(data, size)` | save in SRAM (0 ok, -1 if it doesn't fit) |
+| `aeSaveRead(data, size)` | SRAM load (0 ok, -1 no start) |
+| `aeSaveClear()` | delete the game |
+| `hideDialogue()` | hide the dialog |
+| `gLang = n` | choose the language (0 = first column, 1 = second…) |
+| `initActors()` / `advanceAllActors()` | automatic animation |
+| `drawAllActors(screen)` | z-sort + drawn |
+| `near(a,b,dist)` | ±`dist` px between centers? (proximity) |
+| `switchScene(n[, "name"])` | change scene with connection transition (multi-scene) |
+| `noteOn(ch,&inst,period)` | shoot a note/SFX |
 
-### Fórmulas
-
-| Fórmula | Uso |
-| :--- | :--- |
-| `RGB555(r,g,b) = ((r>>3)|((g>>3)<<5)|((b>>3)<<10)) & 0x7FFF` | color de píxel |
-| `period = round(2048 − 131072/freq)` | nota → registro de periodo |
-| `6.7 MHz → 280.896 ciclos/frame → 59,73 fps` | timing base |
-| `píxeles de sprite en cámara ≤ ~5.600` | presupuesto VBLANK |
+### Formulas| Formula | Usage || :--- | :--- || `RGB555(r,g,b) = ((r>>3)|((g>>3)<<5)|((b>>3)<<10)) & 0x7FFF` | pixel color |
+| `period = round(2048 − 131072/freq)` | note → period record |
+| `6.7 MHz → 280,896 cycles/frame → 59.73 fps` | base timing |
+| `sprite pixels in camera ≤ ~5,600` | VBLANK budget |
 
 ---
 
-## 10.19. Glosario
+## 10.19. Glossary
 
-- **AABB** — caja alineada a los ejes; el rect de colisión del actor.
-- **APU** — Audio Processing Unit (la parte de sonido del GBA).
-- **BG2_ENABLE** — bit que activa el bitmap de MODE 3.
-- **EWRAM** — External Work RAM, 256 KB, lenta.
-- **IWRAM** — Internal Work RAM, 32 KB, rápida (stack).
-- **Key-on** — bit que "enciende" la nota del canal (en `REG_*FREQ`, bit 14 del valor que escribe `noteOn`).
-- **MODE 3** — modo bitmap 240×160 con píxeles RGB555.
-- **OAM** — Objeto Attribute Memory: tabla de sprites hardware (no usada por el motor).
-- **PPU** — unidad de pintado de píxeles.
-- **RGB555** — 15 bits de color directo (5 por canal).
-- **Scanline / VCOUNT** — línea horizontal actual del LCD; `REG_VCOUNT` la lee.
-- **VBLANK** — periodo vertical blanking (68 líneas): momento seguro para pintar.
-- **Vsync** — "vertical sync": la espera de `waitVSync()`. 1 frame.
-- **z-sort** — ordenar actores por `z` para decidir quién tapa a quién.
-- **Wave RAM** — banco de 16 muestras de 4 bits del canal 3.
-- **Thumb / ARM** — los dos repertorios de instrucciones del ARM7TDMI.
+- **AABB** — axle-aligned box; the actor's collision rect.
+- **APU** — Audio Processing Unit (the sound part of the GBA).
+- **BG2_ENABLE** — bit that activates the MODE 3 bitmap.
+- **EWRAM** — External Work RAM, 256 KB, slow.
+- **IWRAM** — Internal Work RAM, 32 KB, fast (stack).
+- **Key-on** — bit that "turns on" the channel note (in `REG_*FREQ`, bit 14 of the value that writes `noteOn`).
+- **MODE 3** — 240×160 bitmap mode with RGB555 pixels.
+- **OAM** — Attribute Memory object: hardware sprite table (not used by the engine).
+- **PPU** — pixel painting unit.
+- **RGB555** — 15 bits of spot color (5 per channel).
+- **Scanline / VCOUNT** — current horizontal LCD line; `REG_VCOUNT` reads it.
+- **VBLANK** — vertical blanking period (68 lines): safe time to paint.
+- **Vsync** — "vertical sync": the wait for `waitVSync()`. 1 frame.
+- **z-sort** — sort actors by `z` to decide who covers who.
+- **Wave RAM** — bank of 16 4-bit samples from channel 3.
+- **Thumb / ARM** — the two instruction sets of the ARM7TDMI.
 
 ---
 
-**Anterior:** [09 — Exportar y probar](09-exportar.md) · **Volver al [índice](README.md)**
+**Previous:** [09 — Export and test](09-exportar.md) · **Return to [index](README.md)**
